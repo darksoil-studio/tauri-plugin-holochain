@@ -290,6 +290,77 @@
           };
         in androidRust;
 
+        packages.mobileTauriRust = let
+          overlays = [ (import inputs.rust-overlay) ];
+          rustPkgs = import pkgs.path { inherit system overlays; };
+          rust = rustPkgs.rust-bin.stable."1.77.2".default.override {
+            extensions = [ "rust-src" ];
+            targets = [
+              "armv7-linux-androideabi"
+              "x86_64-linux-android"
+              "i686-linux-android"
+              "aarch64-unknown-linux-musl"
+              "wasm32-unknown-unknown"
+              "x86_64-pc-windows-gnu"
+              "x86_64-unknown-linux-musl"
+              "x86_64-apple-darwin"
+              "aarch64-linux-android"
+              "aarch64-apple-ios"
+            ];
+          };
+          linuxCargo = pkgs.writeShellApplication {
+            name = "cargo";
+            runtimeInputs = [ rust ];
+            text = ''
+              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+            '';
+          };
+          customZigbuildCargo = pkgs.writeShellApplication {
+            name = "cargo";
+
+            runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
+              ++ [ rust (pkgs.callPackage ./custom-cargo-zigbuild.nix { }) ];
+
+            text = ''
+              if [ "$#" -ne 0 ] && [ "$1" = "build" ]
+              then
+                cargo-zigbuild "$@"
+              else
+                cargo "$@"
+              fi
+            '';
+          };
+          mobileRust = pkgs.symlinkJoin {
+            name = "rust-for-android-and-ios";
+            paths = [ customZigbuildCargo rust packages.android-sdk ];
+            buildInputs = [ pkgs.makeWrapper ];
+            postBuild = let
+              toolchainBinsPath =
+                "${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/${
+                  if pkgs.stdenv.isLinux then
+                    "linux-x86_64"
+                  else
+                    "darwin-x86_64"
+                }/bin";
+            in ''
+              wrapProgram $out/bin/cargo \
+                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
+                --set CARGO_TARGET_I686_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
+                --set CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
+                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS "-L linker=clang" \
+                --set RANLIB ${toolchainBinsPath}/llvm-ranlib \
+                --set CC_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang \
+                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android24-clang \
+                --set CC_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang \
+                --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android24-clang \
+                --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
+                --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
+                --set CC_armv7_linux_androideabi n{toolchainBinsPath}/armv7a-linux-androideabi24-clang \
+                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang
+            '';
+          };
+        in mobileRust;
+
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom =
             [ devShells.tauriDev inputs'.holochain.devShells.holonix ];
@@ -304,6 +375,16 @@
           ];
           packages =
             [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+        };
+
+        devShells.holochainTauriMobileDev = pkgs.mkShell {
+          inputsFrom = [
+            devShells.tauriDev
+            devShells.androidDev
+            inputs'.holochain.devShells.holonix
+          ];
+          packages =
+            [ packages.mobileTauriRust self'.packages.custom-go-wrapper ];
         };
 
         devShells.default = pkgs.mkShell {
