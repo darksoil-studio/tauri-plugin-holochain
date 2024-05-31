@@ -361,6 +361,45 @@
           };
         in mobileRust;
 
+        packages.iosTauriRust = let
+          overlays = [ (import inputs.rust-overlay) ];
+          rustPkgs = import pkgs.path { inherit system overlays; };
+          rust = rustPkgs.rust-bin.stable."1.77.2".default.override {
+            extensions = [ "rust-src" ];
+            targets = [
+              "wasm32-unknown-unknown"
+              "x86_64-apple-darwin"
+              "aarch64-apple-ios"
+            ];
+          };
+          linuxCargo = pkgs.writeShellApplication {
+            name = "cargo";
+            runtimeInputs = [ rust ];
+            text = ''
+              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+            '';
+          };
+          customZigbuildCargo = pkgs.writeShellApplication {
+            name = "cargo";
+
+            runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
+              ++ [ rust (pkgs.callPackage ./custom-cargo-zigbuild.nix { }) ];
+
+            text = ''
+              if [ "$#" -ne 0 ] && [ "$1" = "build" ]
+              then
+                cargo-zigbuild "$@"
+              else
+                cargo "$@"
+              fi
+            '';
+          };
+          iosRust = pkgs.symlinkJoin {
+            name = "rust-for-ios";
+            paths = [ customZigbuildCargo rust packages.android-sdk ];
+          };
+        in iosRust;
+
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom =
             [ devShells.tauriDev inputs'.holochain.devShells.holonix ];
@@ -375,6 +414,16 @@
           ];
           packages =
             [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+        };
+
+        devShells.holochainTauriIosDev = pkgs.mkShell {
+          inputsFrom = [
+            devShells.tauriDev
+            devShells.androidDev
+            inputs'.holochain.devShells.holonix
+          ];
+          packages =
+            [ packages.iosTauriRust self'.packages.custom-go-wrapper ];
         };
 
         devShells.holochainTauriMobileDev = pkgs.mkShell {
