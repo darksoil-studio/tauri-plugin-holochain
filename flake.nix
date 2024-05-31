@@ -372,33 +372,7 @@
               "aarch64-apple-ios"
             ];
           };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-          customZigbuildCargo = pkgs.writeShellApplication {
-            name = "cargo";
-
-            runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
-              ++ [ rust (pkgs.callPackage ./custom-cargo-zigbuild.nix { }) ];
-
-            text = ''
-              if [ "$#" -ne 0 ] && [ "$1" = "build" ]
-              then
-                cargo-zigbuild "$@"
-              else
-                cargo "$@"
-              fi
-            '';
-          };
-          iosRust = pkgs.symlinkJoin {
-            name = "rust-for-ios";
-            paths = [ customZigbuildCargo rust packages.android-sdk ];
-          };
-        in iosRust;
+        in rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom =
@@ -419,7 +393,6 @@
         devShells.holochainTauriIosDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
-            devShells.androidDev
             inputs'.holochain.devShells.holonix
           ];
           packages =
