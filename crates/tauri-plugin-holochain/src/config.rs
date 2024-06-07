@@ -33,9 +33,9 @@ pub fn conductor_config(
 
     let mut tuning_params = KitsuneP2pTuningParams::default();
 
-    if let Some(c) = override_gossip_arc_clamping {
-        tuning_params.gossip_arc_clamping = c;
-    }
+    // if let Some(c) = override_gossip_arc_clamping {
+    //     tuning_params.gossip_arc_clamping = c;
+    // }
 
     network_config.tuning_params = Arc::new(tuning_params);
 
