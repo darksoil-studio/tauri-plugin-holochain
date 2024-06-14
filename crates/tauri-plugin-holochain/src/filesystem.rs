@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::Arc;
+use std::sync::RwLock;
 use std::sync::RwLockReadGuard;
 use std::{fs, io::Write};
 
@@ -164,7 +166,7 @@ pub type InstalledAppsInfo = HashMap<String, InstalledAppInfo>;
 
 pub struct InstalledAppsStore {
     json_config_path: PathBuf,
-    installed_apps: std::sync::RwLock<InstalledAppsInfo>,
+    installed_apps: Arc<RwLock<InstalledAppsInfo>>,
 }
 
 impl InstalledAppsStore {
@@ -187,14 +189,16 @@ impl InstalledAppsStore {
 
         Ok(Self {
             json_config_path,
-            installed_apps: std::sync::RwLock::new(apps),
+            installed_apps: Arc::new(RwLock::new(apps)),
         })
     }
 
-    pub fn get<'a>(&'a self) -> crate::Result<RwLockReadGuard<'a, InstalledAppsInfo>> {
-        self.installed_apps
+    pub fn get(&self) -> crate::Result<InstalledAppsInfo> {
+        let apps = self
+            .installed_apps
             .read()
-            .map_err(|err| crate::Error::LockError(format!("{err:?}")))
+            .map_err(|err| crate::Error::LockError(format!("{err:?}")))?;
+        Ok(apps.clone())
     }
 
     pub fn update<F>(&self, update_fn: F) -> crate::Result<()>
@@ -203,6 +207,7 @@ impl InstalledAppsStore {
     {
         let mut write_lock = self
             .installed_apps
+            // .write_arc()
             .write()
             .map_err(|err| crate::Error::LockError(format!("{err:?}")))?;
 

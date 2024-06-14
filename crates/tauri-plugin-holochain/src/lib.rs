@@ -66,15 +66,13 @@ impl<R: Runtime> HolochainPlugin<R> {
     ///
     /// * `app_id` - the app whose UI will be open. The must have been installed before with `Self::install_web_app()`.
     /// * `url_path` - [url path](https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname) for the window that will be opened.
-    pub fn web_happ_window_builder(
+    pub async fn web_happ_window_builder(
         &self,
         app_id: InstalledAppId,
         url_path: Option<String>,
     ) -> crate::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let app_id: String = app_id.into();
-        let app_websocket_auth = tauri::async_runtime::block_on(async {
-            self.get_app_websocket_auth(&app_id, false).await
-        })?;
+        let app_websocket_auth = self.get_app_websocket_auth(&app_id, false).await?;
 
         let token_vector: Vec<String> = app_websocket_auth
             .token
@@ -105,8 +103,10 @@ impl<R: Runtime> HolochainPlugin<R> {
                 )
                 .initialization_script(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT);
 
-        let mut capability_builder =
-            CapabilityBuilder::new("sign-zome-call").permission("holochain:allow-sign-zome-call");
+        let mut capability_builder = CapabilityBuilder::new("sign-zome-call")
+            .permission("holochain:allow-sign-zome-call")
+            .permission("log:allow-log")
+            .permission("event:allow-listen"); // For the logs
 
         #[cfg(desktop)] // TODO: remove this check
         {
@@ -129,7 +129,7 @@ impl<R: Runtime> HolochainPlugin<R> {
     /// * `enable_admin_websocket` - whether the window should have direct access to the `AdminWebsocket`'s API.
     /// * `enabled_app` - an optional `app_id` for the app whose `AppWebsocket` should be enabled in the window.
     /// * `url_path` - [url path](https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname) for the window that will be opened.
-    pub fn main_window_builder(
+    pub async fn main_window_builder(
         &self,
         label: String,
         enable_admin_websocket: bool,
@@ -160,9 +160,7 @@ impl<R: Runtime> HolochainPlugin<R> {
         }
 
         if let Some(enabled_app) = enabled_app {
-            let app_websocket_auth = tauri::async_runtime::block_on(async {
-                self.get_app_websocket_auth(&enabled_app, true).await
-            })?;
+            let app_websocket_auth = self.get_app_websocket_auth(&enabled_app, true).await?;
 
             let token_vector: Vec<String> = app_websocket_auth
                 .token
@@ -186,7 +184,9 @@ impl<R: Runtime> HolochainPlugin<R> {
                 .initialization_script(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT);
 
             let mut capability_builder = CapabilityBuilder::new("sign-zome-call")
-                .permission("holochain:allow-sign-zome-call");
+                .permission("holochain:allow-sign-zome-call")
+                .permission("log:allow-log")
+                .permission("event:allow-listen"); // For the logs
 
             #[cfg(desktop)] // TODO: remove this check
             {

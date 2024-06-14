@@ -21,9 +21,14 @@ pub fn run() {
             },
         ))
         .setup(|app| {
-            app.holochain()?
-                .main_window_builder(String::from("main"), true, None, None)?
-                .build()?;
+            let handle = app.handle().clone();
+            tauri::async_runtime::block_on(async move {
+                app.holochain()?
+                    .main_window_builder(String::from("main"), true, None, None).await?
+                    .build()?;
+                Ok(())
+            })?;
+
             Ok(())
         })
         .run(tauri::generate_context!())

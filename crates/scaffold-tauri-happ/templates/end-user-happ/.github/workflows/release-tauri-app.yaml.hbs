@@ -13,7 +13,7 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: 10.13
 
-    runs-on: ${{ matrix.platform }}
+    runs-on: $\{{ matrix.platform }}
     steps:
       - name: Support longpaths
         if: matrix.platform != 'ubuntu-22.04'
@@ -61,9 +61,8 @@ jobs:
       - name: build the app
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: $\{{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: src-tauri
           tagName: v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
           releaseName: "{{title_case app_name}} v__VERSION__"
           releaseBody: "See assets below to download and install this version."

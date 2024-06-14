@@ -10,7 +10,7 @@
     "start": "AGENTS=2 npm run network",
     "network": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm start -w ui\" \"npm run launch\"",
     "launch": "concurrently-repeat \"npm run tauri dev -- --release\" $AGENTS",
-    "network:android": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm start -w ui\" \"npm run tauri android dev --release\"",
+    "network:android": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm start -w ui\" \"npm run tauri dev --release\" \"npm run tauri android dev --release\"",
     "local-services": "hc run-local-services --bootstrap-interface $INTERNAL_IP --bootstrap-port $BOOTSTRAP_PORT --signal-interfaces $INTERNAL_IP --signal-port $SIGNAL_PORT",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:webhapp": "npm run build:zomes && npm run package -w ui && hc web-app pack workdir --recursive",

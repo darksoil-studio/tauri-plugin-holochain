@@ -22,13 +22,15 @@ const randomByteArray = async (length: number) => {
 };
 const getNonceExpiration = () => (Date.now() + 5 * 60 * 1000) * 1000; // 5 mins from now in microseconds
 
-attachConsole().then(() => {
-  window.onerror = (e) => console.error(e);
-  console.trace = trace;
-  console.log = debug;
-  console.info = info;
-  console.warn = warn;
-  console.error = error;
+setTimeout(() => {
+  attachConsole().then(() => {
+    window.onerror = (e) => console.error(e);
+    console.trace = trace;
+    console.log = debug;
+    console.info = info;
+    console.warn = warn;
+    console.error = error;
+  });
 });
 
 window["__HC_ZOME_CALL_SIGNER__"] = {
