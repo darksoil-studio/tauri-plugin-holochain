@@ -90,7 +90,7 @@ pub fn run() {
                 .level(log::LevelFilter::Warn)
                 .build(),
         )
-        .plugin(tauri_plugin_holochain::init(
+        .plugin(tauri_plugin_holochain::async_init(
             vec_to_locked(vec![]).expect("Can't build passphrase"),
             HolochainPluginConfig {
                 signal_url: signal_url(),
@@ -100,16 +100,19 @@ pub fn run() {
         ))
         .setup(|app| {
             let handle = app.handle().clone();
-            tauri::async_runtime::spawn(async move {
-                setup(handle.clone()).await.expect("Failed to setup");
+            app.handle().listen("holochain-setup-completed", move |_event| {
+                let handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    setup(handle.clone()).await.expect("Failed to setup");
 
-                handle
-                    .holochain()
-                    .expect("Failed to get holochain")
-                    .main_window_builder(String::from("main"), false, Some(APP_ID.into()), None).await
-                    .expect("Failed to build window")
-                    .build()
-                    .expect("Failed to open main window");
+                    handle
+                        .holochain()
+                        .expect("Failed to get holochain")
+                        .main_window_builder(String::from("main"), false, Some(APP_ID.into()), None).await
+                        .expect("Failed to build window")
+                        .build()
+                        .expect("Failed to open main window");
+                });
             });
 
             Ok(())

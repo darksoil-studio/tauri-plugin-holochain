@@ -4,8 +4,8 @@
   "author": "guillem@darksoil.studio",
   "description": "",
   "scripts": {
-    "start": "cd examples/tauri-app && nix develop --command bash -c \"npm run tauri dev\"",
-    "android:start": "cd examples/tauri-app && nix develop .#androidDev --command bash -c \"npm run tauri android dev\""
+    "start": "cd examples/end-user-happ && nix develop --command bash -c \"npm run tauri dev\"",
+    "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"npm run tauri android dev\""
   },
   "devDependencies": {},
   "dependencies": {

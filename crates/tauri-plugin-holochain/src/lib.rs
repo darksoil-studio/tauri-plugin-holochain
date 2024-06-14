@@ -498,8 +498,7 @@ pub struct HolochainPluginConfig {
     pub holochain_dir: PathBuf,
 }
 
-/// Initializes the plugin.
-pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> TauriPlugin<R> {
+fn plugin_builder<R: Runtime>() -> Builder<R> {
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call::sign_zome_call,
@@ -598,6 +597,11 @@ pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> T
                 r
             })
         })
+}
+
+/// Initializes the plugin, waiting for holochain to launch before finishing the app's setup.
+pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> TauriPlugin<R> {
+    plugin_builder()
         .setup(|app, _api| {
             let handle = app.clone();
             let result = tauri::async_runtime::block_on(async move {
@@ -605,6 +609,31 @@ pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> T
             });
 
             Ok(result?)
+        })
+        .build()
+}
+
+/// Initializes the plugin without waiting for holochain to launch to continue the setup of the app
+/// If you use this version of init, you should listen to the `holochain-setup-completed` event in your `setup()` hook
+pub fn async_init<R: Runtime>(
+    passphrase: BufRead,
+    config: HolochainPluginConfig,
+) -> TauriPlugin<R> {
+    plugin_builder()
+        .setup(|app, _api| {
+            let handle = app.clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(err) =
+                    launch_and_setup_holochain(handle.clone(), passphrase, config).await
+                {
+                    log::error!("Failed to launch holochain: {err:?}");
+                    if let Err(err) = handle.emit("holochain-setup-failed", ()) {
+                        log::error!("Failed to emit \"holochain-setup-failed\" event: {err:?}");
+                    }
+                }
+            });
+
+            Ok(())
         })
         .build()
 }
@@ -628,7 +657,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
     // manage state so it is accessible by the commands
     app_handle.manage(p);
 
-    app_handle.emit("holochain-ready", ())?;
+    app_handle.emit("holochain-setup-completed", ())?;
 
     Ok(())
 }
