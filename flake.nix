@@ -57,6 +57,14 @@
                   ${pkgs.coreutils}/bin/cp "$@"
                 fi
               '';
+            customWget = pkgs:
+              pkgs.writeShellScriptBin "wget" ''
+                if [[ "$@" == *"excludelist"* ]]; then
+                  echo "# NONE!"
+                else
+                  ${pkgs.wget}/bin/wget "$@"
+                fi
+              '';
 
             buildInputs = { pkgs, lib }:
               (with pkgs;
@@ -65,6 +73,7 @@
                   # openssl
                   openssl_3
                 ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+                  (customWget pkgs)
                   (customCp pkgs)
                   (customGlib pkgs)
                   webkitgtk # Brings libwebkit2gtk-4.0.so.37
@@ -315,6 +324,9 @@
               inputs'.webkitgtknixpkgs.legacyPackages
             }/lib/pkgconfig:$PKG_CONFIG_PATH
             export PATH=${
+              flake.lib.tauriAppDeps.customWget
+              inputs'.webkitgtknixpkgs.legacyPackages
+            }/bin:${
               flake.lib.tauriAppDeps.customCp
               inputs'.webkitgtknixpkgs.legacyPackages
             }/bin:$PATH
