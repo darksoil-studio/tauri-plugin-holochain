@@ -15,7 +15,6 @@ tauri = { version = "2.0.0-rc.8", features = [
 
 # Holochain dependencies
 mr_bundle = "0.4.0-dev"
-holochain = "0.4.0-dev"
 holochain_types = "0.4.0-dev"
 holochain_keystore = "0.4.0-dev"
 holochain_conductor_api = "0.4.0-dev"
@@ -32,7 +31,7 @@ lair_keystore_api = "0.5"
 lair_keystore = { version = "0.5.1" }
 
 # Holochain client
-holochain_client = "0.6.0-dev.8"
+holochain_client = "0.6.0-dev.9"
 
 local-ip-address = "0.6"
 serde_json = "1"
@@ -60,6 +59,18 @@ one_err = "0"
 base64 = "0.22"
 anyhow = "1"
 async-trait = "0.1"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+holochain = { version = "0.4.0-dev.25", default-features = true }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+holochain = { version = "0.4.0-dev.25", default-features = false, features = [
+  "chc",
+  "sqlite-encrypted",
+  "tx5",
+  "metrics_influxive",
+  "wasmer_wamr"
+] }
 
 [build-dependencies]
 tauri-plugin = { version = "2.0.0-rc", features = ["build"] }
