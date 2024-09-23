@@ -2,7 +2,7 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    nixpkgs.follows = "holonix/nixpkgs";
+    nixpkgs.follows = "hc-infra/nixpkgs";
     webkitgtknixpkgs.url =
       "github:nixos/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e";
 
@@ -34,6 +34,30 @@
       flake = {
         lib = rec {
           tauriAppDeps = {
+            customGlib = pkgs:
+              pkgs.runCommandLocal "custom-glib" { src = pkgs.glib.dev; } ''
+                mkdir $out
+                cp -R ${pkgs.glib.dev}/* $out --no-preserve=all
+                sed -i "s?^prefix=.*?prefix=${pkgs.glib.dev}?" $out/lib/pkgconfig/gio-2.0.pc
+              '';
+            customCp = pkgs:
+              let
+                cp = pkgs.runCommandLocal "custom-cp" {
+                  buildInputs = [ pkgs.makeWrapper ];
+                } ''
+                  mkdir $out
+                  mkdir $out/bin
+                  makeWrapper ${pkgs.coreutils}/bin/cp $out/bin/cp \
+                    --append-flags "--preserve=links,timestamps --no-preserve=ownership,mode"
+                '';
+              in pkgs.writeShellScriptBin "cp" ''
+                if [[ "$@" == *"/nix/store"* ]]; then
+                  ${cp}/bin/cp "$@"
+                else
+                  ${pkgs.coreutils}/bin/cp "$@"
+                fi
+              '';
+
             buildInputs = { pkgs, lib }:
               (with pkgs; [
                 openssl
@@ -48,17 +72,17 @@
                 gdk-pixbuf
                 gtk3
                 # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-                gst_all_1.gstreamer
-                # Common plugins like "filesrc" to combine within e.g. gst-launch
-                gst_all_1.gst-plugins-base
-                # Specialized plugins separated by quality
-                gst_all_1.gst-plugins-good
-                gst_all_1.gst-plugins-bad
-                gst_all_1.gst-plugins-ugly
-                # Plugins to reuse ffmpeg to play almost every video format
-                gst_all_1.gst-libav
-                # Support the Video Audio (Hardware) Acceleration API
-                gst_all_1.gst-vaapi
+                # gst_all_1.gstreamer
+                # # Common plugins like "filesrc" to combine within e.g. gst-launch
+                # gst_all_1.gst-plugins-base
+                # # Specialized plugins separated by quality
+                # gst_all_1.gst-plugins-good
+                # gst_all_1.gst-plugins-bad
+                # gst_all_1.gst-plugins-ugly
+                # # Plugins to reuse ffmpeg to play almost every video format
+                # gst_all_1.gst-libav
+                # # Support the Video Audio (Hardware) Acceleration API
+                # gst_all_1.gst-vaapi
                 libsoup_3
                 dbus
                 openssl_3
@@ -240,7 +264,17 @@
             export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/
             export GIO_EXTRA_MODULES=${pkgs.glib-networking}/lib/gio/modules
             export WEBKIT_DISABLE_COMPOSITING_MODE=1
+
             export XDG_DATA_DIRS=${pkgs.shared-mime-info}/share:${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS
+            export PKG_CONFIG_PATH=${
+              flake.lib.tauriAppDeps.customGlib
+              inputs'.webkitgtknixpkgs.legacyPackages
+            }/lib/pkgconfig:$PKG_CONFIG_PATH
+            export PATH=${
+              flake.lib.tauriAppDeps.customCp
+              inputs'.webkitgtknixpkgs.legacyPackages
+            }/bin:$PATH
+            unset SOURCE_DATE_EPOCH
           '' else ''
             export PATH=${pkgs.basez}/bin:$PATH
           '';
@@ -277,9 +311,7 @@
         };
 
         devShells.tauriAndroidDev = let
-          overlays = [ (import inputs.rust-overlay) ];
-          rustPkgs = import pkgs.path { inherit system overlays; };
-          rust = rustPkgs.rust-bin.stable."1.80.0".default.override {
+          rust = inputs.holonix.packages.${system}.rust.override {
             extensions = [ "rust-src" ];
             targets = [
               "armv7-linux-androideabi"
@@ -309,9 +341,7 @@
           ]);
 
         packages.tauriRust = let
-          overlays = [ (import inputs.rust-overlay) ];
-          rustPkgs = import pkgs.path { inherit system overlays; };
-          rust = rustPkgs.rust-bin.stable."1.80.0".default.override {
+          rust = inputs.holonix.packages.${system}.rust.override {
             extensions = [ "rust-src" ];
           };
           linuxCargo = pkgs.writeShellApplication {
@@ -328,9 +358,7 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         packages.holochainTauriRust = let
-          overlays = [ (import inputs.rust-overlay) ];
-          rustPkgs = import pkgs.path { inherit system overlays; };
-          rust = rustPkgs.rust-bin.stable."1.80.0".default.override {
+          rust = inputs.holonix.packages.${system}.rust.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
@@ -348,9 +376,7 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         packages.androidTauriRust = let
-          overlays = [ (import inputs.rust-overlay) ];
-          rustPkgs = import pkgs.path { inherit system overlays; };
-          rust = rustPkgs.rust-bin.stable."1.80.0".default.override {
+          rust = inputs.holonix.packages.${system}.rust.override {
             extensions = [ "rust-src" ];
             targets = [
               "armv7-linux-androideabi"
@@ -421,9 +447,9 @@
         in androidRust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
-          inputsFrom = [ devShells.tauriDev ];
-          packages = [ packages.holochainTauriRust ]
-            ++ inputs.hc-infra.lib.holochainDeps { inherit pkgs lib; };
+          inputsFrom =
+            [ devShells.tauriDev inputs'.hc-infra.devShells.holochainDev ];
+          packages = [ packages.holochainTauriRust ];
         };
 
         devShells.holochainTauriAndroidDev = pkgs.mkShell {

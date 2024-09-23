@@ -168,11 +168,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1726667436,
-        "narHash": "sha256-ff0OFn4KwMk2zBSyFFwy/PrNUiMh0CuEIwIfez6wF8U=",
+        "lastModified": 1727089071,
+        "narHash": "sha256-26MaxOqHIoJaZXNoIIogOZt3hT/ZI+khW5UN8vjsXzM=",
         "owner": "holochain-open-dev",
         "repo": "infrastructure",
-        "rev": "3174a8e7625550939aa15560b067796fde22cb9a",
+        "rev": "cb5703560743019e31eaf8313d388193f7595f1f",
         "type": "github"
       },
       "original": {
@@ -426,11 +426,11 @@
     },
     "pnpmnixpkgs": {
       "locked": {
-        "lastModified": 1726447378,
-        "narHash": "sha256-2yV8nmYE1p9lfmLHhOCbYwQC/W8WYfGQABoGzJOb1JQ=",
+        "lastModified": 1726838390,
+        "narHash": "sha256-NmcVhGElxDbmEWzgXsyAjlRhUus/nEqPC5So7BOJLUM=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "086b448a5d54fd117f4dc2dee55c9f0ff461bdc1",
+        "rev": "944b2aea7f0a2d7c79f72468106bc5510cbf5101",
         "type": "github"
       },
       "original": {
@@ -450,7 +450,7 @@
         "hc-infra": "hc-infra",
         "holonix": "holonix_2",
         "nixpkgs": [
-          "holonix",
+          "hc-infra",
           "nixpkgs"
         ],
         "rust-overlay": [

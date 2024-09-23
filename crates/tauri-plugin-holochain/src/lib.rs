@@ -57,7 +57,7 @@ pub struct HolochainRuntime {
     pub filesystem: FileSystem,
     pub apps_websockets_auths: Arc<Mutex<Vec<AppWebsocketAuth>>>,
     pub admin_port: u16,
-    pub(crate) conductor_handle: ConductorHandle,
+    pub conductor_handle: ConductorHandle,
     pub(crate) _local_signal_handle: sbd_server::SbdServer,
 }
 
@@ -232,19 +232,20 @@ impl<R: Runtime> HolochainPlugin<R> {
         let admin_ws = self.admin_websocket().await?;
 
         // Allow any when the app is build in debug mode to allow normal tauri development pointing to http://localhost:1420
-        let allowed_origins = if tauri::is_dev() {
-            AllowedOrigins::Any
-        } else {
-            let mut origins: HashSet<String> = HashSet::new();
-            origins.insert(happ_origin(app_id));
+        let allowed_origins = 
+            // if tauri::is_dev() {
+            AllowedOrigins::Any;
+        // } else {
+        //     let mut origins: HashSet<String> = HashSet::new();
+        //     origins.insert(happ_origin(app_id));
 
-            if main_window {
-                origins.insert("http://tauri.localhost".into());
-                origins.insert("tauri://localhost".into());
-            }
+        //     if main_window {
+        //         origins.insert("http://tauri.localhost".into());
+        //         origins.insert("tauri://localhost".into());
+        //     }
 
-            AllowedOrigins::Origins(origins)
-        };
+        //     AllowedOrigins::Origins(origins)
+        // };
 
         let app_port = admin_ws
             .attach_app_interface(0, allowed_origins, Some(app_id.clone()))

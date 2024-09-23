@@ -3,21 +3,21 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --refresh --override-input versions "github:holochain/holochain?dir=versions/0_3" github:holochain/holochain#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/scaffolding/develop#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
 hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix true -F --package-manager npm
 cd /tmp/forum-scaffold-tauri-happ
-nix flake update --override-input versions \"github:holochain/holochain?dir=versions/0_3\"
-nix develop --command bash -c \"hc-scaffold --version && npm i && hc scaffold dna forum && hc scaffold zome posts --integrity dnas/forum/zomes/integrity/ --coordinator dnas/forum/zomes/coordinator/\"
+nix flake update
+nix develop --accept-flake-config --command bash -c \"hc-scaffold --version && npm i && hc scaffold dna forum && hc scaffold zome posts --integrity dnas/forum/zomes/integrity/ --coordinator dnas/forum/zomes/coordinator/\"
 "
 
-nix run --accept-flake-config .#scaffold-tauri-happ -- --path /tmp/forum-scaffold-tauri-happ --ui-package ui --bundle-identifier org.myorg.myapp
+nix run --no-update-lock-file --accept-flake-config .#scaffold-tauri-happ -- --path /tmp/forum-scaffold-tauri-happ --ui-package ui --bundle-identifier org.myorg.myapp
 
 cd /tmp/forum-scaffold-tauri-happ
 
-nix develop --override-input p2p-shipyard $DIR --command bash -c "
+nix develop --no-update-lock-file --override-input p2p-shipyard $DIR --command bash -c "
 set -e
 
 npm install
@@ -29,7 +29,7 @@ npm run build:happ
 npm run tauri build -- --no-bundle
 "
 
-nix develop --override-input p2p-shipyard $DIR .#androidDev --command bash -c "
+nix develop --no-update-lock-file --override-input p2p-shipyard $DIR .#androidDev --command bash -c "
 set -e
 
 npm install

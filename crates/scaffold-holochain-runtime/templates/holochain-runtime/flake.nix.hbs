@@ -12,7 +12,7 @@
 
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = builtins.attrNames inputs.holochain.devShells;
+      systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           inputsFrom = [ 
@@ -23,7 +23,7 @@
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [ 
             inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
-            inputs'.holonix.devShells.default 
+            inputs'.holonix.devShells.default
           ];
         };
       };

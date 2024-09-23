@@ -1,3 +1,4 @@
 fn main() {
+  println!("cargo:rerun-if-changed=../workdir/{{app_name}}.happ");
   tauri_build::build()
 }

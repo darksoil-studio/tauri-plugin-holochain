@@ -22,6 +22,7 @@ pub fn run() {
             let result: anyhow::Result<()> = tauri::async_runtime::block_on(async move {
                 app.holochain()?
                     .main_window_builder(String::from("main"), true, None, None).await?
+                    .title(String::from("{{title_case runtime_name}}"))
                     .build()?;
 
                 Ok(())
