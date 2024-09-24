@@ -3057,8 +3057,7 @@ dependencies = [
 [[package]]
 name = "hc-wasmer"
 version = "4.3.6-hc.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8da36c1b427d5ab3b2bca996741a29538f6fba4b0a5dfe20e14fa0d32ec936e3"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=main#b224af32e6fe4ec007fa2623078d484c473d91e7"
 dependencies = [
  "bindgen",
  "bytes",
@@ -3090,8 +3089,7 @@ dependencies = [
 [[package]]
 name = "hc-wasmer-compiler"
 version = "4.3.6-hc.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f63537e3d2aa18c9e7e0068d54be75b1a068f53eb7f1b7f7f3b528acd1e75e7"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=main#b224af32e6fe4ec007fa2623078d484c473d91e7"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3118,8 +3116,7 @@ dependencies = [
 [[package]]
 name = "hc-wasmer-derive"
 version = "4.3.6-hc.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "050c01c0e3193bc69b8cbdc47ec432a42aa4dc64964fc500e6740a12801694dc"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=main#b224af32e6fe4ec007fa2623078d484c473d91e7"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -3130,8 +3127,7 @@ dependencies = [
 [[package]]
 name = "hc-wasmer-types"
 version = "4.3.6-hc.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7832ae1364df93ef680b31523c348204f25810e513b66dfd99d406d985d3e0e5"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=main#b224af32e6fe4ec007fa2623078d484c473d91e7"
 dependencies = [
  "bytecheck",
  "enum-iterator",
@@ -3150,8 +3146,7 @@ dependencies = [
 [[package]]
 name = "hc-wasmer-vm"
 version = "4.3.6-hc.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6166b3a7b61b64cc71851a33cf01cc5dc8b159f5d05c2d2f650969016032c22f"
+source = "git+https://github.com/guillemcordoba/wasmer?branch=main#b224af32e6fe4ec007fa2623078d484c473d91e7"
 dependencies = [
  "backtrace",
  "cc",
@@ -5089,9 +5084,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.158"
+version = "0.2.159"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8adc4bb1803a324070e64a98ae98f38934d91957a99cfb3a43dcbc01bc56439"
+checksum = "561d97a539a36e26a9a5fad1ea11a3039a67714694aaa379433e580854bc3dc5"
 
 [[package]]
 name = "libflate"
@@ -8576,9 +8571,9 @@ dependencies = [
 
 [[package]]
 name = "tao"
-version = "0.30.1"
+version = "0.30.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82e7ede56f9ef03a0bb384c7b2bed4f3985ee7f3f79ec887c50d8466eec21096"
+checksum = "06e48d7c56b3f7425d061886e8ce3b6acfab1993682ed70bef50fd133d721ee6"
 dependencies = [
  "bitflags 2.6.0",
  "cocoa 0.26.0",

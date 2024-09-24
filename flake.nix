@@ -9,8 +9,9 @@
     holonix.url = "github:holochain/holonix";
     rust-overlay.follows = "holonix/rust-overlay";
     android-nixpkgs = {
-      url = "github:tadfisher/android-nixpkgs/stable";
-      inputs.nixpkgs.follows = "nixpkgs";
+      url =
+        "github:tadfisher/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
+      # inputs.nixpkgs.follows = "nixpkgs";
     };
     hc-infra.url = "github:holochain-open-dev/infrastructure/next";
     crane.follows = "holonix/crane";
@@ -287,6 +288,8 @@
             export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${pkgs.aapt}/bin/aapt2";
 
             export NDK_HOME=$ANDROID_SDK_ROOT/ndk-bundle
+            export ANDROID_HOME=${packages.android-sdk}/share/android-sdk
+            export ANDROID_NDK_LATEST_HOME=${packages.android-sdk}/share/android-sdk/ndk-bundle
           '';
         };
 
@@ -338,6 +341,7 @@
             platform-tools
             ndk-bundle
             platforms-android-34
+            cmake-3-22-1
           ]);
 
         packages.tauriRust = let
@@ -441,6 +445,9 @@
                 --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
                 --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
+                --set CMAKE_TOOLCHAIN_FILE ${packages.android-sdk}/share/android-sdk/ndk-bundle/build/cmake/android-legacy.toolchain.cmake \
+                --set LIBCLANG_PATH ${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/lib64/ \
+                --set BINDGEN_EXTRA_CLANG_ARGS ${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang
             '';
           };
@@ -457,6 +464,10 @@
           packages =
             [ packages.androidTauriRust self'.packages.custom-go-wrapper ]
             ++ inputs.hc-infra.lib.holochainDeps { inherit pkgs lib; };
+
+          shellHook = ''
+            export PATH=${packages.android-sdk}/share/android-sdk/cmake/3.22.1/bin:$PATH
+          '';
         };
 
         devShells.default = pkgs.mkShell {

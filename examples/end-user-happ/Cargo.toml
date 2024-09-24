@@ -19,3 +19,5 @@ path = "dnas/forum/zomes/coordinator/posts"
 [workspace.dependencies.posts_integrity]
 path = "dnas/forum/zomes/integrity/posts"
 
+[patch.crates-io]
+hc-wasmer = { git ="https://github.com/guillemcordoba/wasmer",branch="main"}
