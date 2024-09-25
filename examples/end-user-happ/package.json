@@ -3,14 +3,12 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "ui"
-  ],
+  "workspaces": ["ui"],
   "scripts": {
     "start": "AGENTS=2 npm run network",
     "network": "npm run build:happ && concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run launch\"",
     "launch": "concurrently-repeat \"npm run tauri dev\" $AGENTS",
-    "network:android": "concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run tauri android dev\"",
+    "network:android": "concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run tauri android dev\" \"npm run tauri dev\"",
     "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:webhapp": "npm run build:zomes && npm run package -w ui && hc web-app pack workdir --recursive",
     "build:zomes": "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown --workspace --exclude example-end-user-happ",

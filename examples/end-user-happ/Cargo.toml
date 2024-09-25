@@ -20,4 +20,4 @@ path = "dnas/forum/zomes/coordinator/posts"
 path = "dnas/forum/zomes/integrity/posts"
 
 [patch.crates-io]
-hc-wasmer = { git ="https://github.com/guillemcordoba/wasmer",branch="main"}
+hc-wasmer = { git ="https://github.com/holochain/wasmer",branch="fix/android-build"}

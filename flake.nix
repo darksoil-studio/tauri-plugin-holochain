@@ -9,8 +9,7 @@
     holonix.url = "github:holochain/holonix";
     rust-overlay.follows = "holonix/rust-overlay";
     android-nixpkgs = {
-      url =
-        "github:tadfisher/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
+      url = "github:tadfisher/android-nixpkgs/stable";
       # inputs.nixpkgs.follows = "nixpkgs";
     };
     hc-infra.url = "github:holochain-open-dev/infrastructure/next";
@@ -341,7 +340,7 @@
             platform-tools
             ndk-bundle
             platforms-android-34
-            cmake-3-22-1
+            # cmake-3-22-1
           ]);
 
         packages.tauriRust = let
@@ -432,6 +431,7 @@
                     "darwin-x86_64"
                 }/bin";
             in ''
+
               wrapProgram $out/bin/cargo \
                 --set CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_I686_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
@@ -445,9 +445,7 @@
                 --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
                 --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
-                --set CMAKE_TOOLCHAIN_FILE ${packages.android-sdk}/share/android-sdk/ndk-bundle/build/cmake/android-legacy.toolchain.cmake \
-                --set LIBCLANG_PATH ${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/lib64/ \
-                --set BINDGEN_EXTRA_CLANG_ARGS ${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/sysroot/ \
+                --set LIBCLANG_PATH ${pkgs.libclang.lib}/lib \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang
             '';
           };
@@ -461,13 +459,39 @@
 
         devShells.holochainTauriAndroidDev = pkgs.mkShell {
           inputsFrom = [ devShells.tauriDev devShells.androidDev ];
-          packages =
-            [ packages.androidTauriRust self'.packages.custom-go-wrapper ]
-            ++ inputs.hc-infra.lib.holochainDeps { inherit pkgs lib; };
+          packages = [
+            packages.androidTauriRust
+            self'.packages.custom-go-wrapper
+            pkgs.clang
+            pkgs.cmake
+            pkgs.glibc_multi
+          ] ++ inputs.hc-infra.lib.holochainDeps { inherit pkgs lib; };
 
           shellHook = ''
-            export PATH=${packages.android-sdk}/share/android-sdk/cmake/3.22.1/bin:$PATH
+            export BINDGEN_EXTRA_CLANG_ARGS=" \
+              $(< ${pkgs.stdenv.cc}/nix-support/libc-crt1-cflags) \
+              $(< ${pkgs.stdenv.cc}/nix-support/libc-cflags) \
+              $(< ${pkgs.stdenv.cc}/nix-support/cc-cflags) \
+              $(< ${pkgs.stdenv.cc}/nix-support/libcxx-cxxflags) \
+              ${
+                pkgs.lib.optionalString pkgs.stdenv.cc.isClang
+                " \n                -idirafter ${pkgs.stdenv.cc.cc}/lib/clang/${
+                                  pkgs.lib.getVersion pkgs.stdenv.cc.cc
+                                }/include"
+              } \
+              ${
+                pkgs.lib.optionalString pkgs.stdenv.cc.isGNU
+                " \n                -isystem ${pkgs.glibc_multi.dev}/include \n                -isystem ${pkgs.stdenv.cc.cc}/include/c++/${
+                                  pkgs.lib.getVersion pkgs.stdenv.cc.cc
+                                } \n                -isystem ${pkgs.stdenv.cc.cc}/include/c++/${
+                                  pkgs.lib.getVersion pkgs.stdenv.cc.cc
+                                }/${pkgs.stdenv.hostPlatform.config} \n                -idirafter ${pkgs.stdenv.cc.cc}/lib/gcc/${pkgs.stdenv.hostPlatform.config}/${
+                                  pkgs.pkgs.lib.getVersion pkgs.stdenv.cc.cc
+                                }/include"
+              }";
+
           '';
+
         };
 
         devShells.default = pkgs.mkShell {
