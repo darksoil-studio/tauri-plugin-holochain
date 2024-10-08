@@ -15,12 +15,12 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.0.0-rc",
+    "@tauri-apps/api": "^2.0.0",
     "tauri-plugin-holochain-api": "file:../../"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^1.0.1",
-    "@tauri-apps/cli": "^2.0.0-rc",
+    "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
     "internal-ip": "^7.0.0",

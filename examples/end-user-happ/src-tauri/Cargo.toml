@@ -15,17 +15,17 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc", default-features = false, features = [
+tauri-build = { version = "2.0.0", default-features = false, features = [
 ] }
 
 [dependencies]
-tauri = { version = "2.0.0-rc", features = [] }
+tauri = { version = "2.0.0", features = [] }
 tauri-plugin-holochain = { path = "../../../crates/tauri-plugin-holochain" }
-holochain_types = { version = "0.4.0-dev" }
+holochain_types = { version = "0.4.0-rc" }
 lair_keystore = { version = "0.5.1" }
-holochain_client = { version = "0.6.0-dev" }
+holochain_client = { version = "0.6.0-dev.9" }
 log = "0.4"
-tauri-plugin-log = "2.0.0-rc"
+tauri-plugin-log = "2.0.0"
 url2 = "0.0.6"
 app_dirs2 = "2.5.5"
 tempdir = "0.3.7"

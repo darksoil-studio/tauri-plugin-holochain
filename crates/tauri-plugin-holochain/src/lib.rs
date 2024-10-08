@@ -546,7 +546,7 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
             commands::list_apps::list_apps,
             commands::get_runtime_info::is_holochain_ready
         ])
-        .register_uri_scheme_protocol("happ", |app_handle, request| {
+        .register_uri_scheme_protocol("happ", |context, request| {
             log::info!("Received request {}", request.uri().to_string());
             if request.uri().to_string().starts_with("happ://ping") {
                 return response::Builder::new()
@@ -588,7 +588,7 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
                     asset_file = asset_file.join(uri_components[i].clone());
                 }
 
-                let Ok(holochain_plugin) = app_handle.holochain() else {
+                let Ok(holochain_plugin) = context.app_handle().holochain() else {
                     return response::Builder::new()
                         .status(tauri::http::StatusCode::INTERNAL_SERVER_ERROR)
                         .body(

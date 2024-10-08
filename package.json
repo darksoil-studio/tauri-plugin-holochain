@@ -8,8 +8,7 @@
     "android:start": "cd examples/end-user-happ && nix develop .#androidDev --command bash -c \"npm run tauri android dev\""
   },
   "dependencies": {
-    "@tauri-apps/api": "2.0.0-rc.4",
+    "@tauri-apps/api": "^2.0.0",
     "tslib": "^2.7.0"
-  },
-  "packageManager": "pnpm@9.2.0+sha256.94fab213df221c55b6956b14a2264c21c6203cca9f0b3b95ff2fe9b84b120390"
+  }
 }

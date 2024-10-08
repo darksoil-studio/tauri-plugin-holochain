@@ -31,11 +31,16 @@ pub fn run() {
                 setup(handle).await?;
 
                 // After set up we can be sure our app is installed and up to date, so we can just open it
-                app.holochain()?
+                let mut window_builder = app.holochain()?
                     .main_window_builder(String::from("main"), false, Some(String::from("{{app_name}}")), None)
-                    .await?
-                    .title(String::from("{{title_case app_name}}"))
-                    .build()?;
+                    .await?;
+
+                #[cfg(desktop)]
+                {
+                    window_builder = window_builder.title(String::from("{{title_case app_name}}"))
+                }
+
+                window_builder.build()?;
 
                 Ok(())
             });

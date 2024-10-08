@@ -3,7 +3,7 @@
 Default permissions for the plugin
 
 
-## Permission Table 
+## Permission Table
 
 <table>
 <tr>

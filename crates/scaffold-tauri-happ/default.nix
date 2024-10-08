@@ -1,7 +1,7 @@
 { inputs, self, ... }:
 
 {
-  perSystem = { inputs', pkgs, system, lib, ... }: {
+  perSystem = { inputs', self', pkgs, system, lib, ... }: {
 
     packages.scaffold-tauri-happ = let
       craneLib = inputs.crane.mkLib pkgs;
@@ -16,9 +16,8 @@
         src = (self.lib.cleanScaffoldingSource { inherit lib; })
           (craneLib.path ../../.);
         doCheck = false;
-        buildInputs =
-          inputs.hc-infra.outputs.lib.holochainDeps { inherit pkgs lib; }
-          ++ self.lib.tauriAppDeps.buildInputs { inherit pkgs lib; };
+        buildInputs = self'.dependencies.tauriHapp.buildInputs;
+        nativeBuildInputs = self'.dependencies.tauriHapp.nativeBuildInputs;
         cargoExtraArgs = "--locked --package scaffold-tauri-happ";
       };
     in craneLib.buildPackage (commonArgs // {
