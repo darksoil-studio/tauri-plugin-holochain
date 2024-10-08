@@ -471,7 +471,7 @@
             pkgs.clang
             pkgs.cmake
             pkgs.glibc_multi
-          ] ++ inputs.hc-infra.lib.holochainDeps { inherit pkgs lib; };
+          ];
 
           shellHook = ''
             export BINDGEN_EXTRA_CLANG_ARGS=" \
