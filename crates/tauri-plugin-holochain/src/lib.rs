@@ -25,7 +25,7 @@ pub use error::{Error, Result};
 use hc_live_file::*;
 pub use holochain_runtime::*;
 
-const ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT: &'static str = include_str!("../zome-call-signer.js");
+pub const ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT: &'static str = include_str!("../zome-call-signer.js");
 
 /// Access to the holochain APIs.
 pub struct HolochainPlugin<R: Runtime> {
