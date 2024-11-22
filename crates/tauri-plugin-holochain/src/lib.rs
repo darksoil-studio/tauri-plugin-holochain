@@ -133,7 +133,7 @@ impl<R: Runtime> HolochainPlugin<R> {
         }
 
         if let Some(enabled_app) = enabled_app {
-            let allowed_origins= self.get_allowed_origins(&enabled_app, false);
+            let allowed_origins= self.get_allowed_origins(&enabled_app, true);
             let app_websocket_auth = self
                 .holochain_runtime
                 .get_app_websocket_auth(&enabled_app, allowed_origins).await?;
