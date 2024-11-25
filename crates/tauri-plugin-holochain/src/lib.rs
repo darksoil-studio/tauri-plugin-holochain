@@ -176,7 +176,7 @@ impl<R: Runtime> HolochainPlugin<R> {
         Ok(admin_ws)
     }
 
-    fn get_allowed_origins(&self,
+    pub fn get_allowed_origins(&self,
         app_id: &InstalledAppId,
         main_window: bool
     ) -> AllowedOrigins {
