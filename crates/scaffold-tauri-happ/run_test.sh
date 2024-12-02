@@ -3,7 +3,7 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/scaffolding/develop#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/holonix/main-0.4#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
@@ -23,7 +23,7 @@ set -e
 npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
-cargo add -p forum-scaffold-tauri-happ --path $DIR/crates/tauri-plugin-holochain
+cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
 cd ..
 npm run build:happ
 npm run tauri build -- --no-bundle

@@ -10,8 +10,8 @@ tauri = "2.0.0"
 tauri-plugin-log = "2.0.0"
 
 tauri-plugin-holochain = { path = "../tauri-plugin-holochain" }
-holochain_types = "0.4.0-dev"
-holochain_client = "0.6.0-dev"
+holochain_types = "0.4.0-rc"
+holochain_client = "0.6.0-rc"
 lair_keystore = "0.5"
 
 clap = { version = "4.5.4", features = ["derive"] }

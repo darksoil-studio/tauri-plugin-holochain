@@ -3,9 +3,9 @@ on:
   # Trigger the workflow on push or pull request,
   # but only for the main branch
   push: 
-    branches: [ main, develop, next ]
+    branches: [ main, main-0.3, main-0.4 ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, main-0.3, main-0.4 ]
 
 jobs:
   build-scaffold-tauri-happ:
@@ -31,10 +31,6 @@ jobs:
       - uses: cachix/cachix-action@v15
         with:
           name: holochain-ci
-
-      - uses: cachix/cachix-action@v15
-        with:
-          name: holochain-open-dev
 
       - uses: cachix/cachix-action@v15
         with:

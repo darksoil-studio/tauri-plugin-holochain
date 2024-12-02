@@ -22,7 +22,7 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
                 "Could not connect to websocket: {err:?}"
             ))
         })?;
-    tauri::async_runtime::spawn(async move {
+    tokio::spawn(async move {
         let mut spaces_listened_to: HashSet<KitsuneSpace> = HashSet::new();
         let mut cells_ids_broadcasted: HashMap<
             (KitsuneSpace, KitsuneAgent),
@@ -90,7 +90,7 @@ pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) ->
         })?;
     let space_b64 = base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(&space[..]);
 
-    tauri::async_runtime::spawn(async move {
+    tokio::spawn(async move {
         let stream = mdns_listen(space_b64);
         tokio::pin!(stream);
         while let Some(maybe_response) = stream.next().await {

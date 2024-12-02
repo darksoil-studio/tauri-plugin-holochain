@@ -33,7 +33,6 @@ And follow along its instructions and prompts.
 
 ```bash
 nix run nixpkgs#cachix use holochain-ci
-nix run nixpkgs#cachix use holochain-open-dev
 nix run nixpkgs#cachix use darksoil-studio
 ```
 

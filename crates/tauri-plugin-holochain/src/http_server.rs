@@ -9,7 +9,7 @@
 // use tauri::{AppHandle, Runtime};
 // use tokio::net::TcpListener;
 
-use crate::filesystem::FileSystem;
+use holochain_runtime::FileSystem;
 
 pub fn pong_iframe() -> String {
     format!("<html><head></head><body><script>window.onload = () => window.parent.postMessage('pong', '*') </script></body></html>")

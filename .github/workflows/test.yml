@@ -1,15 +1,10 @@
 name: Test
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-      - next
+  push: 
+    branches: [ main, main-0.3, main-0.4 ]
   pull_request:
-    branches:
-      - main
-      - develop
+    branches: [ main, main-0.3, main-0.4 ]
 
 jobs:
   build-and-test:
@@ -34,11 +29,7 @@ jobs:
 
       - uses: cachix/cachix-action@v15
         with:
-          name: holochain-open-dev
-
-      - uses: cachix/cachix-action@v15
-        with:
           name: darksoil-studio
 
       - name: Run flake tests
-        run: nix flake check -L --accept-flake-config
+        run: nix flake check -L --accept-flake-config --no-update-lock-file

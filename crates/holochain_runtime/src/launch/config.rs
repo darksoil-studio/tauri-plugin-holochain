@@ -4,6 +4,7 @@ use holochain::conductor::{
     config::{AdminInterfaceConfig, ConductorConfig, KeystoreConfig},
     interface::InterfaceDriver,
 };
+use holochain_conductor_api::conductor::DpkiConfig;
 use holochain_keystore::paths::KeystorePath;
 use holochain_types::websocket::AllowedOrigins;
 use kitsune_p2p_types::config::{
@@ -18,7 +19,7 @@ pub fn conductor_config(
     admin_port: u16,
     lair_root: KeystorePath,
     wan_network_config: Option<WANNetworkConfig>,
-    local_signal_url: Url2,
+    local_signal_url: Option<Url2>,
     override_gossip_arc_clamping: Option<String>,
 ) -> ConductorConfig {
     let mut config = ConductorConfig::default();
@@ -27,7 +28,8 @@ pub fn conductor_config(
         lair_root: Some(lair_root),
     };
     config.device_seed_lair_tag = Some(DEVICE_SEED_LAIR_KEYSTORE_TAG.into());
-
+    config.dpki = DpkiConfig::disabled();
+    
     let mut network_config = KitsuneP2pConfig::default();
 
     let mut tuning_params = KitsuneP2pTuningParams::default();
@@ -55,10 +57,13 @@ pub fn conductor_config(
     }
 
     // LAN
-    network_config.transport_pool.push(TransportConfig::WebRTC {
+    if let Some(local_signal_url) = local_signal_url {
+        network_config.transport_pool.insert(0, TransportConfig::WebRTC {
         webrtc_config: None,
-        signal_url: local_signal_url.to_string(),
-    });
+            signal_url: local_signal_url.to_string(),
+        });
+    }
+
     config.network = network_config;
 
     // TODO: uncomment when we can set a custom origin for holochain-client-rust

@@ -13,3 +13,11 @@ https://opencollective.com/darksoil/projects/p2pshipyard
 Learn more in the main documentation page:
 
 https://darksoil.studio/p2p-shipyard
+
+## Release Branches 
+
+These are the branches that you should look to depend on:
+
+- `main`: supports the latest stable holochain release.
+- `main-0.3`: supports the latest 0.3.x holochain release.
+- `main-0.4`: supports the latest 0.4.x holochain release.
