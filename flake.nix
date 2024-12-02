@@ -6,7 +6,7 @@
     webkitgtknixpkgs.url =
       "github:nixos/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e";
 
-    holonix.url = "github:holochain/holonix";
+    holonix.url = "github:holochain/holonix/main-0.4";
     rust-overlay.follows = "holonix/rust-overlay";
     android-nixpkgs.url =
       "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
