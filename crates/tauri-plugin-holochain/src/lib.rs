@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     path::PathBuf,
 };
 
@@ -218,14 +218,13 @@ impl<R: Runtime> HolochainPlugin<R> {
         &self,
         app_id: InstalledAppId,
         web_app_bundle: WebAppBundle,
-        existing_cells: ExistingCellsMap,
-        membrane_proofs: Option<MemproofMap>,
+        roles_settings: Option<HashMap<String, RoleSettings>>,
         agent: Option<AgentPubKey>,
         network_seed: Option<NetworkSeed>,
     ) -> crate::Result<AppInfo> {
         let app_info= self
             .holochain_runtime
-            .install_web_app(app_id.clone(), web_app_bundle, existing_cells,membrane_proofs, agent, network_seed).await?;
+            .install_web_app(app_id.clone(), web_app_bundle,roles_settings, agent, network_seed).await?;
 
         self.app_handle.emit("holochain://app-installed", app_id)?;
 
@@ -243,16 +242,14 @@ impl<R: Runtime> HolochainPlugin<R> {
         &self,
         app_id: InstalledAppId,
         app_bundle: AppBundle,
-        existing_cells: ExistingCellsMap,
-        membrane_proofs: Option<MemproofMap>,
+        roles_settings: Option<HashMap<String, RoleSettings>>,
         agent: Option<AgentPubKey>,
         network_seed: Option<NetworkSeed>,
     ) -> crate::Result<AppInfo> {
         let app_info = self.holochain_runtime.install_app(
             app_id.clone(),
             app_bundle,
-            existing_cells,
-            membrane_proofs,
+            roles_settings,
             agent,
             network_seed,
         )
