@@ -40,18 +40,6 @@ either = "*"
 anyhow = "1"
 ctrlc = "3.4"
 
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-holochain = { version = "0.4.0-dev.25", default-features = true }
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-holochain = { version = "0.4.0-dev.25", default-features = false, features = [
-  "chc",
-  "sqlite-encrypted",
-  "tx5",
-  "metrics_influxive",
-  "wasmer_wamr"
-] }
-
 [build-dependencies]
 tauri-plugin = { version = "2.0.0", features = ["build"] }
 
