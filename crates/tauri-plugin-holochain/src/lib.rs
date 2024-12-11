@@ -184,15 +184,16 @@ impl<R: Runtime> HolochainPlugin<R> {
         let allowed_origins = if tauri::is_dev() {
             AllowedOrigins::Any
         } else {
-            let mut origins: HashSet<String> = HashSet::new();
-            origins.insert(happ_origin(&app_id));
+            AllowedOrigins::Any
+            // let mut origins: HashSet<String> = HashSet::new();
+            // origins.insert(happ_origin(&app_id));
 
-            if main_window {
-                origins.insert("http://tauri.localhost".into());
-                origins.insert("tauri://localhost".into());
-            }
+            // if main_window {
+            //     origins.insert("http://tauri.localhost".into());
+            //     origins.insert("tauri://localhost".into());
+            // }
 
-            AllowedOrigins::Origins(origins)
+            // AllowedOrigins::Origins(origins)
         };
         allowed_origins
     }
