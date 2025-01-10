@@ -433,8 +433,13 @@
 
         devShells.holochainTauriAndroidDev = pkgs.mkShell {
           inputsFrom = [ devShells.tauriDev devShells.androidDev ];
-          packages =
-            [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+          packages = [
+            packages.androidTauriRust
+            self'.packages.custom-go-wrapper
+            pkgs.clang
+            pkgs.cmake
+            pkgs.glibc_multi
+          ];
           buildInputs =
             inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
 
