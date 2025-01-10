@@ -321,7 +321,13 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         packages.holochainTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
+          overlays = [ (import inputs.rust-overlay) ];
+          pkgs = import inputs.nixpkgs { inherit system overlays; };
+
+          rustVersion = "1.81.0";
+
+          # define Rust toolchain version and targets to be used in this flake
+          rust = pkgs.rust-bin.stable.${rustVersion}.minimal.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
