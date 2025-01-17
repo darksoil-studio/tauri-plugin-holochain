@@ -11,14 +11,14 @@ links = "tauri-plugin-holochain"
 tauri = { version = "2.1.1" }
 
 # Holochain dependencies
-holochain_types = "0.4.0"
+holochain_types = "0.4.1-rc.1"
 
 # Lair dependencies
 hc_seed_bundle = "0.2"
 lair_keystore_api = "0.5.3"
 
 # Holochain client
-holochain_client = "0.6.0"
+holochain_client = { git = "https://github.com/holochain/holochain-client-rust", branch = "v0.4.1-rc.1"}
 
 holochain_runtime = { path = "../holochain_runtime" }
 

@@ -179,6 +179,22 @@
         "type": "github"
       }
     },
+    "gonixpkgs": {
+      "locked": {
+        "lastModified": 1735563628,
+        "narHash": "sha256-OnSAY7XDSx7CtDoqNh8jwVwh4xNL/2HaJxGjryLWzX8=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b134951a4c9f3c995fd7be05f3243f8ecd65d798",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-24.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "hc-launch": {
       "flake": false,
       "locked": {
@@ -569,6 +585,7 @@
           "holonix",
           "crane"
         ],
+        "gonixpkgs": "gonixpkgs",
         "holonix": "holonix_2",
         "nixpkgs": [
           "p2p-shipyard",
@@ -584,7 +601,7 @@
       },
       "locked": {
         "lastModified": 0,
-        "narHash": "sha256-bxGwYjGJQcLorT+gaXUv7KxVb76GlM9FV1Omga25/RQ=",
+        "narHash": "sha256-UUz/kRMMpqCrDqltoDcluYTWmh12DWAtyuFzUnXrTOE=",
         "path": "../..",
         "type": "path"
       },
@@ -726,11 +743,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1736770260,
-        "narHash": "sha256-hBVBWixVewGOh3hAfTEGmoi2/MIsuIuxQ1BttmWukhE=",
+        "lastModified": 1736870599,
+        "narHash": "sha256-kCs/4lZ5b65x28nb1kSqfdr0RGGizkACxdwpNUJ7ano=",
         "owner": "darksoil-studio",
         "repo": "tnesh-stack",
-        "rev": "ff7895fcacb8562e6d39f2831de797ac857b7b0a",
+        "rev": "32ca9758de9a21aa55d0f5afb443d8ed5b6091eb",
         "type": "github"
       },
       "original": {
