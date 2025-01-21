@@ -37,7 +37,6 @@ jobs:
           name: darksoil-studio
 
       - name: Test scaffold-holochain-runtime
-        if: ${{ matrix.os == 'ubuntu-latest' }} # in macos-latest, this fails with "no space left on device" error 
         run: |
           cargo test -p scaffold-holochain-runtime
           sh ./crates/scaffold-holochain-runtime/run_test.sh

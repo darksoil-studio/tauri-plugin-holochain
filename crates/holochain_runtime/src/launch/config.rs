@@ -37,6 +37,9 @@ pub fn conductor_config(
     if let Some(c) = override_gossip_arc_clamping {
         tuning_params.gossip_arc_clamping = c;
     }
+    tuning_params.gossip_peer_on_success_next_gossip_delay_ms = 3*1000;
+    tuning_params.gossip_peer_on_error_next_gossip_delay_ms = 10*1000;
+    tuning_params.tx5_backend_tracing_enabled = true;
 
     network_config.tuning_params = Arc::new(tuning_params);
 

@@ -1,7 +1,6 @@
-use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
 use std::collections::HashMap;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig};
+use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, vec_to_locked};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -36,7 +35,7 @@ fn wan_network_config() -> Option<WANNetworkConfig> {
     } else {
         Some(WANNetworkConfig {
             signal_url: url2::url2!("wss://sbd.holo.host"),
-            bootstrap_url: url2::url2!("https://bootstrap-0.infra.holochain.org"),
+            bootstrap_url: url2::url2!("https://bootstrap.holo.host"),
             ice_servers_urls: vec![
                 url2::url2!("stun:stun-0.main.infra.holo.host:443"),
                 url2::url2!("stun:stun-1.main.infra.holo.host:443"),
@@ -77,22 +76,5 @@ fn holochain_dir() -> PathBuf {
         )
         .expect("Could not get app root")
         .join("holochain")
-    }
-}
-
-fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
-    match BufWrite::new_mem_locked(pass_tmp.len()) {
-        Err(e) => {
-            pass_tmp.fill(0);
-            Err(e.into())
-        }
-        Ok(p) => {
-            {
-                let mut lock = p.write_lock();
-                lock.copy_from_slice(&pass_tmp);
-                pass_tmp.fill(0);
-            }
-            Ok(p.to_read())
-        }
     }
 }

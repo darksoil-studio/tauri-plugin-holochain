@@ -1,34 +1,15 @@
 use holochain_types::prelude::AppBundle;
-use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
-use std::collections::HashMap;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig};
+use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig, vec_to_locked};
 use tauri::{AppHandle, Listener};
 
 const APP_ID: &'static str = "example";
 const SIGNAL_URL: &'static str = "wss://sbd.holo.host";
-const BOOTSTRAP_URL: &'static str = "https://bootstrap-0.infra.holochain.org";
+const BOOTSTRAP_URL: &'static str = "https://bootstrap.holo.host";
 
 pub fn example_happ() -> AppBundle {
     let bytes = include_bytes!("../../workdir/forum.happ");
     AppBundle::decode(bytes).expect("Failed to decode example happ")
-}
-
-pub fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
-    match BufWrite::new_mem_locked(pass_tmp.len()) {
-        Err(e) => {
-            pass_tmp.fill(0);
-            Err(e.into())
-        }
-        Ok(p) => {
-            {
-                let mut lock = p.write_lock();
-                lock.copy_from_slice(&pass_tmp);
-                pass_tmp.fill(0);
-            }
-            Ok(p.to_read())
-        }
-    }
 }
 
 fn wan_network_config() -> Option<WANNetworkConfig> {
@@ -38,10 +19,7 @@ fn wan_network_config() -> Option<WANNetworkConfig> {
         Some(WANNetworkConfig {
             signal_url: url2::url2!("{SIGNAL_URL}"),
             bootstrap_url: url2::url2!("{BOOTSTRAP_URL}"),
-            ice_servers_urls: vec![
-                url2::url2!("stun:stun-0.main.infra.holo.host:443"),
-                url2::url2!("stun:stun-1.main.infra.holo.host:443"),
-            ]
+            ice_servers_urls: vec![]
         })
     }
 }
@@ -138,8 +116,7 @@ async fn setup(handle: AppHandle) -> anyhow::Result<()> {
             .install_app(
                 String::from(APP_ID),
                 example_happ(),
-                HashMap::new(),
-                Some(HashMap::new()),
+                None,
                 None,
                 None,
             )

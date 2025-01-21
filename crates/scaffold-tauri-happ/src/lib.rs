@@ -5,7 +5,7 @@ use handlebars::{no_escape, RenderErrorReason};
 use include_dir::{include_dir, Dir};
 use nix_scaffolding_utils::{add_flake_input_to_flake_file, NixScaffoldingUtilsError};
 use npm_scaffolding_utils::{
-    add_npm_dev_dependency_to_package, add_npm_script_to_package, choose_npm_package, guess_or_choose_package_manager, NpmScaffoldingUtilsError, PackageManager
+    add_npm_dev_dependency_to_package, add_npm_script_to_package, choose_npm_package, get_npm_package_name, guess_or_choose_package_manager, NpmScaffoldingUtilsError, PackageManager
 };
 use rust_scaffolding_utils::add_member_to_workspace;
 use serde::{Deserialize, Serialize};
@@ -137,7 +137,11 @@ pub fn scaffold_tauri_happ(
 
     let ui_package = match ui_package {
         Some(ui_package) => ui_package,
-        None => choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?,
+        None => {
+            let npm_package=choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
+            let name = get_npm_package_name(&npm_package)?;
+            name
+        },
     };
 
     // - In package.json
@@ -150,7 +154,7 @@ pub fn scaffold_tauri_happ(
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
                 &String::from("@tauri-apps/cli"),
-                &String::from("^2.0.0-rc"),
+                &String::from("^2.0.0"),
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
@@ -387,7 +391,7 @@ mod tests {
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0-rc",
+    "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
     "internal-ip-cli": "^2.0.0",
@@ -482,8 +486,8 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "src-tauri"
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "0.4.2"
-hdk = "0.3.2"
+hdi = "0.5.0"
+hdk = "0.4.0"
 serde = "1.0"
 
 [workspace.dependencies.posts]
@@ -506,8 +510,8 @@ resolver = "2"
 members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 
 [workspace.dependencies]
-hdi = "0.4.2"
-hdk = "0.3.2"
+hdi = "0.5.0"
+hdk = "0.4.0"
 serde = "1.0"
 
 [workspace.dependencies.posts]

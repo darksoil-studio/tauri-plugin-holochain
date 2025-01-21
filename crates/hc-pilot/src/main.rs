@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use clap::Parser;
 use holochain_client::AppInfo;
 use holochain_types::{
-    app::{ExistingCellsMap, InstallAppPayload, MemproofMap},
+    app::{InstallAppPayload, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
 use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
@@ -131,8 +131,7 @@ fn main() {
                 let app_info = setup(
                     handle.clone(),
                     args.happ_bundle_path,
-                    HashMap::new(),
-                    Some(HashMap::new()),
+                    None,
                     agent_key,
                     args.network_seed,
                 )
@@ -162,8 +161,7 @@ fn main() {
 async fn setup(
     handle: AppHandle,
     app_bundle_path: PathBuf,
-    existing_cells: ExistingCellsMap,
-    membrane_proofs: Option<MemproofMap>,
+    roles_settings: Option<HashMap<String, RoleSettings>>,
     agent_key: Option<AgentPubKey>,
     network_seed: Option<String>,
 ) -> anyhow::Result<AppInfo> {
@@ -171,8 +169,7 @@ async fn setup(
     let app_info = admin_ws
         .install_app(InstallAppPayload {
             agent_key,
-            existing_cells,
-            membrane_proofs,
+            roles_settings,
             network_seed,
             source: holochain_types::app::AppBundleSource::Path(app_bundle_path),
             installed_app_id: None,

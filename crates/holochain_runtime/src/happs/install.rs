@@ -9,8 +9,7 @@ pub async fn install_web_app(
     admin_ws: &AdminWebsocket,
     app_id: String,
     bundle: WebAppBundle,
-    existing_cells: ExistingCellsMap,
-    membrane_proofs: Option<HashMap<RoleName, MembraneProof>>,
+    roles_settings: Option<HashMap<String,RoleSettings>>,
     agent: Option<AgentPubKey>,
     network_seed: Option<NetworkSeed>,
 ) -> crate::Result<AppInfo> {
@@ -18,8 +17,7 @@ pub async fn install_web_app(
         admin_ws,
         app_id.clone(),
         bundle.happ_bundle().await?,
-        existing_cells,
-        membrane_proofs,
+        roles_settings,
         agent,
         network_seed,
     )
@@ -34,8 +32,7 @@ pub async fn install_app(
     admin_ws: &AdminWebsocket,
     app_id: String,
     bundle: AppBundle,
-    existing_cells: ExistingCellsMap,
-    membrane_proofs: Option<HashMap<RoleName, MembraneProof>>,
+    roles_settings: Option<HashMap<String,RoleSettings>>,
     agent_key: Option<AgentPubKey>,
     network_seed: Option<NetworkSeed>,
 ) -> crate::Result<AppInfo> {
@@ -44,8 +41,7 @@ pub async fn install_app(
     let app_info = admin_ws
         .install_app(InstallAppPayload {
             agent_key,
-            membrane_proofs,
-            existing_cells,
+            roles_settings,
             network_seed,
             source: AppBundleSource::Bundle(bundle),
             installed_app_id: Some(app_id.clone()),

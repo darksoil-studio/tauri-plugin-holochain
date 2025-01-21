@@ -37,7 +37,6 @@ jobs:
           name: darksoil-studio
 
       - name: Test scaffold-tauri-happ
-        if: ${{ matrix.os == 'ubuntu-latest' }} # in macos-latest, this fails with "no space left on device" error 
         run: |
           cargo test -p scaffold-tauri-happ
           sh ./crates/scaffold-tauri-happ/run_test.sh
