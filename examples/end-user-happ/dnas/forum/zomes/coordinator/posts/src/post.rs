@@ -2,7 +2,7 @@ use hdk::prelude::*;
 use posts_integrity::*;
 #[hdk_extern]
 pub fn create_post(post: Post) -> ExternResult<Record> {
-    let start = sys_time()?;
+    error!("WAMR_LOG: start create post");
 
     let post_hash = create_entry(&EntryTypes::Post(post.clone()))?;
     let record = get(post_hash.clone(), GetOptions::default())?.ok_or(wasm_error!(
@@ -15,8 +15,7 @@ pub fn create_post(post: Post) -> ExternResult<Record> {
         LinkTypes::AllPosts,
         (),
     )?;
-    let end = sys_time()?;
-    error!("Elapsed: {:?}", start- end);
+    error!("WAMR_LOG: end create post");
     Ok(record)
 }
 #[hdk_extern]

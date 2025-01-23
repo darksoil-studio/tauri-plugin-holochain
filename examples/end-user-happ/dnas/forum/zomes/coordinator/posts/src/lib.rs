@@ -26,11 +26,13 @@ pub enum Signal {
 }
 #[hdk_extern(infallible)]
 pub fn post_commit(committed_actions: Vec<SignedActionHashed>) {
+    error!("WAMR_LOG: start post_commit");
     for action in committed_actions {
         if let Err(err) = signal_action(action) {
             error!("Error signaling new action: {:?}", err);
         }
     }
+    error!("WAMR_LOG: end post_commit");
 }
 fn signal_action(action: SignedActionHashed) -> ExternResult<()> {
     match action.hashed.content.clone() {
@@ -118,12 +120,14 @@ fn signal_action(action: SignedActionHashed) -> ExternResult<()> {
     }
 }
 fn get_entry_for_action(action_hash: &ActionHash) -> ExternResult<Option<EntryTypes>> {
+    error!("WAMR_LOG: post_commit before get_details");
     let record = match get_details(action_hash.clone(), GetOptions::default())? {
         Some(Details::Record(record_details)) => record_details.record,
         _ => {
             return Ok(None);
         }
     };
+    error!("WAMR_LOG: post_commit after get_details");
     let entry = match record.entry().as_option() {
         Some(entry) => entry,
         None => {
