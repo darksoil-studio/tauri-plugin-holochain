@@ -67,7 +67,7 @@ impl BundleStore {
         Ok(bundle_store)
     }
 
-    fn happ_bundle_store(&self) -> AppBundleStore {
+    pub fn happ_bundle_store(&self) -> AppBundleStore {
         AppBundleStore {
             path: self.path.join("happs"),
         }
@@ -281,11 +281,11 @@ impl AppBundleStore {
         Ok(hash)
     }
 
-    // fn app_bundle_path(&self, app_bundle: &AppBundle) -> crate::Result<PathBuf> {
-    //     Ok(self
-    //         .path
-    //         .join(format!("{}.happ", Self::app_bundle_hash(app_bundle)?)))
-    // }
+    pub fn app_bundle_path(&self, app_bundle: &AppBundle) -> crate::Result<PathBuf> {
+        Ok(self
+            .path
+            .join(format!("{}.happ", Self::app_bundle_hash(app_bundle)?)))
+    }
 
     // pub fn get_webapp(
     //     &self,

@@ -5,14 +5,14 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-mr_bundle = "0.4.0"
-holochain = { version = "0.4.0", features = [ "unstable-functions", "unstable-sharding" ] }
-holochain_types = "0.4.0"
-holochain_keystore = "0.4.0"
-holochain_conductor_api = "0.4.0"
+mr_bundle = "0.4.1"
+holochain = { version = "0.4.1", features = [ "unstable-functions", "unstable-sharding" ] }
+holochain_types = "0.4.1"
+holochain_keystore = "0.4.1"
+holochain_conductor_api = "0.4.1"
 
-kitsune_p2p_mdns = "0.4.0"
-kitsune_p2p_types = "0.4.0"
+kitsune_p2p_mdns = "0.4.1"
+kitsune_p2p_types = "0.4.1"
 
 sbd-server = "0.0.8-alpha"
 tx5-signal = "0.1.5-beta"

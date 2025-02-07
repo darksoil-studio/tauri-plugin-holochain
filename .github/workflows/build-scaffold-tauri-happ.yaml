@@ -42,7 +42,6 @@ jobs:
           sh ./crates/scaffold-tauri-happ/run_test.sh
 
       - name: Cache scaffold-tauri-happ
-        if: github.event_name == 'pull_request' && github.base_ref == 'main'
         env:
           CACHIX_AUTH_TOKEN: "${{ secrets.DARKSOIL_CACHIX_AUTH_TOKEN }}"
         run: |
