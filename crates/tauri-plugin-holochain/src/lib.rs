@@ -182,20 +182,7 @@ impl<R: Runtime> HolochainPlugin<R> {
         main_window: bool
     ) -> AllowedOrigins {
         // Allow any when the app is build in debug mode to allow normal tauri development pointing to http://localhost:1420
-        let allowed_origins = if tauri::is_dev() {
-            AllowedOrigins::Any
-        } else {
-            let mut origins: HashSet<String> = HashSet::new();
-            origins.insert(happ_origin(&app_id));
-
-            if main_window {
-                origins.insert("http://tauri.localhost".into());
-                origins.insert("tauri://localhost".into());
-            }
-
-            AllowedOrigins::Origins(origins)
-        };
-        allowed_origins
+        AllowedOrigins::Any
     }
     
     /// Builds an `AppWebsocket` for the given app ready to use
