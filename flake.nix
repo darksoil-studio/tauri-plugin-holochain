@@ -11,7 +11,7 @@
 
     android-nixpkgs.url =
       "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
-    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    oldnixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
   };
 
   nixConfig = {
@@ -109,38 +109,14 @@
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
         dependencies.tauriApp = let
-
-          customGlib =
-            pkgs.runCommandLocal "custom-glib" { src = pkgs.glib.dev; } ''
-              mkdir $out
-              cp -R ${pkgs.glib.dev}/* $out --no-preserve=all
-              sed -i "s?^prefix=.*?prefix=${pkgs.glib.dev}?" $out/lib/pkgconfig/gio-2.0.pc
-            '';
-          customCp = let
-            cp = pkgs.runCommandLocal "custom-cp" {
-              buildInputs = [ pkgs.makeWrapper ];
-            } ''
-              mkdir $out
-              mkdir $out/bin
-              makeWrapper ${pkgs.coreutils}/bin/cp $out/bin/cp \
-                --append-flags "--preserve=links,timestamps --no-preserve=ownership,mode"
-            '';
-          in pkgs.writeShellScriptBin "cp" ''
-            if [[ "$@" == *"/nix/store"* ]]; then
-              ${cp}/bin/cp "$@"
-            else
-              ${pkgs.coreutils}/bin/cp "$@"
-            fi
-          '';
-
+          pkgs = inputs'.oldnixpkgs.legacyPackages;
           buildInputs = (with pkgs;
             [
               # this is required for glib-networking
               # openssl
               openssl_3
             ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-              customCp
-              customGlib
+
               webkitgtk # Brings libwebkit2gtk-4.0.so.37
               # webkitgtk.dev
               webkitgtk_4_1 # Needed for javascriptcoregtk
@@ -148,7 +124,7 @@
               # webkitgtk_6_0
               gdk-pixbuf
               gtk3
-              # glib
+              glib
               # stdenv.cc.cc.lib
               # harfbuzz
               # harfbuzzFull

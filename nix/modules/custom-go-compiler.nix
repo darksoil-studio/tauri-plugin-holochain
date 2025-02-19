@@ -3,7 +3,7 @@
 {
   perSystem = { inputs', lib, self', system, ... }:
 
-    let pkgs = inputs.gonixpkgs.outputs.legacyPackages.${system};
+    let pkgs = inputs.oldnixpkgs.outputs.legacyPackages.${system};
     in rec {
 
       packages.custom-go-wrapper = let
