@@ -7,7 +7,7 @@ use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, web
 use lair_keystore::dependencies::sodoken::BufRead;
 use sbd_server::SbdServer;
 
-use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::{install_app, install_web_app}, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
+use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::install_app, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
 
 #[derive(Clone)]
 pub struct AppWebsocketAuth {
@@ -134,11 +134,14 @@ impl HolochainRuntime {
             .store_web_happ_bundle(app_id.clone(), &web_app_bundle)
             .await?;
 
+        let app_bundle = web_app_bundle.happ_bundle().await?;
+        let app_bundle_path = self.filesystem.bundle_store.happ_bundle_store().app_bundle_path(&app_bundle)?;
+
         let admin_ws = self.admin_websocket().await?;
-        let app_info = install_web_app(
+        let app_info = install_app(
             &admin_ws,
             app_id.clone(),
-            web_app_bundle,
+            app_bundle_path,
             roles_settings,
             agent,
             network_seed,
@@ -170,10 +173,12 @@ impl HolochainRuntime {
             .bundle_store
             .store_happ_bundle(app_id.clone(), &app_bundle)?;
 
+        let app_bundle_path = self.filesystem.bundle_store.happ_bundle_store().app_bundle_path(&app_bundle)?;
+
         let app_info = install_app(
             &admin_ws,
             app_id.clone(),
-            app_bundle,
+            app_bundle_path,
             roles_settings,
             agent,
             network_seed,

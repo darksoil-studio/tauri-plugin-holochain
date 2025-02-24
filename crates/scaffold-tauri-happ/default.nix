@@ -1,4 +1,4 @@
-{ inputs, self, ... }:
+{ inputs, ... }:
 
 {
   perSystem = { inputs', self', pkgs, system, lib, ... }: {
@@ -13,8 +13,9 @@
       crate = cargoToml.package.name;
 
       commonArgs = {
-        src = (self.lib.cleanScaffoldingSource { inherit lib; })
-          (craneLib.path ../../.);
+        src = (inputs.tnesh-stack.outputs.lib.cleanScaffoldingSource {
+          inherit lib;
+        }) (craneLib.path ../../.);
         doCheck = false;
         buildInputs = self'.dependencies.tauriHapp.buildInputs;
         nativeBuildInputs = self'.dependencies.tauriHapp.nativeBuildInputs;

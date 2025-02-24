@@ -2,17 +2,16 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    nixpkgs.follows = "tnesh-stack/nixpkgs";
-    webkitgtknixpkgs.url =
-      "github:nixos/nixpkgs/3f316d2a50699a78afe5e77ca486ad553169061e";
-
     holonix.url = "github:holochain/holonix/main-0.4";
+    nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
-    android-nixpkgs.url =
-      "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
+    crane.follows = "holonix/crane";
 
     tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
-    crane.follows = "holonix/crane";
+
+    android-nixpkgs.url =
+      "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
+    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
   };
 
   nixConfig = {
@@ -74,18 +73,18 @@
                 ".toml"
                 # Keep icons
                 ".png"
+                # Keep tauri.conf.json and capabilities
+                ".json"
               ];
 
               # Cargo.toml already captured above
               isCargoFile = base == "Cargo.lock";
-
-              isTauriConfigFile = base == "tauri.conf.json";
               isSignerFile = base == "zome-call-signer.js";
 
               # .cargo/config.toml already captured above
               isCargoConfig = parentDir == ".cargo" && base == "config";
             in type == "directory" || matchesSuffix || isCargoFile
-            || isCargoConfig || isTauriConfigFile || isSignerFile;
+            || isCargoConfig || isSignerFile;
           cleanTauriSource = { lib }:
             src:
             lib.cleanSourceWith {
@@ -94,39 +93,6 @@
 
               name = "tauri-workspace";
             };
-          filterScaffoldingSources = { lib }:
-            orig_path: type:
-            let
-              path = (toString orig_path);
-              base = baseNameOf path;
-              parentDir = baseNameOf (dirOf path);
-
-              matchesSuffix = lib.any (suffix: lib.hasSuffix suffix base) [
-                # Keep rust sources
-                ".rs"
-                # Keep all toml files as they are commonly used to configure other
-                # cargo-based tools
-                ".toml"
-                # Keep templates
-                ".hbs"
-              ];
-
-              # Cargo.toml already captured above
-              isCargoFile = base == "Cargo.lock";
-
-              # .cargo/config.toml already captured above
-              isCargoConfig = parentDir == ".cargo" && base == "config";
-            in type == "directory" || matchesSuffix || isCargoFile
-            || isCargoConfig;
-          cleanScaffoldingSource = { lib }:
-            src:
-            lib.cleanSourceWith {
-              src = lib.cleanSource src;
-              filter = filterScaffoldingSources { inherit lib; };
-
-              name = "scaffolding-workspace";
-            };
-
         };
       };
 
@@ -143,10 +109,6 @@
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
         dependencies.tauriApp = let
-
-          # TODO: remove this line when this bug is fixed: https://github.com/tauri-apps/tauri/issues/10626
-          # and this other bug as well: https://github.com/tauri-apps/tauri/issues/9304
-          pkgs = import inputs.webkitgtknixpkgs { inherit system; };
 
           customGlib =
             pkgs.runCommandLocal "custom-glib" { src = pkgs.glib.dev; } ''
@@ -504,10 +466,8 @@
         };
 
         devShells.default = pkgs.mkShell {
-          inputsFrom = [
-            inputs'.tnesh-stack.devShells.synchronized-pnpm
-            devShells.holochainTauriDev
-          ];
+          inputsFrom = [ devShells.holochainTauriDev ];
+          packages = [ inputs'.tnesh-stack.packages.synchronized-pnpm ];
         };
       };
     };

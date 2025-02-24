@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tauri = { version = "2.0.0", features = [ "devtools" ] }
-tauri-plugin-log = "2.0.0"
+tauri = { version = "2.1.1", features = [ "devtools" ] }
+tauri-plugin-log = "2.0.3"
 
 tauri-plugin-holochain = { path = "../tauri-plugin-holochain" }
-holochain_types = "0.4.0-rc"
-holochain_client = "0.6.0-rc"
-lair_keystore = "0.5"
+holochain_types = "0.4.0"
+holochain_client = "0.6.0"
+lair_keystore = "0.5.3"
 
 clap = { version = "4.5.4", features = ["derive"] }
 log = "0.4"
@@ -21,5 +21,5 @@ anyhow = "1"
 tempdir = "0.3.7"
 
 [build-dependencies]
-tauri-build = { version = "2.0.0", default-features = false, features = [
+tauri-build = { version = "2.0.3", default-features = false, features = [
 ] }

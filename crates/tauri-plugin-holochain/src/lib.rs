@@ -34,7 +34,7 @@ pub struct HolochainPlugin<R: Runtime> {
 }
 
 fn happ_origin(app_id: &String) -> String {
-    if cfg!(target_os = "windows") {
+    if cfg!(any(target_os = "windows", target_os = "android")) {
         format!("http://happ.{app_id}")
     } else {
         format!("happ://{app_id}")
@@ -159,8 +159,9 @@ impl<R: Runtime> HolochainPlugin<R> {
                 )
                 .initialization_script(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT);
 
-            let mut capability_builder = CapabilityBuilder::new("sign-zome-call")
-                .permission("holochain:allow-sign-zome-call");
+            let mut capability_builder =
+                CapabilityBuilder::new("sign-zome-call")
+                    .permission("holochain:allow-sign-zome-call");
 
             capability_builder = capability_builder.window(label);
 
@@ -354,6 +355,9 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call::sign_zome_call,
             commands::open_app::open_app,
+            commands::install::install_web_app,
+            commands::install::uninstall_web_app,
+            commands::install::list_apps,
             commands::get_runtime_info::is_holochain_ready
         ])
         .register_uri_scheme_protocol("happ", |context, request| {

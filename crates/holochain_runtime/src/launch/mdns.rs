@@ -96,7 +96,7 @@ pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) ->
         while let Some(maybe_response) = stream.next().await {
             match maybe_response {
                 Ok(response) => {
-                    log::info!("Peer found via MDNS {:?}", response);
+                    log::debug!("Peer found via MDNS {:?}", response);
                     // Decode response
                     let maybe_agent_info_signed: Result<AgentInfoSigned, std::io::Error> =
                         rmp_decode(&mut &*response.buffer);
@@ -105,7 +105,6 @@ pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) ->
                         continue;
                     }
                     if let Ok(remote_agent_info_signed) = maybe_agent_info_signed {
-                        // Add to local storage
                         let Ok(agent_infos) = admin_ws.agent_info(None).await else {
                             continue;
                         };

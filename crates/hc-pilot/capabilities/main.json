@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main-capability",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-set-title",
+    "holochain:allow-open-app",
+    "holochain:allow-install-web-app",
+    "holochain:allow-uninstall-web-app",
+    "holochain:allow-list-apps"
+  ]
+}

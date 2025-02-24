@@ -1,11 +1,9 @@
 name: "build-scaffold-holochain-runtime"
 on:
-  # Trigger the workflow on push or pull request,
-  # but only for the main branch
   push: 
-    branches: [ main, main-0.3, main-0.4 ]
+    branches: [ main, 'main-**' ]
   pull_request:
-    branches: [ main, main-0.3, main-0.4 ]
+    branches: [ main, 'main-**' ]
 
 jobs:
   build-scaffold-holochain-runtime:
@@ -26,7 +24,7 @@ jobs:
         uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          nix_path: nixpkgs=channel:nixos-24.05
+          nix_path: nixpkgs=channel:nixos-24.11
 
       - uses: cachix/cachix-action@v15
         with:
@@ -37,13 +35,11 @@ jobs:
           name: darksoil-studio
 
       - name: Test scaffold-holochain-runtime
-        if: ${{ matrix.os == 'ubuntu-latest' }} # in macos-latest, this fails with "no space left on device" error 
         run: |
           cargo test -p scaffold-holochain-runtime
           sh ./crates/scaffold-holochain-runtime/run_test.sh
 
       - name: Cache scaffold-holochain-runtime
-        if: github.event_name == 'pull_request' && github.base_ref == 'main'
         env:
           CACHIX_AUTH_TOKEN: "${{ secrets.DARKSOIL_CACHIX_AUTH_TOKEN }}"
         run: |

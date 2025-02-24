@@ -154,7 +154,7 @@ pub fn scaffold_tauri_happ(
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
                 &String::from("@tauri-apps/cli"),
-                &String::from("^2.0.0-rc"),
+                &String::from("^2.0.0"),
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
@@ -391,7 +391,7 @@ mod tests {
     "tauri": "tauri"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.0.0-rc",
+    "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
     "internal-ip-cli": "^2.0.0",
@@ -486,8 +486,8 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "src-tauri"
 resolver = "2"
 
 [workspace.dependencies]
-hdi = "0.5.0-rc"
-hdk = "0.4.0-rc"
+hdi = "0.5.0"
+hdk = "0.4.0"
 serde = "1.0"
 
 [workspace.dependencies.posts]
@@ -510,8 +510,8 @@ resolver = "2"
 members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*"]
 
 [workspace.dependencies]
-hdi = "0.5.0-rc"
-hdk = "0.4.0-rc"
+hdi = "0.5.0"
+hdk = "0.4.0"
 serde = "1.0"
 
 [workspace.dependencies.posts]

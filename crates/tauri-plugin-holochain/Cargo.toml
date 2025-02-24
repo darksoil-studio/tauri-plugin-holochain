@@ -8,17 +8,17 @@ rust-version = "1.75"
 links = "tauri-plugin-holochain"
 
 [dependencies]
-tauri = { version = "2.0.0" }
+tauri = { version = "2.1.1" }
 
 # Holochain dependencies
-holochain_types = "0.4.0-rc"
+holochain_types = "0.4.0"
 
 # Lair dependencies
 hc_seed_bundle = "0.2"
-lair_keystore_api = "0.5"
+lair_keystore_api = "0.5.3"
 
 # Holochain client
-holochain_client = "0.6.0-rc.0"
+holochain_client = "0.6.0"
 
 holochain_runtime = { path = "../holochain_runtime" }
 

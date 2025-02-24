@@ -1,37 +1,14 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use holochain_client::{
     AdminWebsocket, AgentPubKey, AppInfo,  InstallAppPayload, 
 };
-use holochain_types::{web_app::WebAppBundle, prelude::*};
-
-pub async fn install_web_app(
-    admin_ws: &AdminWebsocket,
-    app_id: String,
-    bundle: WebAppBundle,
-    roles_settings: Option<HashMap<String,RoleSettings>>,
-    agent: Option<AgentPubKey>,
-    network_seed: Option<NetworkSeed>,
-) -> crate::Result<AppInfo> {
-    let app_info = install_app(
-        admin_ws,
-        app_id.clone(),
-        bundle.happ_bundle().await?,
-        roles_settings,
-        agent,
-        network_seed,
-    )
-    .await?;
-
-    log::info!("Installed web-app's ui {app_id:?}");
-
-    Ok(app_info)
-}
+use holochain_types::prelude::*;
 
 pub async fn install_app(
     admin_ws: &AdminWebsocket,
     app_id: String,
-    bundle: AppBundle,
+    app_bundle_path: PathBuf,
     roles_settings: Option<HashMap<String,RoleSettings>>,
     agent_key: Option<AgentPubKey>,
     network_seed: Option<NetworkSeed>,
@@ -43,7 +20,7 @@ pub async fn install_app(
             agent_key,
             roles_settings,
             network_seed,
-            source: AppBundleSource::Bundle(bundle),
+            source: AppBundleSource::Path(app_bundle_path),
             installed_app_id: Some(app_id.clone()),
             ignore_genesis_failure: false,
             allow_throwaway_random_agent_key: false

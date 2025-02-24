@@ -17,3 +17,4 @@ node_modules/
 *.dna
 dist/
 result*
+keystore.properties

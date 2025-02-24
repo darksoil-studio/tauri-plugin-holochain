@@ -18,35 +18,36 @@ struct Args {
     /// The path of the file tree to modify.
     pub happ_bundle_path: PathBuf,
 
-    /// The bundle identifier for the Tauri app
+    /// The password to protect the conductor by.
     #[clap(long)]
     pub password: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The port where the UI server is running.
     #[clap(long)]
     pub ui_port: String,
 
-    /// The admin port to bind the admin interface to
+    /// The admin port to bind the admin interface to.
     #[clap(long)]
     pub admin_port: Option<u16>,
 
-    /// The bundle identifier for the Tauri app
+    /// The agent key to install the app with.
     #[clap(long)]
     pub agent_key: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The network seed to install the app with.
     #[clap(long)]
     pub network_seed: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The signal URL to connect to.
     #[clap(long)]
     pub signal_url: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The bootstrap URL to connect to.
     #[clap(long)]
     pub bootstrap_url: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The directory where the conductor directories will be created.
+    /// By default a new folder in the /tmp directory.
     #[clap(long)]
     pub conductor_dir: Option<PathBuf>,
 }
