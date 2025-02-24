@@ -43,6 +43,7 @@ export class CreatePost extends LitElement {
     };
 
     try {
+      console.error("WAMR_LOG: UI before create post", Date.now());
       const record: Record = await this.client.callZome({
         cap_secret: null,
         role_name: "forum",
@@ -50,6 +51,7 @@ export class CreatePost extends LitElement {
         fn_name: "create_post",
         payload: post,
       });
+      console.error("WAMR_LOG: UI after create post", Date.now());
 
       this.dispatchEvent(
         new CustomEvent("post-created", {

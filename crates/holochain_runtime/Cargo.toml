@@ -3,6 +3,18 @@ name = "holochain_runtime"
 version = "0.1.0"
 edition = "2021"
 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+holochain = { version = "0.4.1", features = [ "unstable-functions", "unstable-sharding" ] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+holochain = { version = "0.4.1", default-features = false, features = [
+  "sqlite-encrypted",
+  "tx5",
+  "unstable-functions",
+  "unstable-sharding",
+  "wasmer_wamr"
+] }
+
 [dependencies]
 # Holochain dependencies
 mr_bundle = "0.4.1"
@@ -42,16 +54,4 @@ serde_json = "1"
 base64 = "0.22"
 tokio = "1"
 anyhow = "1"
-
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-holochain = { version = "0.4.1", features = [ "unstable-functions", "unstable-sharding" ] }
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-holochain = { version = "0.4.1", default-features = false, features = [
-  "sqlite-encrypted",
-  "tx5",
-  "unstable-functions",
-  "unstable-sharding",
-  "wasmer_wamr"
-] }
 

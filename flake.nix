@@ -251,7 +251,8 @@
 
             export NDK_HOME=$ANDROID_SDK_ROOT/ndk-bundle
             export ANDROID_HOME=${packages.android-sdk}/share/android-sdk
-            export ANDROID_NDK_LATEST_HOME=${packages.android-sdk}/share/android-sdk/ndk-bundle
+            # export ANDROID_NDK_LATEST_HOME=${packages.android-sdk}/share/android-sdk/ndk-bundle
+            export ANDROID_NDK_LATEST_HOME=$NDK_HOME
           '';
         };
 
@@ -324,7 +325,13 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         packages.holochainTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
+          overlays = [ (import inputs.rust-overlay) ];
+          pkgs = import inputs.nixpkgs { inherit system overlays; };
+
+          rustVersion = "1.81.0";
+
+          # define Rust toolchain version and targets to be used in this flake
+          rust = pkgs.rust-bin.stable.${rustVersion}.minimal.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
@@ -342,7 +349,13 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         packages.androidTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
+          overlays = [ (import inputs.rust-overlay) ];
+          pkgs = import inputs.nixpkgs { inherit system overlays; };
+
+          rustVersion = "1.81.0";
+
+          # define Rust toolchain version and targets to be used in this flake
+          rust = pkgs.rust-bin.stable.${rustVersion}.minimal.override {
             extensions = [ "rust-src" ];
             targets = [
               "armv7-linux-androideabi"
@@ -386,30 +399,31 @@
             paths = [ customZigbuildCargo rust packages.android-sdk ];
             buildInputs = [ pkgs.makeWrapper ];
             postBuild = let
-              toolchainBinsPath =
+              toolchainPath =
                 "${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/${
                   if pkgs.stdenv.isLinux then
                     "linux-x86_64"
                   else
                     "darwin-x86_64"
-                }/bin";
+                }";
+              toolchainPrebuiltBinsPath = "${toolchainPath}/bin";
             in ''
 
               wrapProgram $out/bin/cargo \
+                --set RANLIB ${toolchainPrebuiltBinsPath}/llvm-ranlib \
+                --set LIBCLANG_PATH ${toolchainPath}/lib64 \
                 --set CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_I686_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS "-L linker=clang" \
-                --set RANLIB ${toolchainBinsPath}/llvm-ranlib \
-                --set CC_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang \
-                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android24-clang \
-                --set CC_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang \
-                --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android24-clang \
-                --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
-                --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
-                --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
-                --set LIBCLANG_PATH ${pkgs.libclang.lib}/lib \
-                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang
+                --set CC_aarch64_linux_android ${toolchainPrebuiltBinsPath}/aarch64-linux-android24-clang \
+                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainPrebuiltBinsPath}/aarch64-linux-android24-clang \
+                --set CC_i686_linux_android ${toolchainPrebuiltBinsPath}/i686-linux-android24-clang \
+                --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainPrebuiltBinsPath}/i686-linux-android24-clang \
+                --set CC_x86_64_linux_android ${toolchainPrebuiltBinsPath}/x86_64-linux-android24-clang \
+                --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainPrebuiltBinsPath}/x86_64-linux-android24-clang \
+                --set CC_armv7_linux_androideabi ${toolchainPrebuiltBinsPath}/armv7a-linux-androideabi24-clang \
+                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainPrebuiltBinsPath}/armv7a-linux-androideabi24-clang 
             '';
           };
         in androidRust;
@@ -426,13 +440,20 @@
 
         devShells.holochainTauriAndroidDev = pkgs.mkShell {
           inputsFrom = [ devShells.tauriDev devShells.androidDev ];
-          packages = [
-            packages.androidTauriRust
-            self'.packages.custom-go-wrapper
-            pkgs.clang
-            pkgs.cmake
-            pkgs.glibc_multi
+
+          packages =
+            [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+
+          nativeBuildInputs = with pkgs; [
+            clang
+            llvmPackages.libclang.lib
+            ninja
+            pkg-config
+            cmake
           ];
+
+          buildInputs =
+            inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
 
           shellHook = ''
             export BINDGEN_EXTRA_CLANG_ARGS=" \
@@ -459,10 +480,6 @@
 
             export PS1='\[\033[1;34m\][p2p-shipyard-android:\w]\$\[\033[0m\] '
           '';
-
-          buildInputs =
-            inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
-
         };
 
         devShells.default = pkgs.mkShell {
