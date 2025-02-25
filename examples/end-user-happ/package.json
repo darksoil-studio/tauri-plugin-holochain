@@ -3,9 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "ui"
-  ],
+  "workspaces": ["ui"],
   "scripts": {
     "start": "AGENTS=2 npm run network",
     "network": "npm run build:happ && concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run launch\"",
@@ -25,8 +23,6 @@
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "internal-ip": "^7.0.0",
-    "internal-ip-cli": "^2.0.0",
     "new-port-cli": "^1.0.0",
     "svelte": "^3.49.0",
     "vite": "^3.0.2"

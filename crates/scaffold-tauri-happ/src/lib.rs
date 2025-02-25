@@ -168,11 +168,6 @@ pub fn scaffold_tauri_happ(
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
-                &String::from("internal-ip-cli"),
-                &String::from("^2.0.0"),
-            )?;
-            let package_json_content = add_npm_dev_dependency_to_package(
-                &(root_package_json_path.clone(), package_json_content),
                 &String::from("new-port-cli"),
                 &String::from("^1.0.0"),
             )?;
@@ -394,7 +389,6 @@ mod tests {
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "internal-ip-cli": "^2.0.0",
     "new-port-cli": "^1.0.0"
   }
 }"#
