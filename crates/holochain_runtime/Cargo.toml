@@ -6,8 +6,9 @@ edition = "2021"
 [dependencies]
 # Holochain dependencies
 mr_bundle = "0.4.1"
-holochain = { version = "0.4.1", features = [ "unstable-functions", "unstable-sharding" ] }
+holochain = { version = "0.4.1", features = [ "unstable-functions", "unstable-sharding", "test_utils" ] }
 holochain_types = "0.4.1"
+holochain_state = "0.4.1"
 holochain_keystore = "0.4.1"
 holochain_conductor_api = "0.4.1"
 

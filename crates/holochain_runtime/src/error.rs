@@ -1,5 +1,6 @@
-use holochain::{conductor::error::ConductorError, prelude::SerializedBytesError};
+use holochain::{conductor::error::ConductorError, core::SourceChainError, prelude::SerializedBytesError};
 use holochain_client::ConductorApiError;
+use holochain_state::prelude::{DatabaseError, DatabaseResult};
 use mr_bundle::error::MrBundleError;
 use one_err::OneErr;
 use serde::{ser::Serializer, Serialize};
@@ -57,6 +58,12 @@ pub enum Error {
 
     #[error(transparent)]
     UpdateAppError(#[from] UpdateHappError),
+
+    #[error(transparent)]
+    DatabaseError(#[from] DatabaseError),
+
+    #[error(transparent)]
+    SourceChainError(#[from] SourceChainError),
 
     #[error("Error shutting down holochain: {0}")]
     HolochainShutdownError(String),

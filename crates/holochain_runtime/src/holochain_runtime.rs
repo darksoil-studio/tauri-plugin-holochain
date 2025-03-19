@@ -1,8 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
 use async_std::sync::Mutex;
-use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallUnsigned} };
+use holochain::{conductor::{self, ConductorHandle}, core::ActionHash, prelude::{ builder::{CloseChain, OpenChain}, CellId, ChainTopOrdering, MigrationTarget, NetworkSeed, RoleSettingsMap, ZomeCallUnsigned} };
 use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, InstalledAppId, WebsocketConfig, ZomeCall};
+use holochain_state::prelude::SourceChain;
 use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, websocket::AllowedOrigins};
 use lair_keystore::dependencies::sodoken::BufRead;
 use sbd_server::SbdServer;
@@ -371,6 +372,101 @@ impl HolochainRuntime {
             .map_err(|e| crate::Error::ConductorApiError(e))?;
 
         Ok(())
+    }
+
+    pub async fn migrate_app(&self,
+        old_app_id: InstalledAppId,
+        new_app_id: InstalledAppId,
+        new_web_app_bundle: WebAppBundle,
+    ) -> crate::Result<AppInfo> {
+        let old_app = self.app_websocket(old_app_id.clone(), AllowedOrigins::Any).await?;
+        let Some(app_info) = old_app.app_info().await.map_err(|err| crate::Error::ConductorApiError(err))? else {
+            return Err(crate::Error::AppDoesNotExist(old_app_id));
+        };
+        let mut roles_settings: RoleSettingsMap = RoleSettingsMap::new();
+
+        // for 
+
+        
+        let new_app = self.install_web_app(new_app_id, new_web_app_bundle, Some(roles_settings), Some(app_info.agent_pub_key), None).await?;
+
+        // TODO: clone all clone cells again
+        // TODO: fix duplication of cell ids
+
+        Ok(new_app)
+    }
+ 
+    async fn get_source_chain(&self, cell_id: &CellId) -> crate::Result<SourceChain> {
+        let (dna_hash, agent_key) = cell_id.clone().into_dna_and_agent();
+        let spaces = self.conductor_handle.get_spaces();
+        Ok(SourceChain::new(
+            spaces.get_or_create_authored_db(&dna_hash, agent_key.clone())?,
+            spaces.dht_db(&dna_hash)?,
+            spaces.get_or_create_space(&dna_hash)?.dht_query_cache,
+            self.conductor_handle.keystore().clone(),
+            agent_key.clone(),
+        )
+        .await?)
+    }
+
+    /// Given two existing cells, write a CloseChain on the old one and an OpenChain on the new one
+    pub(crate) async fn migrate_cell(
+        &self,
+        old_cell_id: &CellId,
+        new_cell_id: &CellId,
+    ) -> crate::Result<(ActionHash, ActionHash)> {
+        let (backward, forward) = match (old_cell_id.dna_hash(),old_cell_id.agent_pubkey(), new_cell_id.dna_hash(),new_cell_id.agent_pubkey()) {
+            (dna1, agent1, dna2, agent2)
+                if dna1 == dna2 && agent1 != agent2 =>
+            {
+                (
+                    MigrationTarget::Agent(agent1.clone()),
+                    MigrationTarget::Agent(agent2.clone()),
+                )
+            }
+            (dna1, agent1, dna2, agent2)
+                if dna1 != dna2 && agent1 == agent2 =>
+            {
+                (
+                    MigrationTarget::Dna(dna1.clone()),
+                    MigrationTarget::Dna(dna2.clone()),
+                )
+            }
+            _ => todo!(
+                "not valid migration targets: {:?} -> {:?}",
+                old_cell_id,
+                new_cell_id
+            ),
+        };
+        let old_chain = self.get_source_chain(old_cell_id).await?;
+        let close_hash = old_chain
+            .put_weightless(
+                CloseChain::new(Some(forward)),
+                None,
+                ChainTopOrdering::Strict,
+            )
+            .await?;
+        {
+            let old_cell = self.conductor_handle.cell_by_id(old_cell_id).await?;
+            let old_network = old_cell.holochain_p2p_dna();
+            old_chain.flush(old_network).await?;
+        }
+
+        let new_chain = self.get_source_chain(new_cell_id).await?;
+        let open_hash = new_chain
+            .put_weightless(
+                OpenChain::new(backward, close_hash.clone()),
+                None,
+                ChainTopOrdering::Strict,
+            )
+            .await?;
+        {
+            let new_cell = self.conductor_handle.cell_by_id(new_cell_id).await?;
+            let new_network = new_cell.holochain_p2p_dna();
+            new_chain.flush(new_network).await?;
+        }
+
+        Ok((close_hash, open_hash))
     }
 
     /// Shutdown the running conductor
