@@ -1,7 +1,7 @@
 use std::{sync::Arc, time::Duration};
 
 use async_std::sync::Mutex;
-use tx5_signal_srv::SrvHnd;
+use holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc;
 use url2::url2;
 
 use hc_seed_bundle::dependencies::sodoken::BufRead;
@@ -16,6 +16,8 @@ mod mdns;
 mod signal;
 mod config;
 use mdns::spawn_mdns_bootstrap;
+
+pub const DEVICE_SEED_LAIR_KEYSTORE_TAG: &'static str = "DEVICE_SEED";
 
 // pub static RUNNING_HOLOCHAIN: RwLock<Option<RunningHolochainInfo>> = RwLock::const_new(None);
 
@@ -37,7 +39,7 @@ pub(crate) async fn launch_holochain_runtime(
         portpicker::pick_unused_port().expect("No ports free")
     };
 
-    let mut maybe_local_signal_server: Option<(url2::Url2, SrvHnd)> = None;
+    let mut maybe_local_signal_server: Option<(url2::Url2, sbd_server::SbdServer)> = None;
 
     let run_local_signal_server = if let Some(network_config) = &config.wan_network_config {
         if let Err(err) = can_connect_to_signal_server(network_config.signal_url.clone()).await {
@@ -60,7 +62,6 @@ pub(crate) async fn launch_holochain_runtime(
         maybe_local_signal_server = Some((local_signal_url.clone(), signal_handle));
     }
 
-
     let config = config::conductor_config(
         &filesystem,
         admin_port,
@@ -73,9 +74,33 @@ pub(crate) async fn launch_holochain_runtime(
         }),
     );
 
+    let keystore =
+        spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
+            .await
+            .map_err(|err| crate::Error::LairError(err))?;
+
+    let seed_already_exists = keystore
+        .lair_client()
+        .get_entry(DEVICE_SEED_LAIR_KEYSTORE_TAG.into())
+        .await
+        .is_ok();
+
+    if !seed_already_exists {
+        keystore
+            .lair_client()
+            .new_seed(
+                DEVICE_SEED_LAIR_KEYSTORE_TAG.into(),
+                None, // Some(passphrase.clone()),
+                true,
+            )
+            .await
+            .map_err(|err| crate::Error::LairError(err))?;
+    }
+
     let conductor_handle = Conductor::builder()
         .config(config)
         .passphrase(Some(passphrase))
+        .with_keystore(keystore)
         .build()
         .await?;
 
@@ -91,7 +116,7 @@ pub(crate) async fn launch_holochain_runtime(
         apps_websockets_auths: Arc::new(Mutex::new(Vec::new())),
         admin_port,
         conductor_handle,
-        _signal_handle: maybe_local_signal_server.map(|s| s.1),
+        _local_sbd_server: maybe_local_signal_server.map(|s| s.1),
     })
 }
 

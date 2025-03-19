@@ -1,42 +1,25 @@
 use holochain_types::prelude::AppBundle;
-use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
-use std::collections::HashMap;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig};
+use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig, vec_to_locked};
 use tauri::{AppHandle, Listener};
 
 const APP_ID: &'static str = "example";
+const SIGNAL_URL: &'static str = "wss://sbd.holo.host";
+const BOOTSTRAP_URL: &'static str = "https://bootstrap.holo.host";
 
 pub fn example_happ() -> AppBundle {
     let bytes = include_bytes!("../../workdir/forum.happ");
     AppBundle::decode(bytes).expect("Failed to decode example happ")
 }
 
-pub fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
-    match BufWrite::new_mem_locked(pass_tmp.len()) {
-        Err(e) => {
-            pass_tmp.fill(0);
-            Err(e.into())
-        }
-        Ok(p) => {
-            {
-                let mut lock = p.write_lock();
-                lock.copy_from_slice(&pass_tmp);
-                pass_tmp.fill(0);
-            }
-            Ok(p.to_read())
-        }
-    }
-}
-
 fn wan_network_config() -> Option<WANNetworkConfig> {
-    // Resolved at compile time to be able to point to local services
     if tauri::is_dev() {
         None
     } else {
         Some(WANNetworkConfig {
-            signal_url: url2::url2!("wss://signal.holo.host"),
-            bootstrap_url: url2::url2!("https://bootstrap.holo.host")
+            signal_url: url2::url2!("{SIGNAL_URL}"),
+            bootstrap_url: url2::url2!("{BOOTSTRAP_URL}"),
+            ice_servers_urls: vec![]
         })
     }
 }
@@ -95,7 +78,7 @@ pub fn run() {
                 tauri::async_runtime::spawn(async move {
                     setup(handle.clone()).await.expect("Failed to setup");
 
-                    handle
+                    let mut builder =  handle
                         .holochain()
                         .expect("Failed to get holochain")
                         .main_window_builder(String::from("main"), false, Some(APP_ID.into()), None).await
@@ -112,11 +95,10 @@ pub fn run() {
 }
 
 // Very simple setup for now:
-// - On app start, list installed apps:
-//   - If there are no apps installed, this is the first time the app is opened: install our hApp
-//   - If there **are** apps:
-//     - Check if it's necessary to update the coordinators for our hApp
-//       - And do so if it is
+// - On app start, check whether the app is already installed:
+//   - If it's not installed, install it
+//   - If it's installed, check if it's necessary to update the coordinators for our hApp,
+//     and do so if it is
 //
 // You can modify this function to suit your needs if they become more complex
 async fn setup(handle: AppHandle) -> anyhow::Result<()> {
@@ -127,13 +109,14 @@ async fn setup(handle: AppHandle) -> anyhow::Result<()> {
         .await
         .map_err(|err| tauri_plugin_holochain::Error::ConductorApiError(err))?;
 
-    if installed_apps.len() == 0 {
+    // DeepKey comes preinstalled as the first app
+    if installed_apps.iter().find(|app| app.installed_app_id.as_str().eq(APP_ID)).is_none() {
         handle
             .holochain()?
             .install_app(
                 String::from(APP_ID),
                 example_happ(),
-                HashMap::new(),
+                None,
                 None,
                 None,
             )

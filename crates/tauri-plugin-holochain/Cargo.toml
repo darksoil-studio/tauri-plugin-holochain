@@ -8,32 +8,17 @@ rust-version = "1.75"
 links = "tauri-plugin-holochain"
 
 [dependencies]
-tauri = { version = "2.1.1", features = [
-  "devtools",
-  "native-tls-vendored",
-] }
+tauri = { version = "2.1.1" }
 
 # Holochain dependencies
-# mr_bundle = "0.3.2"
-# holochain = "0.3.2"
-holochain_types = "0.3.6"
-# holochain_keystore = "0.3.2"
-# holochain_conductor_api = "0.3.2"
-
-# kitsune_p2p_mdns = "0.3.2"
-# kitsune_p2p_types = "0.3.2"
-
-# tx5-signal-srv = "0.0.14-alpha"
-# tx5-signal = "0.0.14-alpha"
+holochain_types = "0.4.0"
 
 # Lair dependencies
 hc_seed_bundle = "0.2"
+lair_keystore_api = "0.5.3"
 
-# lair_keystore = "0.4.5"
-lair_keystore_api = "0.4.7"
-
-# # Holochain client
-holochain_client = "0.5.3"
+# Holochain client
+holochain_client = "0.6.0"
 
 holochain_runtime = { path = "../holochain_runtime" }
 

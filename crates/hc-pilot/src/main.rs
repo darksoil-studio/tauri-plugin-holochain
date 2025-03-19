@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use clap::Parser;
 use holochain_client::AppInfo;
 use holochain_types::{
-    app::InstallAppPayload,
+    app::{InstallAppPayload, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
 use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
@@ -18,35 +18,36 @@ struct Args {
     /// The path of the file tree to modify.
     pub happ_bundle_path: PathBuf,
 
-    /// The bundle identifier for the Tauri app
+    /// The password to protect the conductor by.
     #[clap(long)]
     pub password: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The port where the UI server is running.
     #[clap(long)]
     pub ui_port: String,
 
-    /// The admin port to bind the admin interface to
+    /// The admin port to bind the admin interface to.
     #[clap(long)]
     pub admin_port: Option<u16>,
 
-    /// The bundle identifier for the Tauri app
+    /// The agent key to install the app with.
     #[clap(long)]
     pub agent_key: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The network seed to install the app with.
     #[clap(long)]
     pub network_seed: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The signal URL to connect to.
     #[clap(long)]
     pub signal_url: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The bootstrap URL to connect to.
     #[clap(long)]
     pub bootstrap_url: Option<String>,
 
-    /// The bundle identifier for the Tauri app
+    /// The directory where the conductor directories will be created.
+    /// By default a new folder in the /tmp directory.
     #[clap(long)]
     pub conductor_dir: Option<PathBuf>,
 }
@@ -91,6 +92,7 @@ fn main() {
         (Some(signal_url), Some(bootstrap_url)) => Some(WANNetworkConfig {
             signal_url: url2!("{}", signal_url),
             bootstrap_url: url2!("{}", bootstrap_url),
+            ice_servers_urls: vec![],
         }),
         (None, None) => None,
         (Some(_), None) => {
@@ -130,8 +132,8 @@ fn main() {
                 let app_info = setup(
                     handle.clone(),
                     args.happ_bundle_path,
+                    None,
                     agent_key,
-                    HashMap::new(),
                     args.network_seed,
                 )
                 .await?;
@@ -160,28 +162,20 @@ fn main() {
 async fn setup(
     handle: AppHandle,
     app_bundle_path: PathBuf,
+    roles_settings: Option<HashMap<String, RoleSettings>>,
     agent_key: Option<AgentPubKey>,
-    membrane_proofs: HashMap<String, std::sync::Arc<holochain_types::prelude::SerializedBytes>>,
     network_seed: Option<String>,
 ) -> anyhow::Result<AppInfo> {
     let admin_ws = handle.holochain()?.admin_websocket().await?;
-    let agent_key = match agent_key {
-        Some(agent_key) => agent_key,
-        None => {
-            let agent_key = admin_ws
-                .generate_agent_pub_key()
-                .await
-                .map_err(|err| anyhow!("Error generating the agent: {:?}", err))?;
-            agent_key
-        }
-    };
     let app_info = admin_ws
         .install_app(InstallAppPayload {
             agent_key,
-            membrane_proofs,
+            roles_settings,
             network_seed,
             source: holochain_types::app::AppBundleSource::Path(app_bundle_path),
             installed_app_id: None,
+            ignore_genesis_failure: false,
+            allow_throwaway_random_agent_key: false,
         })
         .await
         .map_err(|err| anyhow!("Error installing the app: {err:?}"))?;

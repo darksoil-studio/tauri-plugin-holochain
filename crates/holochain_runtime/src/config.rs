@@ -4,6 +4,7 @@ use std::path::PathBuf;
 pub struct WANNetworkConfig {
     pub bootstrap_url: Url2,
     pub signal_url: Url2,
+    pub ice_servers_urls: Vec<Url2>,
 }
 
 pub enum GossipArcClamp {

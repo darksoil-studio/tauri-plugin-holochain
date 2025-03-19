@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use holochain::prelude::{
+use holochain_types::prelude::{
     AppBundle, AppBundleError,  AppManifest, CoordinatorBundle,
     CoordinatorManifest, DnaBundle, DnaError, DnaFile, DnaHash, 
     RoleName, UpdateCoordinatorsPayload, ZomeDependency, ZomeError, ZomeLocation, ZomeManifest,
@@ -12,6 +12,7 @@ use holochain_client::{
     AdminWebsocket,  ConductorApiError,  InstalledAppId,
 };
 use holochain_conductor_api::{AppInfoStatus, CellInfo};
+
 use mr_bundle::{error::MrBundleError, Bundle, ResourceBytes};
 
 use crate::filesystem::FileSystemError;

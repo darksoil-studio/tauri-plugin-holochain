@@ -67,6 +67,32 @@ Denies the get_runtime_info command without any pre-configured scope.
 <tr>
 <td>
 
+`holochain:allow-install-web-app`
+
+</td>
+<td>
+
+Enables the install_web_app command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`holochain:deny-install-web-app`
+
+</td>
+<td>
+
+Denies the install_web_app command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
 `holochain:allow-is-holochain-ready`
 
 </td>
@@ -164,6 +190,32 @@ Enables the sign_zome_call command without any pre-configured scope.
 <td>
 
 Denies the sign_zome_call command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`holochain:allow-uninstall-web-app`
+
+</td>
+<td>
+
+Enables the uninstall_web_app command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`holochain:deny-uninstall-web-app`
+
+</td>
+<td>
+
+Denies the uninstall_web_app command without any pre-configured scope.
 
 </td>
 </tr>

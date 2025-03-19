@@ -7,6 +7,7 @@ debug.log
 .vscode/settings.json
 
 /.tauri
+**/src-tauri/gen/schemas
 target
 node_modules/
 .cargo
@@ -16,3 +17,4 @@ node_modules/
 *.dna
 dist/
 result*
+keystore.properties

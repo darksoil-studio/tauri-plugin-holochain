@@ -5,26 +5,26 @@
   "type": "module",
   "scripts": {
     "start": "AGENTS=2 npm run network",
-    "network": "npm run build:happ && BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm start -w ui\" \"npm run launch\"",
-    "launch": "concurrently-repeat \"npm run tauri dev\" $AGENTS",
-    "network:android": "BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run local-services\" \"UI_PORT=1420 npm start -w ui\" \"npm run tauri dev\" \"npm run tauri android dev\"",
-    "local-services": "hc run-local-services --bootstrap-interface $INTERNAL_IP --bootstrap-port $BOOTSTRAP_PORT --signal-interfaces $INTERNAL_IP --signal-port $SIGNAL_PORT",
+    "network": "concurrently-repeat \"npm run tauri dev\" $AGENTS",
+    "network:android": "BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run tauri dev\" \"npm run tauri android dev\"",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
   "dependencies": {
-    "@holochain/client": "^0.17.0",
+    "@holochain/client": "^0.18.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-shell": ">=2.0.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.0.0",
+    "concurrently": "^8.2.2",
+    "concurrently-repeat": "^0.0.1",
     "internal-ip": "^7.0.0",
     "internal-ip-cli": "^2.0.0",
     "new-port-cli": "^1.0.0",
-    "vite": "^5.0.0",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "vite": "^5.0.0"
   }
 }

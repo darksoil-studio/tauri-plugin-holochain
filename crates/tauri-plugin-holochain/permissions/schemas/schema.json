@@ -315,6 +315,16 @@
           "const": "deny-get-runtime-info"
         },
         {
+          "description": "Enables the install_web_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-install-web-app"
+        },
+        {
+          "description": "Denies the install_web_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-install-web-app"
+        },
+        {
           "description": "Enables the is_holochain_ready command without any pre-configured scope.",
           "type": "string",
           "const": "allow-is-holochain-ready"
@@ -353,6 +363,16 @@
           "description": "Denies the sign_zome_call command without any pre-configured scope.",
           "type": "string",
           "const": "deny-sign-zome-call"
+        },
+        {
+          "description": "Enables the uninstall_web_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-uninstall-web-app"
+        },
+        {
+          "description": "Denies the uninstall_web_app command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-uninstall-web-app"
         },
         {
           "description": "Default permissions for the plugin",

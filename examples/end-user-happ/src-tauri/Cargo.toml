@@ -19,15 +19,15 @@ tauri-build = { version = "2.0.3", default-features = false, features = [
 ] }
 
 [dependencies]
-tauri = { version = "2.1.1", features = [] }
+tauri = { version = "2.1.1", features = ["devtools"] }
 tauri-plugin-holochain = { path = "../../../crates/tauri-plugin-holochain" }
-holochain_types = { version = "0.3.6" }
-lair_keystore = { version = "0.4.5" }
-holochain_client = { version = "0.5.3" }
+holochain_types = { version = "0.4.0" }
+lair_keystore = { version = "0.5.3" }
+holochain_client = { version = "0.6.0" }
 log = "0.4"
 tauri-plugin-log = "2.0.3"
+tauri-plugin-opener = "2.0.0"
 url2 = "0.0.6"
 app_dirs2 = "2.5.5"
 tempdir = "0.3.7"
 anyhow = "1"
-uuid = "1"

@@ -1,6 +1,7 @@
 const COMMANDS: &[&str] = &[
     "sign_zome_call",
-    "get_locales",
+    "install_web_app",
+    "uninstall_web_app",
     "open_app",
     "list_apps",
     "is_holochain_ready",

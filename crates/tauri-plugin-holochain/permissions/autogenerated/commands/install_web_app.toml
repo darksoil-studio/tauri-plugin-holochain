@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+identifier = "allow-install-web-app"
+description = "Enables the install_web_app command without any pre-configured scope."
+commands.allow = ["install_web_app"]
+
+[[permission]]
+identifier = "deny-install-web-app"
+description = "Denies the install_web_app command without any pre-configured scope."
+commands.deny = ["install_web_app"]
