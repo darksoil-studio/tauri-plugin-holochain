@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "identifier": "{{identifier}}",
   "build": {
-    "beforeBuildCommand": "npm run build -w ui",
+    "beforeBuildCommand": "npm run build:happ && npm run build -w ui",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../ui/dist"
   },
