@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, net::{Ipv4Addr, SocketAddr, SocketAddrV4}, sync::Arc};
+use std::{collections::{HashMap, HashSet}, net::{Ipv4Addr, SocketAddr}, sync::Arc};
 
 use async_std::sync::Mutex;
 use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallUnsigned} };
