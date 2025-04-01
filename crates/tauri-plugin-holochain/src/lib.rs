@@ -41,6 +41,14 @@ fn happ_origin(app_id: &String) -> String {
     }
 }
 
+fn main_window_origin() -> String {
+    if cfg!(any(target_os = "windows", target_os = "android")) {
+        "http://tauri.localhost".into()
+    } else {
+        "tauri://localhost".into()
+    }
+}
+
 impl<R: Runtime> HolochainPlugin<R> {
     /// Build a window that opens the UI for the given holochain web-app.
     ///
@@ -53,7 +61,7 @@ impl<R: Runtime> HolochainPlugin<R> {
     ) -> crate::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let app_id: String = app_id.into();
 
-        let allowed_origins= self.get_allowed_origins(&app_id, false);
+        let allowed_origins = self.get_allowed_origins(&app_id, false);
         let app_websocket_auth = self.holochain_runtime.get_app_websocket_auth(&app_id, allowed_origins).await?;
 
         let token_vector: Vec<String> = app_websocket_auth
@@ -177,7 +185,8 @@ impl<R: Runtime> HolochainPlugin<R> {
         Ok(admin_ws)
     }
 
-    fn get_allowed_origins(&self,
+    fn get_allowed_origins(
+        &self,
         app_id: &InstalledAppId,
         main_window: bool
     ) -> AllowedOrigins {
@@ -186,23 +195,26 @@ impl<R: Runtime> HolochainPlugin<R> {
             AllowedOrigins::Any
         } else {
             let mut origins: HashSet<String> = HashSet::new();
-            origins.insert(happ_origin(&app_id));
-
-            if main_window {
-                origins.insert("http://tauri.localhost".into());
-                origins.insert("tauri://localhost".into());
-            }
+            origins.insert(self.get_app_origin(app_id, main_window));
 
             AllowedOrigins::Origins(origins)
         };
         allowed_origins
+    }
+
+    fn get_app_origin(&self, app_id: &InstalledAppId, main_window: bool) -> String {
+        if main_window {
+            main_window_origin()
+        } else {
+            happ_origin(&app_id)
+        }
     }
     
     /// Builds an `AppWebsocket` for the given app ready to use
     ///
     /// * `app_id` - the app to build the `AppWebsocket` for
     pub async fn app_websocket(&self, app_id: InstalledAppId) -> crate::Result<AppWebsocket> {
-        let allowed_origins= self.get_allowed_origins(&app_id, false);
+        let allowed_origins= self.get_app_origin(&app_id, false);
         let app_ws = self.holochain_runtime.app_websocket(app_id, allowed_origins).await?;
         Ok(app_ws)
     }
