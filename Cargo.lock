@@ -7434,24 +7434,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "reference-tauri-happ"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "app_dirs2",
- "holochain_client",
- "holochain_types",
- "lair_keystore",
- "log",
- "tauri",
- "tauri-build",
- "tauri-plugin-holochain",
- "tauri-plugin-log",
- "tempdir",
- "url2",
-]
-
-[[package]]
 name = "regalloc2"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
