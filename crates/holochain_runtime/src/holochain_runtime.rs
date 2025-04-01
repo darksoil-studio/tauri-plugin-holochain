@@ -1,8 +1,8 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::{HashMap, HashSet}, net::{Ipv4Addr, SocketAddr, SocketAddrV4}, sync::Arc};
 
 use async_std::sync::Mutex;
 use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallUnsigned} };
-use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, InstalledAppId, WebsocketConfig, ZomeCall};
+use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId, WebsocketConfig, ZomeCall};
 use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, websocket::AllowedOrigins};
 use lair_keystore::dependencies::sodoken::BufRead;
 use sbd_server::SbdServer;
@@ -93,10 +93,23 @@ impl HolochainRuntime {
     /// Builds an `AppWebsocket` for the given app ready to use
     ///
     /// * `app_id` - the app to build the `AppWebsocket` for
-    pub async fn app_websocket(&self, app_id: InstalledAppId, allowed_origins: AllowedOrigins) -> crate::Result<AppWebsocket> {
-        let app_websocket_auth = self.get_app_websocket_auth(&app_id, allowed_origins).await?;
-        let app_ws = AppWebsocket::connect(
-            format!("localhost:{}", app_websocket_auth.app_websocket_port),
+    pub async fn app_websocket(&self, app_id: InstalledAppId, origin: String) -> crate::Result<AppWebsocket> {
+        let mut origins: HashSet<String> = HashSet::new();
+        origins.insert(origin.clone());
+        
+        let app_websocket_auth = self.get_app_websocket_auth(&app_id, AllowedOrigins::Origins(origins)).await?;
+        
+        let config = Arc::new(WebsocketConfig::CLIENT_DEFAULT);
+        let request = ConnectRequest::new(
+            SocketAddr::new(Ipv4Addr::LOCALHOST.into(), app_websocket_auth.app_websocket_port)
+        );
+        let request = request
+            .try_set_header("Origin", origin.as_str())
+            .unwrap();
+
+        let app_ws = AppWebsocket::connect_with_request_and_config(
+            request,
+            config,
             app_websocket_auth.token,
             Arc::new(LairAgentSignerWithProvenance::new(Arc::new(
                 self
