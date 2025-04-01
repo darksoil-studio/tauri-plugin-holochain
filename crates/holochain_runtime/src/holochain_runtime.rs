@@ -104,8 +104,7 @@ impl HolochainRuntime {
             SocketAddr::new(Ipv4Addr::LOCALHOST.into(), app_websocket_auth.app_websocket_port)
         );
         let request = request
-            .try_set_header("Origin", origin.as_str())
-            .unwrap();
+            .try_set_header("Origin", origin.as_str())?;
 
         let app_ws = AppWebsocket::connect_with_request_and_config(
             request,
