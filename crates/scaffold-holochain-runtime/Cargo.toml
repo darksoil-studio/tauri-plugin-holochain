@@ -18,8 +18,8 @@ anyhow = "1.0.81"
 ignore = "0.4"
 serde = "1"
 clap = {version = "4.5.4", features = ["derive"]}
-file_tree_utils = { git ="https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.4"}
-templates_scaffolding_utils = { git ="https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.4" }
+file_tree_utils = { git ="https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5"}
+templates_scaffolding_utils = { git ="https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
 include_dir = "0.7.3"
 thiserror = "1"
 handlebars = "5.1.0"

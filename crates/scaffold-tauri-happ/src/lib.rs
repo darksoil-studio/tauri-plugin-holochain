@@ -251,7 +251,7 @@ pub fn scaffold_tauri_happ(
             let flake_nix_content = add_flake_input_to_flake_file(
                 flake_nix_content,
                 String::from("p2p-shipyard"),
-                String::from("github:darksoil-studio/p2p-shipyard/main-0.4"),
+                String::from("github:darksoil-studio/p2p-shipyard/main-0.5"),
             )?;
 
             let scope_opener = String::from("devShells.default = pkgs.mkShell {");
@@ -406,11 +406,11 @@ mod tests {
   description = "Template for Holochain app development";
   
   inputs = {
-    p2p-shipyard.url = "github:darksoil-studio/p2p-shipyard/main-0.4";
+    p2p-shipyard.url = "github:darksoil-studio/p2p-shipyard/main-0.5";
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.4";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
+    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
   };
 
   outputs = inputs @ { ... }:
@@ -580,8 +580,8 @@ roles:
   inputs = {
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.4";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
+    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
   };
 
   outputs = inputs @ { ... }:

@@ -3,7 +3,7 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/holonix/main-0.4#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/holonix#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
