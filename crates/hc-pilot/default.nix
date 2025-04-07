@@ -36,7 +36,7 @@
         '';
 
         # Make sure libdatachannel can find C++ standard libraries from clang.
-        LIBCLANG_PATH = "pkgs.llvmPackages_18.libclang.lib}/lib";
+        LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
       };
       # cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
       #   pname = crate;
