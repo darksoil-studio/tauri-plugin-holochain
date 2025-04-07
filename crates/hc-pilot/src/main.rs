@@ -77,13 +77,15 @@ fn main() {
             network_config.signal_url = url2!("{}", signal_url);
             network_config.bootstrap_url = url2!("{}", bootstrap_url);
         }
+        (None, None) => {
+            network_config.mem_bootstrap = true;
+        }
         (Some(_), None) => {
             panic!("Invalid arguments: --signal-url was provided without --bootstrap-url")
         }
         (None, Some(_)) => {
             panic!("Invalid arguments: --bootstrap-url was provided without --signal-url")
         }
-        (None, None) => {}
     };
 
     tauri::Builder::default()

@@ -63,7 +63,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Warn)
+                .level(log::LevelFilter::Info)
                 .build(),
         )
         .plugin(tauri_plugin_holochain::async_init(
