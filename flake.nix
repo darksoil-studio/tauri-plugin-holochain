@@ -7,13 +7,10 @@
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
-    # tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
-
-    tnesh-stack.url = "/home/guillem/projects/darksoil/tnesh-stack";
+    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
 
     android-nixpkgs.url =
       "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
-    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
   };
 
   nixConfig = {
@@ -102,7 +99,6 @@
         ./crates/scaffold-tauri-happ/default.nix
         ./crates/scaffold-holochain-runtime/default.nix
         ./crates/hc-pilot/default.nix
-        ./nix/modules/custom-go-compiler.nix
         ./nix/modules/tauri-cli.nix
         # inputs.tnesh-stack.outputs.flakeModules.builders
         inputs.tnesh-stack.outputs.flakeModules.dependencies
@@ -139,7 +135,7 @@
             [
               # this is required for glib-networking
               # openssl
-              openssl_3
+              # openssl_3
             ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
               customCp
               customGlib
@@ -413,8 +409,7 @@
 
         devShells.holochainTauriAndroidDev = pkgs.mkShell {
           inputsFrom = [ devShells.tauriDev devShells.androidDev ];
-          packages =
-            [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+          packages = [ packages.androidTauriRust ];
           buildInputs =
             inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
 

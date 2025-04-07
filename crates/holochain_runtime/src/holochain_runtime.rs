@@ -1,10 +1,11 @@
 use std::{collections::{HashMap, HashSet}, net::{Ipv4Addr, SocketAddr}, sync::Arc};
 
 use async_std::sync::Mutex;
-use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallUnsigned} };
-use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId, WebsocketConfig, ZomeCall};
+use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallParams } };
+use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId, WebsocketConfig };
+use holochain_conductor_api::ZomeCallParamsSigned;
 use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, websocket::AllowedOrigins};
-use lair_keystore::dependencies::sodoken::BufRead;
+use lair_keystore_api::types::SharedLockedArray;
 use sbd_server::SbdServer;
 
 use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::install_app, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
@@ -26,7 +27,7 @@ pub struct HolochainRuntime {
 }
 
 impl HolochainRuntime {
-    pub async fn launch(passphrase: BufRead, config: HolochainRuntimeConfig) -> crate::Result<Self> {
+    pub async fn launch(passphrase: SharedLockedArray, config: HolochainRuntimeConfig) -> crate::Result<Self> {
         launch_holochain_runtime(passphrase, config).await
     }
     
@@ -312,7 +313,7 @@ impl HolochainRuntime {
     /// Sign a zome call
     ///
     /// * `zome_call_unsigned` - the unsigned zome call
-    pub async fn sign_zome_call(&self, zome_call_unsigned: ZomeCallUnsigned) -> crate::Result<ZomeCall> {
+    pub async fn sign_zome_call(&self, zome_call_unsigned: ZomeCallParams) -> crate::Result<ZomeCallParamsSigned> {
         let signed_zome_call = sign_zome_call_with_client(
             zome_call_unsigned,
             &self

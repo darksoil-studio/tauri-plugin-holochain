@@ -5,11 +5,10 @@ use holochain_types::{
     app::{InstallAppPayload, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
-use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tauri::{AppHandle, Context, Wry};
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig};
+use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
 use url2::url2;
 
 #[derive(Parser, Debug)]
@@ -52,23 +51,6 @@ struct Args {
     pub conductor_dir: Option<PathBuf>,
 }
 
-fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
-    match BufWrite::new_mem_locked(pass_tmp.len()) {
-        Err(e) => {
-            pass_tmp.fill(0);
-            Err(e.into())
-        }
-        Ok(p) => {
-            {
-                let mut lock = p.write_lock();
-                lock.copy_from_slice(&pass_tmp);
-                pass_tmp.fill(0);
-            }
-            Ok(p.to_read())
-        }
-    }
-}
-
 fn main() {
     let args = Args::parse();
 
@@ -88,11 +70,11 @@ fn main() {
     let mut context: Context<Wry> = tauri::generate_context!();
     context.config_mut().build.dev_url = Some(dev_url.into());
 
-    let wan_network_config = match (args.signal_url, args.bootstrap_url) {
-        (Some(signal_url), Some(bootstrap_url)) => Some(WANNetworkConfig {
+    let network_config = match (args.signal_url, args.bootstrap_url) {
+        (Some(signal_url), Some(bootstrap_url)) => Some(NetworkConfig {
             signal_url: url2!("{}", signal_url),
             bootstrap_url: url2!("{}", bootstrap_url),
-            ice_servers_urls: vec![],
+            ..Default::default()
         }),
         (None, None) => None,
         (Some(_), None) => {
@@ -110,12 +92,11 @@ fn main() {
                 .build(),
         )
         .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(password.as_bytes().to_vec()).expect("Can't build passphrase"),
+            vec_to_locked(password.as_bytes().to_vec()),
             HolochainPluginConfig {
-                wan_network_config,
+                network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
-                gossip_arc_clamp: None,
                 fallback_to_lan_only: true
             },
         ))

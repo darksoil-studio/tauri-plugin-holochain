@@ -1,6 +1,6 @@
 use std::{
     collections::{HashMap, HashSet},
-    sync::atomic::AtomicBool,
+    sync::{atomic::AtomicBool, Arc},
     time::Duration,
 };
 
@@ -8,11 +8,8 @@ use async_std::stream::StreamExt;
 use base64::Engine;
 use holochain_client::AdminWebsocket;
 use kitsune_p2p_mdns::{mdns_create_broadcast_thread, mdns_kill_thread, mdns_listen};
-use kitsune_p2p_types::{
-    agent_info::AgentInfoSigned,
-    bin_types::{KitsuneAgent, KitsuneSpace},
-    codec::{rmp_decode, rmp_encode},
-};
+use kitsune2_core::Ed25519Verifier;
+use kitsune2_api::{AgentId, AgentInfoSigned, K2Error, SpaceId};
 
 pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
     let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port))
@@ -23,20 +20,31 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
             ))
         })?;
     tokio::spawn(async move {
-        let mut spaces_listened_to: HashSet<KitsuneSpace> = HashSet::new();
+        let mut spaces_listened_to: HashSet<SpaceId> = HashSet::new();
         let mut cells_ids_broadcasted: HashMap<
-            (KitsuneSpace, KitsuneAgent),
+            (SpaceId, AgentId),
             std::sync::Arc<AtomicBool>,
         > = HashMap::new();
         loop {
-            let Ok(agent_infos) = admin_ws.agent_info(None).await else {
+            let Ok(encoded_agent_infos) = admin_ws.agent_info(None).await else {
                 continue;
             };
+            // log::info!("hey {encoded_agent_infos:?}");
 
-            let spaces: HashSet<KitsuneSpace> = agent_infos
+            let agent_infos: Vec<Arc<AgentInfoSigned>> = encoded_agent_infos
                 .iter()
-                .map(|agent_info| agent_info.space.as_ref().clone())
+                .filter_map(|agent_info|
+                    AgentInfoSigned::decode(
+                    &Ed25519Verifier,
+                  agent_info.as_bytes(),
+                ).ok())
                 .collect();
+
+            // log::info!("hey2 {agent_infos:?}");
+            let spaces: HashSet<SpaceId> = agent_infos.iter()
+                .map(|agent_info| agent_info.space.clone())
+                .collect();
+            // log::info!("hey3 {spaces:?}");
 
             for space in spaces {
                 if !spaces_listened_to.contains(&space) {
@@ -50,8 +58,8 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
 
             for agent_info in agent_infos {
                 let cell_id = (
-                    agent_info.space.as_ref().clone(),
-                    agent_info.agent.as_ref().clone(),
+                    agent_info.space.clone(),
+                    agent_info.agent.clone(),
                 );
                 if let Some(handle) = cells_ids_broadcasted.get(&cell_id) {
                     mdns_kill_thread(handle.to_owned());
@@ -63,14 +71,17 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
                     base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(&agent_info.agent[..]);
 
                 // Broadcast rmp encoded agent_info_signed
-                let mut buffer = Vec::new();
-                if let Err(err) = rmp_encode(&mut buffer, &agent_info) {
-                    log::error!("Error encoding buffer: {err:?}");
-                    continue;
-                };
-                let handle = mdns_create_broadcast_thread(space_b64, agent_b64, &buffer);
-                // store handle in self
-                cells_ids_broadcasted.insert(cell_id, handle);
+                if let Ok(str_buffer) = agent_info.encode() {
+            // log::info!("broadcast {str_buffer:?}");
+                   let buffer = str_buffer.as_bytes(); 
+                    // if let Err(err) = rmp_encode(&mut buffer, &agent_info) {
+                    //     log::error!("Error encoding buffer: {err:?}");
+                    //     continue;
+                    // };
+                    let handle = mdns_create_broadcast_thread(space_b64, agent_b64, &buffer);
+                    // store handle in self
+                    cells_ids_broadcasted.insert(cell_id, handle);
+                }
             }
 
             async_std::task::sleep(Duration::from_secs(5)).await;
@@ -80,7 +91,7 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
     Ok(())
 }
 
-pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) -> crate::Result<()> {
+pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crate::Result<()> {
     let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port))
         .await
         .map_err(|err| {
@@ -96,18 +107,33 @@ pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) ->
         while let Some(maybe_response) = stream.next().await {
             match maybe_response {
                 Ok(response) => {
-                    log::debug!("Peer found via MDNS {:?}", response);
+                    log::debug!(
+                        "Peer found via MDNS with service type {}, service name {} and address {}.",
+                        response.service_type,
+                        response.service_name,
+                        response.addr
+                    );
                     // Decode response
-                    let maybe_agent_info_signed: Result<AgentInfoSigned, std::io::Error> =
-                        rmp_decode(&mut &*response.buffer);
+                    let maybe_agent_info_signed: Result<Arc<AgentInfoSigned>, K2Error> = AgentInfoSigned::decode(
+                        &Ed25519Verifier,
+                        response.buffer.as_slice()
+                    );
                     if let Err(e) = maybe_agent_info_signed {
                         log::error!("Failed to decode MDNS peer {:?}", e);
                         continue;
                     }
                     if let Ok(remote_agent_info_signed) = maybe_agent_info_signed {
-                        let Ok(agent_infos) = admin_ws.agent_info(None).await else {
+                        let Ok(encoded_agent_infos) = admin_ws.agent_info(None).await else {
                             continue;
                         };
+                        let agent_infos: Vec<Arc<AgentInfoSigned>> = encoded_agent_infos
+                            .iter()
+                            .filter_map(|agent_info|
+                                AgentInfoSigned::decode(
+                                &Ed25519Verifier,
+                              agent_info.as_bytes(),
+                            ).ok())
+                            .collect();
 
                         if agent_infos
                             .iter()
@@ -119,9 +145,12 @@ pub async fn spawn_listen_to_space_task(space: KitsuneSpace, admin_port: u16) ->
                             })
                             .is_none()
                         {
-                            log::info!("Adding agent info {remote_agent_info_signed:?}");
+                            let Ok(encoded_agent_info) = remote_agent_info_signed.encode() else {
+                                continue;
+                            };
+                            log::info!("Adding agent info {encoded_agent_info:?}");
                             if let Err(e) = admin_ws
-                                .add_agent_info(vec![remote_agent_info_signed])
+                                .add_agent_info(vec![encoded_agent_info])
                                 .await
                             {
                                 log::error!("Failed to store MDNS peer {:?}", e);

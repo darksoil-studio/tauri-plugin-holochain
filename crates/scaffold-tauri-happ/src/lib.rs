@@ -564,8 +564,6 @@ roles:
       modifiers:
         network_seed: ~
         properties: ~
-        origin_time: ~
-        quantum_time: ~
       installed_hash: ~
       clone_limit: 0
 "#

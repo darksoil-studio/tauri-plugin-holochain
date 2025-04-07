@@ -3,7 +3,7 @@ use std::{
     path::PathBuf,
 };
 
-use hc_seed_bundle::dependencies::sodoken::BufRead;
+use hc_seed_bundle::SharedLockedArray;
 use http_server::{pong_iframe, read_asset};
 use tauri::{
     http::response,
@@ -478,7 +478,7 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
 }
 
 /// Initializes the plugin, waiting for holochain to launch before finishing the app's setup.
-pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> TauriPlugin<R> {
+pub fn init<R: Runtime>(passphrase: SharedLockedArray, config: HolochainPluginConfig) -> TauriPlugin<R> {
     plugin_builder()
         .setup(|app, _api| {
             let handle = app.clone();
@@ -494,7 +494,7 @@ pub fn init<R: Runtime>(passphrase: BufRead, config: HolochainPluginConfig) -> T
 /// Initializes the plugin without waiting for holochain to launch to continue the setup of the app
 /// If you use this version of init, you should listen to the `holochain://setup-completed` event in your `setup()` hook
 pub fn async_init<R: Runtime>(
-    passphrase: BufRead,
+    passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
 ) -> TauriPlugin<R> {
     plugin_builder()
@@ -518,7 +518,7 @@ pub fn async_init<R: Runtime>(
 
 async fn launch_and_setup_holochain<R: Runtime>(
     app_handle: AppHandle<R>,
-    passphrase: BufRead,
+    passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
 ) -> crate::Result<()> {
     // let http_server_port = portpicker::pick_unused_port().expect("No ports free");
