@@ -17,7 +17,7 @@ fn network_config() -> NetworkConfig {
         // Don't hold any slice of the DHT in mobile
         target_arc_factor: if cfg!(mobile) { 0 } else { 1 },
         // Don't use the bootstrap service on tauri dev mode
-        // mem_bootstrap: tauri::is_dev(),
+        mem_bootstrap: tauri::is_dev(),
         // mem_bootstrap: false,
         ..NetworkConfig::default()
     }
