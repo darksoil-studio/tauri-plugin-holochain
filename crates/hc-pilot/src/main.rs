@@ -70,19 +70,20 @@ fn main() {
     let mut context: Context<Wry> = tauri::generate_context!();
     context.config_mut().build.dev_url = Some(dev_url.into());
 
-    let network_config = match (args.signal_url, args.bootstrap_url) {
-        (Some(signal_url), Some(bootstrap_url)) => Some(NetworkConfig {
-            signal_url: url2!("{}", signal_url),
-            bootstrap_url: url2!("{}", bootstrap_url),
-            ..Default::default()
-        }),
-        (None, None) => None,
+    let mut network_config = NetworkConfig::default();
+
+    match (args.signal_url, args.bootstrap_url) {
+        (Some(signal_url), Some(bootstrap_url)) => {
+            network_config.signal_url = url2!("{}", signal_url);
+            network_config.bootstrap_url = url2!("{}", bootstrap_url);
+        }
         (Some(_), None) => {
             panic!("Invalid arguments: --signal-url was provided without --bootstrap-url")
         }
         (None, Some(_)) => {
             panic!("Invalid arguments: --bootstrap-url was provided without --signal-url")
         }
+        (None, None) => {}
     };
 
     tauri::Builder::default()
