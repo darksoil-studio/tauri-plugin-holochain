@@ -19,3 +19,5 @@ path = "dnas/forum/zomes/coordinator/posts"
 [workspace.dependencies.posts_integrity]
 path = "dnas/forum/zomes/integrity/posts"
 
+[patch.crates-io]
+datachannel-sys = { path = "/home/guillem/projects/labs/datachannel-rs/datachannel-sys"}
