@@ -348,27 +348,31 @@
               RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
             '';
           };
-          customZigbuildCargo = pkgs.writeShellApplication {
-            name = "cargo";
+          # customZigbuildCargo = pkgs.writeShellApplication {
+          #   name = "cargo";
 
-            runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
-              ++ [
-                rust
-                (pkgs.callPackage ./nix/custom-cargo-zigbuild.nix { })
-              ];
+          #   runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
+          #     ++ [
+          #       rust
+          #       (pkgs.callPackage ./nix/custom-cargo-zigbuild.nix { })
+          #     ];
 
-            text = ''
-              if [ "$#" -ne 0 ] && [ "$1" = "build" ]
-              then
-                cargo-zigbuild "$@"
-              else
-                cargo "$@"
-              fi
-            '';
-          };
+          #   text = ''
+          #     if [ "$#" -ne 0 ] && [ "$1" = "build" ]
+          #     then
+          #       cargo-zigbuild "$@"
+          #     else
+          #       cargo "$@"
+          #     fi
+          #   '';
+          # };
           androidRust = pkgs.symlinkJoin {
             name = "rust-for-android";
-            paths = [ customZigbuildCargo rust packages.android-sdk ];
+            paths = [
+              # customZigbuildCargo
+              rust
+              packages.android-sdk
+            ];
             buildInputs = [ pkgs.makeWrapper ];
             postBuild = let
               toolchainBinsPath =

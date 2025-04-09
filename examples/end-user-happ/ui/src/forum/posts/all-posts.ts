@@ -30,13 +30,12 @@ export class AllPosts extends LitElement {
 
   async firstUpdated() {
     this.client.on("signal", (signal) => {
-      if (signal.zome_name !== "posts") return;
-      const payload = signal.payload as PostsSignal;
+      if (signal.type !== "app" || signal.value.zome_name !== "posts") return;
+      const payload = signal.value.payload as PostsSignal;
       if (payload.type !== "EntryCreated") return;
       this.hashes = [payload.action.hashed.hash, ...this.hashes];
     });
     const links: Link[] = await this.client.callZome({
-      cap_secret: null,
       role_name: "forum",
       zome_name: "posts",
       fn_name: "get_all_posts",
@@ -46,7 +45,6 @@ export class AllPosts extends LitElement {
     this.loading = false;
     setInterval(async () => {
       const links: Link[] = await this.client.callZome({
-        cap_secret: null,
         role_name: "forum",
         zome_name: "posts",
         fn_name: "get_all_posts",

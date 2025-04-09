@@ -5,6 +5,7 @@ use holochain::conductor::{
 use holochain_conductor_api::conductor::DpkiConfig;
 use holochain_keystore::paths::KeystorePath;
 use holochain_types::websocket::AllowedOrigins;
+use serde_json::json;
 use url2::Url2;
 
 use crate::{filesystem::FileSystem, launch::DEVICE_SEED_LAIR_KEYSTORE_TAG, NetworkConfig};
@@ -28,6 +29,18 @@ pub fn conductor_config(
     if let Some(local_signal_url) = local_signal_url {
         // network_config.bootstrap_url = url2!("");
         network_config.signal_url = local_signal_url;
+    }
+    if let None = network_config.advanced {
+        let advanced_config = json!({
+          "k2Gossip": {
+            "initiateIntervalMs": 100,
+            "minInitiateIntervalMs": 100,
+          },
+          "tx5Transport": {
+            "signalAllowPlainText": true,
+          },
+        });
+        network_config.advanced = Some(advanced_config);
     }
     config.network = network_config;
 

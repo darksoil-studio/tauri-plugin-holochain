@@ -345,11 +345,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1743789853,
-        "narHash": "sha256-cAWroJwcEukVEwP97jGjYkhlUFTrW127S6ZoA03iaHU=",
+        "lastModified": 1744063153,
+        "narHash": "sha256-0wYemBX35gQ/sr+fh6e2FMwAyOC5Fgtq36SZ3tus7yo=",
         "owner": "holochain",
         "repo": "holonix",
-        "rev": "d92a2c76e229957dbfe49cb6d577578f4270e608",
+        "rev": "54dd3c4eb75a7471210f3f1472a4ffaef5c97f6d",
         "type": "github"
       },
       "original": {
@@ -371,11 +371,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1743789853,
-        "narHash": "sha256-cAWroJwcEukVEwP97jGjYkhlUFTrW127S6ZoA03iaHU=",
+        "lastModified": 1744063153,
+        "narHash": "sha256-0wYemBX35gQ/sr+fh6e2FMwAyOC5Fgtq36SZ3tus7yo=",
         "owner": "holochain",
         "repo": "holonix",
-        "rev": "d92a2c76e229957dbfe49cb6d577578f4270e608",
+        "rev": "54dd3c4eb75a7471210f3f1472a4ffaef5c97f6d",
         "type": "github"
       },
       "original": {
@@ -644,7 +644,7 @@
       },
       "locked": {
         "lastModified": 0,
-        "narHash": "sha256-+HbWlaztLkdrf8ytUVJMepq0cKxtjGwfP55eeNB5wWw=",
+        "narHash": "sha256-OEp8bpebarA5EdhKn0DVhoU2XMzY4U7XjT0xGV1vk8A=",
         "path": "../..",
         "type": "path"
       },
@@ -786,11 +786,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1744017187,
-        "narHash": "sha256-bgr579TPN7A7BD50Eq4vgDRvGnS7Hm/+oEuuA6x85OU=",
+        "lastModified": 1744103540,
+        "narHash": "sha256-ChiUZ9QEqXITTDzmvwYlQ+0BnSWJt4QKj9SKK5vgko4=",
         "owner": "darksoil-studio",
         "repo": "tnesh-stack",
-        "rev": "4f61f64b5134a5690d54dc5c3d00bceec89fa5dd",
+        "rev": "cabf107c8c22a41af1fbabb20031f71bd3f364ac",
         "type": "github"
       },
       "original": {

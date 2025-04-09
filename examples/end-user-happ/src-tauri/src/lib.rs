@@ -4,8 +4,6 @@ use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, NetworkConfig,
 use tauri::{AppHandle, Listener};
 
 const APP_ID: &'static str = "example";
-// const SIGNAL_URL: &'static str = "wss://sbd.holo.host";
-// const BOOTSTRAP_URL: &'static str = "https://bootstrap.holo.host";
 
 pub fn example_happ() -> AppBundle {
     let bytes = include_bytes!("../../workdir/forum.happ");
@@ -13,14 +11,19 @@ pub fn example_happ() -> AppBundle {
 }
 
 fn network_config() -> NetworkConfig {
-    NetworkConfig {
-        // Don't hold any slice of the DHT in mobile
-        target_arc_factor: if cfg!(mobile) { 0 } else { 1 },
-        // Don't use the bootstrap service on tauri dev mode
-        mem_bootstrap: tauri::is_dev(),
-        // mem_bootstrap: false,
-        ..NetworkConfig::default()
+    let mut network_config = NetworkConfig::default();
+
+    // Don't use the bootstrap service on tauri dev mode
+    if tauri::is_dev() {
+        network_config.bootstrap_url = url2::Url2::parse("http://127.0.0.1:38499");
     }
+
+    // Don't hold any slice of the DHT in mobile
+    if cfg!(mobile) {
+        network_config.target_arc_factor = 0;
+     }
+
+    network_config
 }
 
 fn holochain_dir() -> PathBuf {

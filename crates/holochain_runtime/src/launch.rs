@@ -49,9 +49,9 @@ pub(crate) async fn launch_holochain_runtime(
 
     let mut maybe_local_signal_server: Option<(url2::Url2, sbd_server::SbdServer)> = None;
 
-    let disable_bootstrap  = config.network_config.mem_bootstrap;
+    // let disable_bootstrap  = config.network_config.mem_bootstrap;
 
-    let run_local_signal_server = if disable_bootstrap {
+    let run_local_signal_server = if false {
         true
     } else {
         if let Err(err) = can_connect_to_signal_server(config.network_config.signal_url.clone()).await {
