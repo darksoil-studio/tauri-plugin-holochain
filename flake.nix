@@ -390,9 +390,6 @@
                 --set CARGO_TARGET_I686_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS "-L linker=clang" \
-                --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
-                --set CMAKE_ANDROID_NDK ${ndkPath} \
-                --set CMAKE_TOOLCHAIN_FILE ${ndkPath}/build/cmake/android.toolchain.cmake \
                 --set RANLIB ${toolchainBinsPath}/llvm-ranlib \
                 --set CC_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang \
                 --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android24-clang \
@@ -402,6 +399,9 @@
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
                 --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
+                --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
+                --set CMAKE_ANDROID_NDK ${ndkPath} \
+                --set CMAKE_TOOLCHAIN_FILE ${ndkPath}/build/cmake/android.toolchain.cmake \
                 --set BINDGEN_EXTRA_CLANG_ARGS "--sysroot=${prebuiltPath}/sysroot" \
                 --set CFLAGS "--sysroot=${prebuiltPath}/sysroot"
             '';
