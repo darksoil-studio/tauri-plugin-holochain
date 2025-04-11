@@ -230,6 +230,16 @@
           # }/bin:$PATH
         };
 
+        packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
+          with sdkPkgs; [
+            cmdline-tools-latest
+            build-tools-34-0-0
+            build-tools-30-0-3
+            platform-tools
+            ndk-28-0-13004108
+            platforms-android-34
+          ]);
+
         devShells.androidDev = pkgs.mkShell {
           packages = [ packages.android-sdk pkgs.gradle pkgs.jdk17 pkgs.aapt ];
 
@@ -279,16 +289,6 @@
           inputsFrom = [ devShells.androidDev devShells.tauriDev ];
           packages = [ rust ];
         };
-
-        packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
-          with sdkPkgs; [
-            cmdline-tools-latest
-            build-tools-34-0-0
-            build-tools-30-0-3
-            platform-tools
-            ndk-28-0-13004108
-            platforms-android-34
-          ]);
 
         packages.tauriRust = let
           rust = inputs.holonix.packages.${system}.rust.override {
@@ -400,17 +400,22 @@
                 --set CXX_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android35-clang++ \
                 --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android35-clang \
                 --set CC_i686_linux_android ${toolchainBinsPath}/i686-linux-android35-clang \
+                --set CXX_i686_linux_android ${toolchainBinsPath}/i686-linux-android35-clang++ \
                 --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android35-clang \
                 --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android35-clang \
                 --set CXX_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android35-clang++ \
                 --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android35-clang \
                 --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi35-clang \
+                --set CXX_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi35-clang++ \
                 --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi35-clang \
+                --set ANDROID_STANDALONE_TOOLCHAIN ${prebuiltPath} \
                 --set ANDROID_NDK ${ndkPath} \
                 --set ANDROID_NDK_HOME ${ndkPath} \
                 --set ANDROID_NDK_ROOT ${ndkPath} \
+                --set CMAKE_GENERATOR Ninja \
+                --set CMAKE_MAKE_PROGRAM Ninja \
                 --set CMAKE_TOOLCHAIN_FILE ${ndkPath}/build/cmake/android.toolchain.cmake \
-                --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
+                --set LIBCLANG_PATH ${prebuiltPath}/lib \
                 --set BINDGEN_EXTRA_CLANG_ARGS_aarch64_linux_android "--sysroot=${prebuiltPath}/sysroot -isystem ${prebuiltPath}/sysroot/usr/include/aarch64-linux-android -I${prebuiltPath}/lib/clang/19/include -I${prebuiltPath}/sysroot/usr/include" \
                 --set BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android "--sysroot=${prebuiltPath}/sysroot -isystem ${prebuiltPath}/sysroot/usr/include/x86_64-linux-android -I${prebuiltPath}/lib/clang/19/include -I${prebuiltPath}/sysroot/usr/include"
             '';
@@ -435,7 +440,7 @@
           buildInputs =
             inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs
             ++ (with pkgs; [ glibc_multi rust-bindgen ]);
-          nativeBuildInputs = [ pkgs.llvmPackages_18.libclang ];
+          nativeBuildInputs = [ pkgs.llvmPackages_18.libclang pkgs.ninja ];
 
           shellHook = ''
 
