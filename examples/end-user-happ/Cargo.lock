@@ -1657,6 +1657,7 @@ checksum = "6a9104be65808f5ba4cae77831aa5b1874a64de31ceed449db37897910d0d72e"
 dependencies = [
  "datachannel-sys",
  "derivative",
+ "log",
  "parking_lot",
  "serde",
  "tracing",
@@ -2149,6 +2150,7 @@ version = "0.0.0"
 dependencies = [
  "anyhow",
  "app_dirs2",
+ "datachannel",
  "holochain_client",
  "holochain_types",
  "lair_keystore",
