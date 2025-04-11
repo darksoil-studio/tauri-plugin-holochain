@@ -6,12 +6,21 @@
       cmakeVersion = "3.22.1";
       sdkPath = "${self'.packages.android-sdk}/libexec/android-sdk";
       ndkPath = "${sdkPath}/ndk-bundle";
-      prebuiltPath = "${ndkPath}/toolchains/llvm/prebuilt/${
-          if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64"
-        }";
+      toolchainSystem =
+        if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64";
+      prebuiltPath = "${ndkPath}/toolchains/llvm/prebuilt/${toolchainSystem}";
       toolchainBinsPath = "${prebuiltPath}/bin";
 
     in rec {
+      # packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
+      #   with sdkPkgs; [
+      #     cmdline-tools-latest
+      #     build-tools-34-0-0
+      #     build-tools-30-0-3
+      #     platform-tools
+      #     ndk-bundle
+      #     platforms-android-34
+      #   ]);
 
       packages.android-sdk = let
         pkgs = import inputs.nixpkgs {
@@ -75,19 +84,19 @@
             packages.android-sdk
           ];
           buildInputs = [ pkgs.makeWrapper ];
+          # --set CFLAGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=aarch64-linux-android" \
+          # --set CXXFLAGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysrooto --target=aarch64-linux-android" \
+          # --set CFLAGS_X86_64_LINUX_ANDROID "--target=x86_64-linux-android --sysroot=${prebuiltPath}/sysroot" \
+          # --set CXXFLAGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CPPFLAGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CXXFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CPPFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CXXFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
+          # --set CPPFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
           postBuild = ''
             wrapProgram $out/bin/cargo \
-              --set CFLAGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=aarch64-linux-android" \
-              --set CXXFLAGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysrooto --target=aarch64-linux-android" \
-              --set CFLAGS_X86_64_LINUX_ANDROID "--target=x86_64-linux-android --sysroot=${prebuiltPath}/sysroot" \
-              --set CXXFLAGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CPPFLAGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CXXFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CPPFLAGS_I686_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CXXFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
-              --set CPPFLAGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot --target=x86_64-linux-android" \
               --set AR ${toolchainBinsPath}/llvm-ar \
               --set CARGO_TARGET_AARCH64_LINUX_ANDROID_AR ${toolchainBinsPath}/llvm-ar \
               --set CARGO_TARGET_I686_LINUX_ANDROID_AR ${toolchainBinsPath}/llvm-ar \
@@ -113,7 +122,6 @@
               --set ANDROID_NDK_HOME ${ndkPath} \
               --set ANDROID_NDK_ROOT ${ndkPath} \
               --set CMAKE_GENERATOR Ninja \
-              --set CMAKE_BUILD_TYPE RelWithDebInfo \
               --set CMAKE_TOOLCHAIN_FILE ${ndkPath}/build/cmake/android.toolchain.cmake \
               --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
               --set BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/aarch64-linux-android" \
@@ -133,11 +141,12 @@
         packages = [ packages.androidTauriRust ];
         buildInputs =
           inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs
-          ++ (with pkgs; [ cmake ninja glibc_multi rust-bindgen openssl ]);
+          ++ (with pkgs; [ glibc_multi rust-bindgen ninja cmake ]);
 
         shellHook = ''
           # export PATH=${sdkPath}/cmake/${cmakeVersion}/bin:$PATH
           export PS1='\[\033[1;34m\][p2p-shipyard-android:\w]\$\[\033[0m\] '
+          # export OPENSSL_ROOT_DIR=${pkgs.openssl.dev}
         '';
       };
     };
