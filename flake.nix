@@ -8,8 +8,6 @@
     crane.follows = "holonix/crane";
 
     tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
-
-    android-nixpkgs.url = "github:tadfisher/android-nixpkgs";
   };
 
   nixConfig = {
