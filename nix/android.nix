@@ -107,10 +107,10 @@
               --set CXX_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang++ \
               --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android24-clang \
               --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
-              --set CXX__x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang++ \
+              --set CXX_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang++ \
               --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
               --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
-              --set CXX__armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang++ \
+              --set CXX_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang++ \
               --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
               --set BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/aarch64-linux-android" \
               --set BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/x86_64-linux-android" \
