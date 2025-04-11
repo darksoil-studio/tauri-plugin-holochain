@@ -4,43 +4,44 @@
   perSystem = { inputs', lib, pkgs, self', system, ... }:
     let
       cmakeVersion = "3.22.1";
-      sdkPath = "${self'.packages.android-sdk}/share/android-sdk";
-      ndkPath = "${sdkPath}/ndk/28.0.13004108";
+      sdkPath = "${self'.packages.android-sdk}/libexec/android-sdk";
+      ndkPath = "${sdkPath}/ndk/25.2.9519653";
       toolchainSystem =
         if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64";
       prebuiltPath = "${ndkPath}/toolchains/llvm/prebuilt/${toolchainSystem}";
       toolchainBinsPath = "${prebuiltPath}/bin";
 
     in rec {
-      packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
-        with sdkPkgs; [
-          cmdline-tools-latest
-          build-tools-34-0-0
-          build-tools-30-0-3
-          platform-tools
-          # ndk-bundle
-          ndk-28-0-13004108
-          platforms-android-34
-        ]);
+      # packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
+      #   with sdkPkgs; [
+      #     cmdline-tools-latest
+      #     build-tools-34-0-0
+      #     build-tools-30-0-3
+      #     platform-tools
+      #     # ndk-bundle
+      #     ndk-25-2-9519653
+      #     # ndk-28-0-13004108
+      #     platforms-android-34
+      #   ]);
 
-      # packages.android-sdk = let
-      #   pkgs = import inputs.nixpkgs {
-      #     inherit system;
-      #     config.allowUnfree = true;
-      #     config.android_sdk.accept_license = true;
-      #   };
-      # in (pkgs.androidenv.composeAndroidPackages {
-      #   platformVersions = [ "34" "35" ];
-      #   systemImageTypes = [ "google_apis_playstore" ];
-      #   abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
-      #   includeNDK = true;
-      #   ndkVersion = "28.0.13004108";
-      #   # ndkVersion = "25.2.9519653";
-      #   # ndkVersion = "23.0.7344513-rc4";
-      #   # ndkVersion = "29.0.13113456-rc1";
-      #   # cmakeVersions = [ cmakeVersion ];
-      #   # includeExtras = [ "extras" "google" "auto" ];
-      # }).androidsdk;
+      packages.android-sdk = let
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
+        };
+      in (pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [ "34" "35" ];
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
+        includeNDK = true;
+        # ndkVersion = "28.0.13004108";
+        ndkVersion = "25.2.9519653";
+        # ndkVersion = "23.0.7344513-rc4";
+        # ndkVersion = "29.0.13113456-rc1";
+        # cmakeVersions = [ cmakeVersion ];
+        # includeExtras = [ "extras" "google" "auto" ];
+      }).androidsdk;
 
       devShells.androidDev = pkgs.mkShell {
         packages = [ packages.android-sdk pkgs.gradle pkgs.jdk17 pkgs.aapt ];
