@@ -125,8 +125,8 @@
               --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
               --set CXX_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang++ \
               --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
-              --set CFLAGS_ARMV7_LINUX_ANDROID "--target=armv7a-linux-androideabi --sysroot=${prebuiltPath}/sysroot" \
-              --set CXXFLAGS_ARMV7_LINUX_ANDROID "--target=armv7a-linux-androideabi" \
+              --set CFLAGS_ARMV7_LINUX_ANDROID "--target=armv7-linux-androideabi --sysroot=${prebuiltPath}/sysroot" \
+              --set CXXFLAGS_ARMV7_LINUX_ANDROID "--target=armv7-linux-androideabi" \
               --set BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/aarch64-linux-android" \
               --set BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/x86_64-linux-android" \
               --set BINDGEN_EXTRA_CLANG_ARGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi" \
