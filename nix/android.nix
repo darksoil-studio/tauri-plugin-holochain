@@ -4,8 +4,9 @@
   perSystem = { inputs', lib, pkgs, self', system, ... }:
     let
       cmakeVersion = "3.22.1";
+      # cmakeVersion = "3.10.2";
       sdkPath = "${self'.packages.android-sdk}/libexec/android-sdk";
-      ndkPath = "${sdkPath}/ndk/25.2.9519653";
+      ndkPath = "${sdkPath}/ndk-bundle";
       toolchainSystem =
         if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64";
       prebuiltPath = "${ndkPath}/toolchains/llvm/prebuilt/${toolchainSystem}";
@@ -31,15 +32,22 @@
           config.android_sdk.accept_license = true;
         };
       in (pkgs.androidenv.composeAndroidPackages {
-        platformVersions = [ "34" "35" ];
+        platformVersions = [ "24" "34" "35" ];
         systemImageTypes = [ "google_apis_playstore" ];
         abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
         includeNDK = true;
-        # ndkVersion = "28.0.13004108";
         ndkVersion = "25.2.9519653";
+
+        # ndkVersion = "28.0.13004108";
+        # ndkVersion = "26.0.10792818";
+        # ndkVersion = "26.3.11579264";
+        # ndkVersion = "24.0.8215888";
         # ndkVersion = "23.0.7344513-rc4";
         # ndkVersion = "29.0.13113456-rc1";
-        # cmakeVersions = [ cmakeVersion ];
+        # ndkVersion = "29.0.13113456";
+        # ndkVersion = "28.0.13004108";
+        # ndkVersion = "27.2.12479018";
+        cmakeVersions = [ cmakeVersion ];
         # includeExtras = [ "extras" "google" "auto" ];
       }).androidsdk;
 
@@ -86,6 +94,7 @@
             packages.android-sdk
           ];
           buildInputs = [ pkgs.makeWrapper ];
+          # --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
           postBuild = ''
             wrapProgram $out/bin/cargo \
               --set ANDROID_STANDALONE_TOOLCHAIN ${prebuiltPath} \
@@ -96,22 +105,28 @@
               --set ANDROID_NDK_ROOT ${ndkPath} \
               --set CMAKE_GENERATOR Ninja \
               --set CMAKE_TOOLCHAIN_FILE ${ndkPath}/build/cmake/android.toolchain.cmake \
-              --set LIBCLANG_PATH ${pkgs.llvmPackages_18.libclang.lib}/lib \
-              --set CFLAGS "--sysroot=${prebuiltPath}/sysroot" \
               --set RANLIB ${toolchainBinsPath}/llvm-ranlib \
               --set AR ${toolchainBinsPath}/llvm-ar \
               --set CC_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang \
               --set CXX_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang++ \
               --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android24-clang \
+              --set CFLAGS_AARCH64_LINUX_ANDROID "--target=aarch64-linux-android --sysroot=${prebuiltPath}/sysroot" \
+              --set CXXFLAGS_AARCH64_LINUX_ANDROID "--target=aarch64-linux-android" \
               --set CC_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang \
               --set CXX_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang++ \
               --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android24-clang \
+              --set CFLAGS_I686_LINUX_ANDROID "--target=i686-linux-android --sysroot=${prebuiltPath}/sysroot" \
+              --set CXXFLAGS_I686_LINUX_ANDROID "--target=i686-linux-android" \
               --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
               --set CXX_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang++ \
               --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
+              --set CFLAGS_X86_64_LINUX_ANDROID "--target=x86_64-linux-android --sysroot=${prebuiltPath}/sysroot" \
+              --set CXXFLAGS_X86_64_LINUX_ANDROID "--target=x86_64-linux-android" \
               --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
               --set CXX_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang++ \
               --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
+              --set CFLAGS_ARMV7_LINUX_ANDROID "--target=armv7a-linux-androideabi --sysroot=${prebuiltPath}/sysroot" \
+              --set CXXFLAGS_ARMV7_LINUX_ANDROID "--target=armv7a-linux-androideabi" \
               --set BINDGEN_EXTRA_CLANG_ARGS_AARCH64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/aarch64-linux-android" \
               --set BINDGEN_EXTRA_CLANG_ARGS_X86_64_LINUX_ANDROID "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/x86_64-linux-android" \
               --set BINDGEN_EXTRA_CLANG_ARGS_ARMV7_LINUX_ANDROIDEABI "--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi" \
