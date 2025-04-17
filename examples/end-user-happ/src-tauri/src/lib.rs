@@ -28,26 +28,13 @@ fn network_config() -> NetworkConfig {
 
 fn holochain_dir() -> PathBuf {
     if tauri::is_dev() {
-        #[cfg(target_os = "android")]
-        {
-            app_dirs2::app_root(
-                app_dirs2::AppDataType::UserCache,
-                &app_dirs2::AppInfo {
-                    name: "studio.darksoil.p2pshipyard",
-                    author: "darksoil.studio",
-                },
-            ).expect("Could not get the UserCache directory")
-        }
-        #[cfg(not(target_os = "android"))]
-        {
-            let tmp_dir =
-                tempdir::TempDir::new("forum").expect("Could not create temporary directory");
+        let tmp_dir =
+            tempdir::TempDir::new("forum").expect("Could not create temporary directory");
 
-            // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
-            // without deleting the directory.
-            let tmp_path = tmp_dir.into_path();
-            tmp_path
-        }
+        // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
+        // without deleting the directory.
+        let tmp_path = tmp_dir.into_path();
+        tmp_path
     } else {
         app_dirs2::app_root(
             app_dirs2::AppDataType::UserData,

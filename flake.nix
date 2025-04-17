@@ -8,6 +8,7 @@
     crane.follows = "holonix/crane";
 
     tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
+    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
   };
 
   nixConfig = {
@@ -69,6 +70,7 @@
         ./crates/hc-pilot/default.nix
         ./nix/tauri-cli.nix
         ./nix/android.nix
+        ./nix/custom-go-compiler.nix
         # inputs.tnesh-stack.outputs.flakeModules.builders
         inputs.tnesh-stack.outputs.flakeModules.dependencies
       ];

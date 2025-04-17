@@ -31,4 +31,3 @@ url2 = "0.0.6"
 app_dirs2 = "2.5.5"
 tempdir = "0.3.7"
 anyhow = "1"
-datachannel = {version="0.14", features = ["vendored"]}

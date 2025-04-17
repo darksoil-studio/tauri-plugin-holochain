@@ -33,7 +33,7 @@ pub(crate) async fn launch_holochain_runtime(
     // if let Some(info) = lock.to_owned() {
     //     return Ok(info);
     // }
-    if rustls::crypto::ring::default_provider()
+    if rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
         .is_err()
     {
@@ -49,17 +49,13 @@ pub(crate) async fn launch_holochain_runtime(
 
     let mut maybe_local_signal_server: Option<(url2::Url2, sbd_server::SbdServer)> = None;
 
-    // let disable_bootstrap  = config.network_config.mem_bootstrap;
+    let connect_result = can_connect_to_signal_server(config.network_config.signal_url.clone()).await;
 
-    let run_local_signal_server = if false {
-        true
+    let run_local_signal_server = if let Err(err) = connect_result {
+        log::warn!("Error connecting with the WAN signal server: {err:?}");
+        config.fallback_to_lan_only
     } else {
-        if let Err(err) = can_connect_to_signal_server(config.network_config.signal_url.clone()).await {
-            log::warn!("Error connecting with the WAN signal server: {err:?}");
-            config.fallback_to_lan_only
-        } else {
-            false
-        }
+        false
     };
 
     if run_local_signal_server {
