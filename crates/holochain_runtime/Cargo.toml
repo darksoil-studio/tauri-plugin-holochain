@@ -27,6 +27,7 @@ holochain_client = "0.7.0-rc"
 
 # Other dependencies
 # tx5 = { version = "0.3", default-features = false, features = ["backend-go-pion"]}
+tx5 = "0.3"
 rustls = "0.23"
 tracing = { version = "0.1", features = ["log", "log-always"] }
 arbitrary = "=1.3.2"

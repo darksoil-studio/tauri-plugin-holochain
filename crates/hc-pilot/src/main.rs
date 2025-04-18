@@ -78,7 +78,7 @@ fn main() {
             network_config.bootstrap_url = url2!("{}", bootstrap_url);
         }
         (None, None) => {
-            network_config.mem_bootstrap = true;
+            network_config.bootstrap_url = url2!("http://localhost:0000");
         }
         (Some(_), None) => {
             panic!("Invalid arguments: --signal-url was provided without --bootstrap-url")

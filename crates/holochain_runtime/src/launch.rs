@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use async_std::sync::Mutex;
 use holochain_keystore::MetaLairClient;
@@ -8,7 +8,6 @@ use tokio::io::AsyncWriteExt;
 use url2::url2;
 
 use holochain::conductor::Conductor;
-use holochain_client::AdminWebsocket;
 
 use crate::{
     filesystem::FileSystem, launch::signal::{can_connect_to_signal_server, run_local_signal_service}, HolochainRuntime, HolochainRuntimeConfig
@@ -106,7 +105,6 @@ pub(crate) async fn launch_holochain_runtime(
         .build()
         .await?;
 
-    wait_until_admin_ws_is_available(admin_port).await?;
     log::info!("Connected to the admin websocket");
 
     spawn_mdns_bootstrap(admin_port).await?;
@@ -121,27 +119,6 @@ pub(crate) async fn launch_holochain_runtime(
         _local_sbd_server: maybe_local_signal_server.map(|s| s.1),
     })
 }
-
-pub async fn wait_until_admin_ws_is_available(admin_port: u16) -> crate::Result<()> {
-    let mut retry_count = 0;
-    loop {
-        if let Err(err) = AdminWebsocket::connect(format!("localhost:{}", admin_port)).await {
-            log::error!("Could not connect to the admin interface: {}", err);
-        } else {
-            break;
-        }
-        async_std::task::sleep(Duration::from_millis(200)).await;
-
-        retry_count += 1;
-        if retry_count == 200 {
-            return Err(crate::Error::AdminWebsocketError(
-                "Can't connect to holochain".to_string(),
-            ));
-        }
-    }
-    Ok(())
-}
-
 
 fn read_config(config_path: &std::path::Path) -> crate::Result<LairServerConfig> {
     let bytes = std::fs::read(config_path)?;
@@ -164,7 +141,6 @@ pub async fn spawn_lair_keystore_in_proc(
     config_path: std::path::PathBuf,
     passphrase: SharedLockedArray,
 ) -> LairResult<MetaLairClient> {
-    // return Ok(spawn_test_keystore().await?);
 
     let config = get_config(&config_path, passphrase.clone()).await?;
 
