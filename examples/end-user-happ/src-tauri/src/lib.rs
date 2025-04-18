@@ -15,30 +15,30 @@ fn network_config() -> NetworkConfig {
 
     // Don't use the bootstrap service on tauri dev mode
     if tauri::is_dev() {
-        // network_config.bootstrap_url = url2::Url2::parse("http://127.0.0.1:38499");
+        network_config.bootstrap_url = url2::Url2::parse("http://192.168.1.41:8888");
     }
 
     // Don't hold any slice of the DHT in mobile
     if cfg!(mobile) {
         network_config.target_arc_factor = 0;
-     }
+    }
 
     network_config
 }
 
 fn holochain_dir() -> PathBuf {
     if tauri::is_dev() {
-        if cfg!(target_os = "android") {
-            app_dirs2::app_root(
-                app_dirs2::AppDataType::UserData,
-                &app_dirs2::AppInfo {
-                    name: "example-forum",
-                    author: std::env!("CARGO_PKG_AUTHORS"),
-                },
-            )
-            .expect("Could not get app root")
-            .join("holochain")
-        } else {
+        // if cfg!(target_os = "android") {
+        //     app_dirs2::app_root(
+        //         app_dirs2::AppDataType::UserData,
+        //         &app_dirs2::AppInfo {
+        //             name: "example-forum",
+        //             author: std::env!("CARGO_PKG_AUTHORS"),
+        //         },
+        //     )
+        //     .expect("Could not get app root")
+        //     .join("holochain")
+        // } else {
             let tmp_dir =
                 tempdir::TempDir::new("forum").expect("Could not create temporary directory");
 
@@ -46,7 +46,7 @@ fn holochain_dir() -> PathBuf {
             // without deleting the directory.
             let tmp_path = tmp_dir.into_path();
             tmp_path
-        }
+        // }
     } else {
         app_dirs2::app_root(
             app_dirs2::AppDataType::UserData,

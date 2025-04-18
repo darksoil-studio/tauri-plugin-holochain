@@ -3514,7 +3514,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tracing",
- "tx5",
  "tx5-signal",
  "url2",
  "zip 0.6.6",
