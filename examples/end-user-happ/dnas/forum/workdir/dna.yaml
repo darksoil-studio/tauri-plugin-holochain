@@ -9,7 +9,6 @@ integrity:
       hash: ~
       bundled: "../../../target/wasm32-unknown-unknown/release/posts_integrity.wasm"
       dependencies: ~
-      dylib: ~
 coordinator:
   zomes:
     - name: posts
@@ -17,4 +16,3 @@ coordinator:
       bundled: "../../../target/wasm32-unknown-unknown/release/posts.wasm"
       dependencies:
         - name: posts_integrity
-      dylib: ~

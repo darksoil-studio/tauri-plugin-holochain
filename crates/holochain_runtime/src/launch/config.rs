@@ -27,18 +27,20 @@ pub fn conductor_config(
 
     // LAN
     if let Some(local_signal_url) = local_signal_url {
-        // network_config.bootstrap_url = url2!("");
         network_config.signal_url = local_signal_url;
     }
     if let None = network_config.advanced {
         let advanced_config = json!({
-          "k2Gossip": {
-            "initiateIntervalMs": 100,
-            "minInitiateIntervalMs": 100,
-          },
-          "tx5Transport": {
-            "signalAllowPlainText": true,
-          },
+            "tx5Transport": {
+                "signalAllowPlainText": true,
+            },
+            // Gossip faster to speed up the test.
+            "k2Gossip": {
+                "initiateIntervalMs": 1000,
+                "minInitiateIntervalMs": 0,
+                "roundTimeoutMs": 500,
+                "initiateJitterMs": 100,
+            },
         });
         network_config.advanced = Some(advanced_config);
     }
