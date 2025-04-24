@@ -10000,6 +10000,7 @@ dependencies = [
  "wasmer-derive",
  "wasmer-types",
  "wasmer-vm",
+ "wasmparser 0.216.1",
  "wat",
  "windows-sys 0.59.0",
  "xz",

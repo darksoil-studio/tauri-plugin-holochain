@@ -3,9 +3,18 @@ name = "holochain_runtime"
 version = "0.1.0"
 edition = "2021"
 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+holochain = { version = "0.5", features = [ "unstable-functions" ] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+holochain = { version = "0.5", default-features = false, features = [
+  "sqlite-encrypted",
+  "unstable-functions",
+  "wasmer_wamr"
+] }
+
 [dependencies]
 # Holochain dependencies
-holochain = { version = "0.5", features = [ "unstable-functions" ] }
 mr_bundle = "0.5"
 holochain_types = "0.5"
 holochain_keystore = "0.5"
@@ -45,3 +54,4 @@ serde_json = "1"
 base64 = "0.22"
 tokio = "1"
 anyhow = "1"
+

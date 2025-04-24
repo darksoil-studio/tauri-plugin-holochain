@@ -62,10 +62,12 @@ fn holochain_dir() -> PathBuf {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    std::env::set_var("WASM_LOG", "info");
+    
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Warn)
+                .level(log::LevelFilter::Info)
                 .build(),
         )
         .plugin(tauri_plugin_holochain::async_init(

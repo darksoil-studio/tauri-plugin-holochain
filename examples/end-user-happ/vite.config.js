@@ -13,12 +13,12 @@ export default defineConfig(async () => ({
     port: 1420,
     strictPort: true,
     host: host || false,
-    hmr: host
-      ? {
-          protocol: "ws",
-          host: host,
-          port: 1430,
-        }
-      : undefined,
+    // hmr: host
+    //   ? {
+    //       protocol: "ws",
+    //       host: host,
+    //       port: 1430,
+    //     }
+    //   : undefined,
   },
 }));

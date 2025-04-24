@@ -2,6 +2,8 @@ use hdk::prelude::*;
 use posts_integrity::*;
 #[hdk_extern]
 pub fn create_post(post: Post) -> ExternResult<Record> {
+    error!("WAMR_LOG: start create post");
+
     let post_hash = create_entry(&EntryTypes::Post(post.clone()))?;
     let record = get(post_hash.clone(), GetOptions::default())?.ok_or(wasm_error!(
         WasmErrorInner::Guest(String::from("Could not find the newly created Post"))
@@ -13,6 +15,7 @@ pub fn create_post(post: Post) -> ExternResult<Record> {
         LinkTypes::AllPosts,
         (),
     )?;
+    error!("WAMR_LOG: end create post");
     Ok(record)
 }
 #[hdk_extern]
