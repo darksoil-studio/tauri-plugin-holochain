@@ -214,7 +214,7 @@ impl<R: Runtime> HolochainPlugin<R> {
     ///
     /// * `app_id` - the app to build the `AppWebsocket` for
     pub async fn app_websocket(&self, app_id: InstalledAppId) -> crate::Result<AppWebsocket> {
-        let allowed_origins= self.get_app_origin(&app_id, false);
+        let allowed_origins = self.get_app_origin(&app_id, false);
         let app_ws = self.holochain_runtime.app_websocket(app_id, allowed_origins).await?;
         Ok(app_ws)
     }

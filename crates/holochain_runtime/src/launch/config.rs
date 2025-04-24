@@ -38,8 +38,6 @@ pub fn conductor_config(
             "k2Gossip": {
                 "initiateIntervalMs": 1000,
                 "minInitiateIntervalMs": 0,
-                "roundTimeoutMs": 500,
-                "initiateJitterMs": 100,
             },
         });
         network_config.advanced = Some(advanced_config);
