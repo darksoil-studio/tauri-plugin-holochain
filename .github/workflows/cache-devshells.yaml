@@ -44,9 +44,6 @@ jobs:
           nix develop --no-update-lock-file --accept-flake-config --profile holochainTauriAndroidDev -c true .#holochainTauriAndroidDev
           cachix push darksoil-studio holochainTauriAndroidDev
 
-          cachix watch-exec darksoil-studio -- nix build --no-update-lock-file -L --accept-flake-config .#holochainTauriRust 
-          cachix push darksoil-studio $(nix path-info --json --accept-flake-config --no-warn-dirty .#holochainTauriRust | nix run nixpkgs#jq -- -r 'keys[0]')
-
           cachix watch-exec darksoil-studio -- nix build --no-update-lock-file -L --accept-flake-config .#androidTauriRust
           cachix push darksoil-studio $(nix path-info --json --accept-flake-config --no-warn-dirty .#androidTauriRust | nix run nixpkgs#jq -- -r 'keys[0]')
 
@@ -55,6 +52,4 @@ jobs:
         env:
           CACHIX_AUTH_TOKEN: "${{ secrets.DARKSOIL_CACHIX_AUTH_TOKEN }}"
         run: |
-          cachix pin darksoil-studio holochainTauriRust $(nix path-info --json --accept-flake-config --no-warn-dirty .#holochainTauriRust | nix run nixpkgs#jq -- -r 'keys[0]')
-
           cachix pin darksoil-studio androidTauriRust $(nix path-info --json --accept-flake-config --no-warn-dirty .#androidTauriRust | nix run nixpkgs#jq -- -r 'keys[0]')
