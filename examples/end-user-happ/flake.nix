@@ -19,9 +19,6 @@
             inputs'.p2p-shipyard.devShells.holochainTauriDev
             inputs'.holonix.devShells.default
           ];
-          # shellHook = ''
-          #   unset CC
-          # '';
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [

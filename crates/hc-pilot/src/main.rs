@@ -2,10 +2,12 @@ use anyhow::anyhow;
 use clap::Parser;
 use holochain_client::AppInfo;
 use holochain_types::{
-    app::{InstallAppPayload, RoleSettings},
+    app::{AppBundle, InstallAppPayload, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
-use std::collections::HashMap;
+use log::LevelFilter;
+use tauri_plugin_log::{LogLevel, Target};
+use std::{collections::HashMap, str::FromStr};
 use std::path::PathBuf;
 use tauri::{AppHandle, Context, Wry};
 use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
@@ -51,6 +53,13 @@ struct Args {
     pub conductor_dir: Option<PathBuf>,
 }
 
+fn log_level() -> LevelFilter {
+    match std::env::var("RUST_LOG") {
+        Ok(log) => LevelFilter::from_str(log.as_str()).expect("Invalid RUST_LOG value"),
+        _ => LevelFilter::Warn
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -91,7 +100,9 @@ fn main() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Warn)
+                .level(log_level())
+                .clear_targets()
+                .target(Target::new(tauri_plugin_log::TargetKind::Stdout))
                 .build(),
         )
         .plugin(tauri_plugin_holochain::init(
@@ -150,25 +161,18 @@ async fn setup(
     agent_key: Option<AgentPubKey>,
     network_seed: Option<String>,
 ) -> anyhow::Result<AppInfo> {
-    let admin_ws = handle.holochain()?.admin_websocket().await?;
-    let app_info = admin_ws
-        .install_app(InstallAppPayload {
-            agent_key,
-            roles_settings,
-            network_seed,
-            source: holochain_types::app::AppBundleSource::Path(app_bundle_path),
-            installed_app_id: None,
-            ignore_genesis_failure: false,
-            allow_throwaway_random_agent_key: false,
-        })
-        .await
-        .map_err(|err| anyhow!("Error installing the app: {err:?}"))?;
+    let bytes = std::fs::read(app_bundle_path)?;
+    let app_bundle = AppBundle::decode(&bytes)?;
+    let app_id = app_bundle.clone().into_inner().manifest().app_name().to_string();
+    let app_info = handle.holochain()?
+        .install_app(
+            app_id,
+            app_bundle,
+            None,
+            None,
+            None
+        ).await?;
     log::info!("Installed app {app_info:?}");
 
-    let response = admin_ws
-        .enable_app(app_info.installed_app_id.clone())
-        .await
-        .map_err(|err| anyhow!("Error enabling the app: {err:?}"))?;
-
-    Ok(response.app)
+    Ok(app_info)
 }

@@ -20,20 +20,16 @@
         buildInputs = self'.dependencies.tauriHapp.buildInputs;
         nativeBuildInputs = self'.dependencies.tauriHapp.nativeBuildInputs;
 
-        stdenv = if pkgs.stdenv.isDarwin then
-          pkgs.overrideSDK pkgs.stdenv "11.0"
-        else
-          pkgs.stdenv;
-
         # TODO: remove this if possible
         # Without this build fails on MacOs
-        postPatch = ''
+        postPatch = if system == "x86_64-darwin" then ''
           mkdir -p "$TMPDIR/nix-vendor"
           cp -Lr "$cargoVendorDir" -T "$TMPDIR/nix-vendor"
           sed -i "s|$cargoVendorDir|$TMPDIR/nix-vendor/|g" "$TMPDIR/nix-vendor/config.toml"
           chmod -R +w "$TMPDIR/nix-vendor"
           cargoVendorDir="$TMPDIR/nix-vendor"
-        '';
+        '' else
+          "";
 
         # Make sure libdatachannel can find C++ standard libraries from clang.
         LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
