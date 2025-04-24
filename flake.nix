@@ -9,6 +9,7 @@
 
     holochain-nix-builders.url =
       "github:darksoil-studio/holochain-nix-builders/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 
   nixConfig = {
@@ -182,34 +183,36 @@
             name = "rust";
             paths = [ linuxCargo rust ];
           };
-        in if pkgs.stdenv.isLinux then linuxRust else rust;
+        in rust;
 
-        packages.holochainTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
-            extensions = [ "rust-src" ];
-            targets = [ "wasm32-unknown-unknown" ];
-          };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-          linuxRust = pkgs.symlinkJoin {
-            name = "holochain-tauri-rust-for-linux";
-            paths = [ linuxCargo rust ];
-          };
-        in if pkgs.stdenv.isLinux then linuxRust else rust;
+        # packages.holochainTauriRust = let
+        #   rust = inputs.holonix.packages.${system}.rust.override {
+        #     extensions = [ "rust-src" ];
+        #     targets = [ "wasm32-unknown-unknown" ];
+        #   };
+        #   linuxCargo = pkgs.writeShellApplication {
+        #     name = "cargo";
+        #     runtimeInputs = [ rust ];
+        #     text = ''
+        #       RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+        #     '';
+        #   };
+        #   linuxRust = pkgs.symlinkJoin {
+        #     name = "holochain-tauri-rust-for-linux";
+        #     paths = [ linuxCargo rust ];
+        #   };
+        # in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
             inputs'.holochain-nix-builders.devShells.holochainDev
           ];
-          packages = [ packages.holochainTauriRust ];
+          packages = [ pkgs.clang ];
 
           shellHook = ''
+            export CC=clang
+            export CXX=clang++
             export PS1='\[\033[1;34m\][p2p-shipyard:\w]\$\[\033[0m\] '
           '';
         };
