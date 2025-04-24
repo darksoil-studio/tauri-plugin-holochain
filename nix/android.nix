@@ -161,12 +161,11 @@
         inputsFrom = [
           self'.devShells.tauriDev
           devShells.androidDev
-          inputs'.tnesh-stack.devShells.holochainDev
+          inputs'.holochain-nix-builders.devShells.holochainDev
         ];
-        packages =
-          [ self'.packages.custom-go-wrapper packages.androidTauriRust ];
+        packages = [ packages.androidTauriRust ];
         buildInputs =
-          inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs
+          inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs
           ++ (with pkgs; [ glibc_multi rust-bindgen ninja cmake ]);
 
         shellHook = ''

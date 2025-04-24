@@ -5,11 +5,11 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-holochain = { version = "0.5.0-rc.1", features = [ "unstable-functions" ] }
-mr_bundle = "0.5.0-rc"
-holochain_types = "0.5.0-rc"
-holochain_keystore = "0.5.0-rc"
-holochain_conductor_api = "0.5.0-rc"
+holochain = { version = "0.5", features = [ "unstable-functions" ] }
+mr_bundle = "0.5"
+holochain_types = "0.5"
+holochain_keystore = "0.5"
+holochain_conductor_api = "0.5"
 
 kitsune_p2p_mdns = "0.4"
 kitsune2_api = "0.1"
@@ -23,7 +23,7 @@ lair_keystore_api = "0.6.0"
 lair_keystore = { version = "0.6.0" }
 
 # Holochain client
-holochain_client = "0.7.0-rc"
+holochain_client = "0.7.0"
 
 # Other dependencies
 rustls = "0.23"

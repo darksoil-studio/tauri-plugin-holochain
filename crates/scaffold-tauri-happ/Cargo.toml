@@ -20,12 +20,12 @@ serde_json = {version = "1", features = ["std", "preserve_order"]}
 serde_yaml = {version = "0.9" }
 serde = "1"
 clap = {version = "4.5.4", features = ["derive"]}
-nix_scaffolding_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch ="main-0.5" }
-rust_scaffolding_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
-file_tree_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
-npm_scaffolding_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
-holochain_scaffolding_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
-templates_scaffolding_utils = { git = "https://github.com/darksoil-studio/tnesh-stack", branch = "main-0.5" }
+nix_scaffolding_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch ="main-0.5" }
+rust_scaffolding_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch = "main-0.5" }
+file_tree_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch = "main-0.5" }
+npm_scaffolding_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch = "main-0.5" }
+holochain_scaffolding_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch = "main-0.5" }
+templates_scaffolding_utils = { git = "https://github.com/darksoil-studio/scaffolding", branch = "main-0.5" }
 include_dir = "0.7.3"
 thiserror = "1"
 handlebars = "5.1.0"

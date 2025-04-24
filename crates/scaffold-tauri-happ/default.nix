@@ -13,7 +13,7 @@
       crate = cargoToml.package.name;
 
       commonArgs = {
-        src = (inputs.tnesh-stack.outputs.lib.cleanScaffoldingSource {
+        src = (inputs.scaffolding.outputs.lib.cleanScaffoldingSource {
           inherit lib;
         }) (craneLib.path ../../.);
         doCheck = false;

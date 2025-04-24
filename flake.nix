@@ -2,13 +2,13 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    holonix.url = "github:holochain/holonix";
+    holonix.url = "github:holochain/holonix/main-0.5";
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
-    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    holochain-nix-builders.url =
+      "github:darksoil-studio/holochain-nix-builders/main-0.5";
   };
 
   nixConfig = {
@@ -70,9 +70,8 @@
         ./crates/hc-pilot/default.nix
         ./nix/tauri-cli.nix
         ./nix/android.nix
-        ./nix/custom-go-compiler.nix
-        # inputs.tnesh-stack.outputs.flakeModules.builders
-        inputs.tnesh-stack.outputs.flakeModules.dependencies
+        # inputs.holochain-nix-builders.outputs.flakeModules.builders
+        inputs.holochain-nix-builders.outputs.flakeModules.dependencies
       ];
 
       systems = builtins.attrNames inputs.holonix.devShells;
@@ -139,7 +138,7 @@
 
         dependencies.tauriHapp = {
           buildInputs = dependencies.tauriApp.buildInputs
-            ++ inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
+            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
         };
 
@@ -204,8 +203,10 @@
         in if pkgs.stdenv.isLinux then linuxRust else rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
-          inputsFrom =
-            [ devShells.tauriDev inputs'.tnesh-stack.devShells.holochainDev ];
+          inputsFrom = [
+            devShells.tauriDev
+            inputs'.holochain-nix-builders.devShells.holochainDev
+          ];
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
@@ -215,7 +216,7 @@
 
         devShells.default = pkgs.mkShell {
           inputsFrom = [ devShells.holochainTauriDev ];
-          packages = [ inputs'.tnesh-stack.packages.synchronized-pnpm ];
+          packages = [ pkgs.pnpm ];
         };
       };
     };

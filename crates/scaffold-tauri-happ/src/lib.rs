@@ -410,7 +410,7 @@ mod tests {
     nixpkgs.follows = "holonix/nixpkgs";
 
     holonix.url = "github:holochain/holonix/main-0.5";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 
   outputs = inputs @ { ... }:
@@ -429,14 +429,14 @@ mod tests {
           devShells.default = pkgs.mkShell {
             inputsFrom = [
               inputs'.p2p-shipyard.devShells.holochainTauriDev 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
           devShells.androidDev = pkgs.mkShell {
             inputsFrom = [
               inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
@@ -579,7 +579,7 @@ roles:
     nixpkgs.follows = "holonix/nixpkgs";
 
     holonix.url = "github:holochain/holonix/main-0.5";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 
   outputs = inputs @ { ... }:
@@ -597,7 +597,7 @@ roles:
         }: {
           devShells.default = pkgs.mkShell {
             inputsFrom = [ 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
