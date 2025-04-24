@@ -1,12 +1,11 @@
-use anyhow::anyhow;
 use clap::Parser;
 use holochain_client::AppInfo;
 use holochain_types::{
-    app::{AppBundle, InstallAppPayload, RoleSettings},
+    app::{AppBundle, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
 use log::LevelFilter;
-use tauri_plugin_log::{LogLevel, Target};
+use tauri_plugin_log::Target;
 use std::{collections::HashMap, str::FromStr};
 use std::path::PathBuf;
 use tauri::{AppHandle, Context, Wry};
@@ -169,7 +168,7 @@ async fn setup(
             app_id,
             app_bundle,
             roles_settings,
-            agent,
+            agent_key,
             network_seed
         ).await?;
     log::info!("Installed app {app_info:?}");
