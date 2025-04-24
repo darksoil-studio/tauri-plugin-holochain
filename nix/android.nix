@@ -49,6 +49,11 @@
           unset CC
           unset CXX
 
+
+          export CMAKE_TOOLCHAIN_FILE=${ndkPath}/build/cmake/android.toolchain.cmake
+          export CMAKE_GENERATOR=Ninja
+          export CMAKE_C_COMPILER=${toolchainBinsPath}/aarch64-linux-android24-clang 
+          export CMAKE_CXX_COMPILER=${toolchainBinsPath}/aarch64-linux-android24-clang++
           export CC_aarch64_linux_android=${toolchainBinsPath}/aarch64-linux-android24-clang 
           export CXX_aarch64_linux_android=${toolchainBinsPath}/aarch64-linux-android24-clang++ 
           export AWS_LC_SYS_CXX_aarch64_linux_android=${toolchainBinsPath}/aarch64-linux-android24-clang++ 
