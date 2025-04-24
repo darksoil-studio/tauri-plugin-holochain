@@ -168,9 +168,9 @@ async fn setup(
         .install_app(
             app_id,
             app_bundle,
-            None,
-            None,
-            None
+            roles_settings,
+            agent,
+            network_seed
         ).await?;
     log::info!("Installed app {app_info:?}");
 
