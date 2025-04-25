@@ -1,14 +1,37 @@
-use std::{collections::{HashMap, HashSet}, net::{Ipv4Addr, SocketAddr}, sync::Arc};
+use std::{
+    collections::{HashMap, HashSet},
+    net::{Ipv4Addr, SocketAddr},
+    sync::Arc,
+};
 
 use async_std::sync::Mutex;
-use holochain::{conductor::ConductorHandle, prelude::{ NetworkSeed, ZomeCallParams } };
-use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId, WebsocketConfig };
+use holochain::{
+    conductor::ConductorHandle,
+    prelude::{NetworkSeed, ZomeCallParams},
+};
+use holochain_client::{
+    AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId,
+    WebsocketConfig,
+};
 use holochain_conductor_api::ZomeCallParamsSigned;
-use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, websocket::AllowedOrigins};
+use holochain_types::{
+    app::{AppBundle, RoleSettings},
+    web_app::WebAppBundle,
+    websocket::AllowedOrigins,
+};
 use lair_keystore_api::types::SharedLockedArray;
 use sbd_server::SbdServer;
 
-use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::install_app, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
+use crate::{
+    filesystem::{AppBundleStore, BundleStore, FileSystem},
+    happs::{
+        install::install_app,
+        update::{update_app, UpdateHappError},
+    },
+    lair_signer::LairAgentSignerWithProvenance,
+    launch::launch_holochain_runtime,
+    sign_zome_call_with_client, HolochainRuntimeConfig,
+};
 
 #[derive(Clone)]
 pub struct AppWebsocketAuth {
@@ -27,10 +50,13 @@ pub struct HolochainRuntime {
 }
 
 impl HolochainRuntime {
-    pub async fn launch(passphrase: SharedLockedArray, config: HolochainRuntimeConfig) -> crate::Result<Self> {
+    pub async fn launch(
+        passphrase: SharedLockedArray,
+        config: HolochainRuntimeConfig,
+    ) -> crate::Result<Self> {
         launch_holochain_runtime(passphrase, config).await
     }
-    
+
     /// Builds an `AdminWebsocket` ready to use
     pub async fn admin_websocket(&self) -> crate::Result<AdminWebsocket> {
         let mut config = WebsocketConfig::CLIENT_DEFAULT;
@@ -49,7 +75,7 @@ impl HolochainRuntime {
     pub async fn get_app_websocket_auth(
         &self,
         app_id: &InstalledAppId,
-        allowed_origins: AllowedOrigins
+        allowed_origins: AllowedOrigins,
     ) -> crate::Result<AppWebsocketAuth> {
         let mut apps_websockets_auths = self.apps_websockets_auths.lock().await;
         let existing_auth = apps_websockets_auths
@@ -60,7 +86,6 @@ impl HolochainRuntime {
         }
 
         let admin_ws = self.admin_websocket().await?;
-
 
         let app_port = admin_ws
             .attach_app_interface(0, allowed_origins.clone(), Some(app_id.clone()))
@@ -94,29 +119,33 @@ impl HolochainRuntime {
     /// Builds an `AppWebsocket` for the given app ready to use
     ///
     /// * `app_id` - the app to build the `AppWebsocket` for
-    pub async fn app_websocket(&self, app_id: InstalledAppId, origin: String) -> crate::Result<AppWebsocket> {
-        let mut origins: HashSet<String> = HashSet::new();
-        origins.insert(origin.clone());
-        
-        let app_websocket_auth = self.get_app_websocket_auth(&app_id, AllowedOrigins::Origins(origins)).await?;
-        
+    pub async fn app_websocket(
+        &self,
+        app_id: InstalledAppId,
+        allowed_origins: AllowedOrigins,
+    ) -> crate::Result<AppWebsocket> {
+        let app_websocket_auth = self
+            .get_app_websocket_auth(&app_id, allowed_origins.clone())
+            .await?;
+
         let config = Arc::new(WebsocketConfig::CLIENT_DEFAULT);
-        let request = ConnectRequest::new(
-            SocketAddr::new(Ipv4Addr::LOCALHOST.into(), app_websocket_auth.app_websocket_port)
-        );
-        let request = request
-            .try_set_header("Origin", origin.as_str())?;
+        let mut request = ConnectRequest::new(SocketAddr::new(
+            Ipv4Addr::LOCALHOST.into(),
+            app_websocket_auth.app_websocket_port,
+        ));
+
+        if let AllowedOrigins::Origins(origins) = allowed_origins {
+            if let Some(origin) = origins.into_iter().collect::<Vec<String>>().first() {
+                request = request.try_set_header("Origin", origin.as_str())?;
+            }
+        }
 
         let app_ws = AppWebsocket::connect_with_request_and_config(
             request,
             config,
             app_websocket_auth.token,
             Arc::new(LairAgentSignerWithProvenance::new(Arc::new(
-                self
-                    .conductor_handle
-                    .keystore()
-                    .lair_client()
-                    .clone(),
+                self.conductor_handle.keystore().lair_client().clone(),
             ))),
         )
         .await
@@ -141,14 +170,17 @@ impl HolochainRuntime {
         agent: Option<AgentPubKey>,
         network_seed: Option<NetworkSeed>,
     ) -> crate::Result<AppInfo> {
-        self
-            .filesystem
+        self.filesystem
             .bundle_store
             .store_web_happ_bundle(app_id.clone(), &web_app_bundle)
             .await?;
 
         let app_bundle = web_app_bundle.happ_bundle().await?;
-        let app_bundle_path = self.filesystem.bundle_store.happ_bundle_store().app_bundle_path(&app_bundle)?;
+        let app_bundle_path = self
+            .filesystem
+            .bundle_store
+            .happ_bundle_store()
+            .app_bundle_path(&app_bundle)?;
 
         let admin_ws = self.admin_websocket().await?;
         let app_info = install_app(
@@ -181,12 +213,15 @@ impl HolochainRuntime {
     ) -> crate::Result<AppInfo> {
         let admin_ws = self.admin_websocket().await?;
 
-        self
-            .filesystem
+        self.filesystem
             .bundle_store
             .store_happ_bundle(app_id.clone(), &app_bundle)?;
 
-        let app_bundle_path = self.filesystem.bundle_store.happ_bundle_store().app_bundle_path(&app_bundle)?;
+        let app_bundle_path = self
+            .filesystem
+            .bundle_store
+            .happ_bundle_store()
+            .app_bundle_path(&app_bundle)?;
 
         let app_info = install_app(
             &admin_ws,
@@ -197,7 +232,7 @@ impl HolochainRuntime {
             network_seed,
         )
         .await?;
-    
+
         Ok(app_info)
     }
 
@@ -210,8 +245,7 @@ impl HolochainRuntime {
         app_id: InstalledAppId,
         web_app_bundle: WebAppBundle,
     ) -> crate::Result<()> {
-        self
-            .filesystem
+        self.filesystem
             .bundle_store
             .store_web_happ_bundle(app_id.clone(), &web_app_bundle)
             .await?;
@@ -263,11 +297,7 @@ impl HolochainRuntime {
     ) -> crate::Result<()> {
         let hash = AppBundleStore::app_bundle_hash(&current_app_bundle)?;
 
-        let installed_apps = self
-            .filesystem
-            .bundle_store
-            .installed_apps_store
-            .get()?;
+        let installed_apps = self.filesystem.bundle_store.installed_apps_store.get()?;
         let Some(installed_app_info) = installed_apps.get(&app_id) else {
             return Err(UpdateHappError::AppNotFound(app_id))?;
         };
@@ -294,11 +324,7 @@ impl HolochainRuntime {
     ) -> crate::Result<()> {
         let hash = BundleStore::web_app_bundle_hash(&current_web_app_bundle)?;
 
-        let installed_apps = self
-            .filesystem
-            .bundle_store
-            .installed_apps_store
-            .get()?;
+        let installed_apps = self.filesystem.bundle_store.installed_apps_store.get()?;
         let Some(installed_app_info) = installed_apps.get(&app_id) else {
             return Err(UpdateHappError::AppNotFound(app_id))?;
         };
@@ -313,30 +339,30 @@ impl HolochainRuntime {
     /// Sign a zome call
     ///
     /// * `zome_call_unsigned` - the unsigned zome call
-    pub async fn sign_zome_call(&self, zome_call_unsigned: ZomeCallParams) -> crate::Result<ZomeCallParamsSigned> {
+    pub async fn sign_zome_call(
+        &self,
+        zome_call_unsigned: ZomeCallParams,
+    ) -> crate::Result<ZomeCallParamsSigned> {
         let signed_zome_call = sign_zome_call_with_client(
             zome_call_unsigned,
-            &self
-                .conductor_handle
-                .keystore()
-                .lair_client()
-                .clone(),
+            &self.conductor_handle.keystore().lair_client().clone(),
         )
         .await?;
         Ok(signed_zome_call)
     }
 
     /// Check if an app with a given app_id installed on the holochain conductor
-    /// 
+    ///
     /// * `app_id` - the app id to check
-    pub async fn is_app_installed(
-        &self,
-        app_id: InstalledAppId
-    ) -> crate::Result<bool> {
+    pub async fn is_app_installed(&self, app_id: InstalledAppId) -> crate::Result<bool> {
         let admin_ws = self.admin_websocket().await?;
-        let apps = admin_ws.list_apps(None).await
+        let apps = admin_ws
+            .list_apps(None)
+            .await
             .map_err(|e| crate::Error::ConductorApiError(e))?;
-        let matching_app = apps.into_iter().find(|app_info| app_info.installed_app_id == app_id);
+        let matching_app = apps
+            .into_iter()
+            .find(|app_info| app_info.installed_app_id == app_id);
 
         Ok(matching_app.is_some())
     }
@@ -344,12 +370,10 @@ impl HolochainRuntime {
     /// Uninstall the app with the given `app_id` from the holochain conductor
     ///
     /// * `app_id` - the app id of the app to uninstall
-    pub async fn uninstall_app(
-        &self,
-        app_id: InstalledAppId
-    ) -> crate::Result<()> {
+    pub async fn uninstall_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws.uninstall_app(app_id, false)
+        admin_ws
+            .uninstall_app(app_id, false)
             .await
             .map_err(|e| crate::Error::ConductorApiError(e))?;
 
@@ -359,12 +383,10 @@ impl HolochainRuntime {
     /// Enable the app with the given `app_id` from the holochain conductor
     ///
     /// * `app_id` - the app id of the app to enable
-    pub async fn enable_app(
-        &self,
-        app_id: InstalledAppId
-    ) -> crate::Result<()> {
+    pub async fn enable_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws.enable_app(app_id)
+        admin_ws
+            .enable_app(app_id)
             .await
             .map_err(|e| crate::Error::ConductorApiError(e))?;
 
@@ -374,12 +396,10 @@ impl HolochainRuntime {
     /// Disable the app with the given `app_id` from the holochain conductor
     ///
     /// * `app_id` - the app id of the app to disable
-    pub async fn disable_app(
-        &self,
-        app_id: InstalledAppId
-    ) -> crate::Result<()> {
+    pub async fn disable_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws.disable_app(app_id)
+        admin_ws
+            .disable_app(app_id)
             .await
             .map_err(|e| crate::Error::ConductorApiError(e))?;
 
