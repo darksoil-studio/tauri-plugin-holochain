@@ -15,7 +15,7 @@ fn network_config() -> NetworkConfig {
 
     // Don't use the bootstrap service on tauri dev mode
     if tauri::is_dev() {
-        network_config.bootstrap_url = url2::Url2::parse("http://192.168.1.41:8888");
+        network_config.bootstrap_url = url2::Url2::parse("http://0.0.0.0:8888");
     }
 
     // Don't hold any slice of the DHT in mobile
