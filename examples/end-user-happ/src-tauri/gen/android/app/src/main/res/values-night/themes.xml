@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.example" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.example_end_user_happ" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->
     </style>
 </resources>
