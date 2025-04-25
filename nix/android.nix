@@ -105,6 +105,11 @@
             RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
           '';
         };
+        linuxRust = pkgs.symlinkJoin {
+          name = "holochain-tauri-rust-for-linux";
+          paths = [ linuxCargo rust ];
+        };
+
         # androidRust = pkgs.symlinkJoin {
         #   name = "rust-for-android";
         #   paths = [
@@ -155,7 +160,7 @@
         #   '';
         # };
 
-      in rust;
+      in if pkgs.stdenv.isLinux then linuxRust else rust;
 
       devShells.holochainTauriAndroidDev = pkgs.mkShell {
         inputsFrom = [
