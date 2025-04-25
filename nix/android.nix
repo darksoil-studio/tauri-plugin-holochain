@@ -41,6 +41,7 @@
           export ANDROID_NDK_HOME=${ndkPath} 
           export ANDROID_NDK_ROOT=${ndkPath} 
           export NDK_HOME=${ndkPath}
+          export ANDROID_NDK_LATEST_HOME=${ndkPath}
 
           export RANLIB=${toolchainBinsPath}/llvm-ranlib 
           export AR=${toolchainBinsPath}/llvm-ar
