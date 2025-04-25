@@ -179,40 +179,30 @@
               RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
             '';
           };
-          linuxRust = pkgs.symlinkJoin {
-            name = "rust";
-            paths = [ linuxCargo rust ];
-          };
-        in rust;
+        in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
-        # packages.holochainTauriRust = let
-        #   rust = inputs.holonix.packages.${system}.rust.override {
-        #     extensions = [ "rust-src" ];
-        #     targets = [ "wasm32-unknown-unknown" ];
-        #   };
-        #   linuxCargo = pkgs.writeShellApplication {
-        #     name = "cargo";
-        #     runtimeInputs = [ rust ];
-        #     text = ''
-        #       RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-        #     '';
-        #   };
-        #   linuxRust = pkgs.symlinkJoin {
-        #     name = "holochain-tauri-rust-for-linux";
-        #     paths = [ linuxCargo rust ];
-        #   };
-        # in if pkgs.stdenv.isLinux then linuxRust else rust;
+        packages.holochainTauriRust = let
+          rust = inputs.holonix.packages.${system}.rust.override {
+            extensions = [ "rust-src" ];
+            targets = [ "wasm32-unknown-unknown" ];
+          };
+          linuxCargo = pkgs.writeShellApplication {
+            name = "cargo";
+            runtimeInputs = [ rust ];
+            text = ''
+              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+            '';
+          };
+        in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
             inputs'.holochain-nix-builders.devShells.holochainDev
           ];
-          packages = [ pkgs.clang ];
+          packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
-            export CC=clang
-            export CXX=clang++
             export PS1='\[\033[1;34m\][p2p-shipyard:\w]\$\[\033[0m\] '
           '';
         };
