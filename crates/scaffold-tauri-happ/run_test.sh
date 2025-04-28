@@ -33,6 +33,6 @@ nix develop --no-update-lock-file --override-input p2p-shipyard $DIR .#androidDe
 set -e
 
 npm install
-npm run tauri android init
+npm run tauri android init -- --skip-targets-install
 npm run tauri android build -- --target aarch64
 "
