@@ -23,6 +23,6 @@ nix develop --override-input p2p-shipyard $DIR .#androidDev --command bash -c "
 set -e
 
 npm i
-npm run tauri android init
+npm run tauri android init -- --skip-targets-install
 npm run tauri android build -- --target aarch64
 "
