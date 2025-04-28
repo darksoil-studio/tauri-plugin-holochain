@@ -19,6 +19,7 @@
             inputs'.p2p-shipyard.devShells.holochainTauriDev
             inputs'.holonix.devShells.default
           ];
+          packages = [ inputs'.p2p-shipyard.packages.hc-pilot ];
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [
