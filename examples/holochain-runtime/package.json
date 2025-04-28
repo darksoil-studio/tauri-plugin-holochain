@@ -6,7 +6,7 @@
   "scripts": {
     "start": "AGENTS=2 npm run network",
     "network": "concurrently-repeat \"npm run tauri dev\" $AGENTS",
-    "network:android": "BOOTSTRAP_PORT=$(port) SIGNAL_PORT=$(port) INTERNAL_IP=$(internal-ip --ipv4) concurrently -k \"npm run tauri dev\" \"npm run tauri android dev\"",
+    "network:android": "concurrently -k \"npm run tauri dev\" \"npm run tauri android dev\"",
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -21,8 +21,6 @@
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "internal-ip": "^7.0.0",
-    "internal-ip-cli": "^2.0.0",
     "new-port-cli": "^1.0.0",
     "typescript": "^5.0.2",
     "vite": "^5.0.0"
