@@ -7,15 +7,15 @@
 
 ::: code-group
 ```bash [npm]
-npm run tauri android init
+npm run tauri android init -- --skip-targets-install
 ```
 
 ```bash [yarn]
-yarn tauri android init
+yarn tauri android init -- --skip-targets-install
 ```
 
 ```bash [pnpm]
-pnpm tauri android init
+pnpm tauri android init -- --skip-targets-install
 ```
 :::
 

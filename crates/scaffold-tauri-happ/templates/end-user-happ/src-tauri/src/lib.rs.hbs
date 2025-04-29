@@ -1,6 +1,6 @@
 use holochain_types::prelude::AppBundle;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainPluginConfig, HolochainExt, WANNetworkConfig, vec_to_locked};
+use tauri_plugin_holochain::{HolochainPluginConfig, HolochainExt, NetworkConfig, vec_to_locked};
 use tauri_plugin_opener::OpenerExt;
 use tauri::{AppHandle, Manager};
 #[cfg(not(mobile))]
@@ -9,8 +9,6 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 
 const APP_ID: &'static str = "{{app_name}}";
-const SIGNAL_URL: &'static str = "wss://sbd.holo.host";
-const BOOTSTRAP_URL: &'static str = "https://bootstrap.holochain.org";
 
 pub fn happ_bundle() -> AppBundle {
     let bytes = include_bytes!("../../{{app_bundle_location_from_root}}");
@@ -28,8 +26,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(vec![]).expect("Can't build passphrase"),
-            HolochainPluginConfig::new(holochain_dir(), wan_network_config())
+            vec_to_locked(vec![]),
+            HolochainPluginConfig::new(holochain_dir(), network_config())
         ))
         .setup(|app| {
             let handle = app.handle().clone();
@@ -158,16 +156,20 @@ async fn setup(handle: AppHandle) -> anyhow::Result<()> {
     }
 }
 
-fn wan_network_config() -> Option<WANNetworkConfig> {
+fn network_config() -> NetworkConfig {
+    let mut network_config = NetworkConfig::default();
+
+    // Don't use the bootstrap service on tauri dev mode
     if tauri::is_dev() {
-        None
-    } else {
-        Some(WANNetworkConfig {
-            signal_url: url2::url2!("{}", SIGNAL_URL),
-            bootstrap_url: url2::url2!("{}", BOOTSTRAP_URL),
-            ice_servers_urls: vec![]
-        })
+        network_config.bootstrap_url = url2::Url2::parse("http://0.0.0.0:8888");
     }
+
+    // Don't hold any slice of the DHT in mobile
+    if cfg!(mobile) {
+        network_config.target_arc_factor = 0;
+    }
+
+    network_config
 }
 
 fn holochain_dir() -> PathBuf {

@@ -74,7 +74,7 @@ If you get this error:
 It means you haven't initialized your project for Android developm̀ent yet. You can do so by running:
 
 ```bash
-npm run tauri android init
+npm run tauri android init -- --skip-targets-install
 ```
 
 And then try running your command again.
