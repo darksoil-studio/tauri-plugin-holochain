@@ -3,7 +3,7 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/holonix#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/scaffolding/chore/bump-to-0.5.0-dev.22#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
@@ -33,6 +33,6 @@ nix develop --no-update-lock-file --override-input p2p-shipyard $DIR .#androidDe
 set -e
 
 npm install
-npm run tauri android init
+npm run tauri android init -- --skip-targets-install
 npm run tauri android build -- --target aarch64
 "
