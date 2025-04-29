@@ -4,13 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-holochain = { version = "0.5", features = [ "unstable-functions" ] }
+holochain = { version = "0.5", features = [ "unstable-functions", "unstable-countersigning" ] }
 
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
 holochain = { version = "0.5", default-features = false, features = [
   "sqlite-encrypted",
   "unstable-functions",
-  "wasmer_wamr"
+  "wasmer_wamr",
+  "unstable-countersigning"
 ] }
 
 [dependencies]
