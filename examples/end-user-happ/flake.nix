@@ -26,6 +26,9 @@
             inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev
             inputs'.holonix.devShells.default
           ];
+          shellHook = ''
+            export CARGO_TARGET_DIR=$(pwd)/target/android
+          '';
         };
       };
     };
