@@ -272,6 +272,22 @@ impl<R: Runtime> HolochainPlugin<R> {
         Ok(app_info)
     }
 
+    /// Enable the app with the given `app_id`
+    ///
+    /// * `app_id` - the app id to give to the installed app
+    pub async fn enable_app(
+        &self,
+        app_id: InstalledAppId
+    ) -> crate::Result<AppInfo> {
+        let app_info = self.holochain_runtime.enable_app(
+            app_id.clone(),
+        )
+        .await?;
+
+        self.app_handle.emit("holochain://app-enabled", app_id)?;
+        Ok(app_info)
+    }
+
     /// Updates the coordinator zomes and UI for the given app with an updated `WebAppBundle`
     ///
     /// * `app_id` - the app to update

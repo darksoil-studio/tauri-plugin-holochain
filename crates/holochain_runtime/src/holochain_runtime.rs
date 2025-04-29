@@ -7,7 +7,7 @@ use holochain_types::{app::{AppBundle, RoleSettings}, web_app::WebAppBundle, web
 use lair_keystore::dependencies::sodoken::BufRead;
 use sbd_server::SbdServer;
 
-use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::install_app, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
+use crate::{filesystem::{AppBundleStore, BundleStore, FileSystem}, happs::{install::{install_app, enable_app}, update::{update_app, UpdateHappError}}, lair_signer::LairAgentSignerWithProvenance, launch::launch_holochain_runtime, sign_zome_call_with_client, HolochainRuntimeConfig};
 
 #[derive(Clone)]
 pub struct AppWebsocketAuth {
@@ -361,13 +361,12 @@ impl HolochainRuntime {
     pub async fn enable_app(
         &self,
         app_id: InstalledAppId
-    ) -> crate::Result<()> {
+    ) -> crate::Result<AppInfo> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws.enable_app(app_id)
-            .await
-            .map_err(|e| crate::Error::ConductorApiError(e))?;
+        let app_info = enable_app(&admin_ws, app_id)
+            .await?;
 
-        Ok(())
+        Ok(app_info)
     }
 
     /// Disable the app with the given `app_id` from the holochain conductor
