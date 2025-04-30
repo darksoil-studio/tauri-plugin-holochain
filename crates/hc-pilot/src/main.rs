@@ -5,11 +5,11 @@ use holochain_types::{
     dna::{AgentPubKey, AgentPubKeyB64},
 };
 use log::LevelFilter;
-use tauri_plugin_log::Target;
-use std::{collections::HashMap, str::FromStr};
 use std::path::PathBuf;
+use std::{collections::HashMap, str::FromStr};
 use tauri::{AppHandle, Context, Wry};
 use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
+use tauri_plugin_log::Target;
 use url2::url2;
 
 #[derive(Parser, Debug)]
@@ -55,7 +55,7 @@ struct Args {
 fn log_level() -> LevelFilter {
     match std::env::var("RUST_LOG") {
         Ok(log) => LevelFilter::from_str(log.as_str()).expect("Invalid RUST_LOG value"),
-        _ => LevelFilter::Warn
+        _ => LevelFilter::Warn,
     }
 }
 
@@ -87,6 +87,7 @@ fn main() {
         }
         (None, None) => {
             network_config.bootstrap_url = url2!("http://localhost:0000");
+            network_config.signal_url = url2!("ws://localhost:0000");
         }
         (Some(_), None) => {
             panic!("Invalid arguments: --signal-url was provided without --bootstrap-url")
@@ -110,7 +111,7 @@ fn main() {
                 network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
-                fallback_to_lan_only: true
+                fallback_to_lan_only: true,
             },
         ))
         .setup(|app| {
@@ -162,15 +163,16 @@ async fn setup(
 ) -> anyhow::Result<AppInfo> {
     let bytes = std::fs::read(app_bundle_path)?;
     let app_bundle = AppBundle::decode(&bytes)?;
-    let app_id = app_bundle.clone().into_inner().manifest().app_name().to_string();
-    let app_info = handle.holochain()?
-        .install_app(
-            app_id,
-            app_bundle,
-            roles_settings,
-            agent_key,
-            network_seed
-        ).await?;
+    let app_id = app_bundle
+        .clone()
+        .into_inner()
+        .manifest()
+        .app_name()
+        .to_string();
+    let app_info = handle
+        .holochain()?
+        .install_app(app_id, app_bundle, roles_settings, agent_key, network_seed)
+        .await?;
     log::info!("Installed app {app_info:?}");
 
     Ok(app_info)
