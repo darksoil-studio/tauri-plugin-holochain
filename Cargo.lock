@@ -186,6 +186,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
+name = "app_dirs2"
+version = "2.5.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7e7b35733e3a8c1ccb90385088dd5b6eaa61325cb4d1ad56e683b5224ff352e"
+dependencies = [
+ "jni",
+ "ndk-context",
+ "winapi",
+ "xdg",
+]
+
+[[package]]
 name = "arbitrary"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -241,14 +253,15 @@ dependencies = [
 
 [[package]]
 name = "async-executor"
-version = "1.13.1"
+version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30ca9a001c1e8ba5149f91a74362376cc6bc5b919d92d988668657bd570bdcec"
+checksum = "bb812ffb58524bdd10860d7d974e2f01cc0950c2438a74ee5ec2e2280c6c4ffa"
 dependencies = [
  "async-task",
  "concurrent-queue",
  "fastrand",
  "futures-lite",
+ "pin-project-lite",
  "slab",
 ]
 
@@ -843,9 +856,9 @@ dependencies = [
 
 [[package]]
 name = "bytemuck"
-version = "1.22.0"
+version = "1.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6b1fc10dbac614ebc03540c9dbd60e83887fda27794998c6528f1782047d540"
+checksum = "9134a6ef01ce4b366b50689c94f82c14bc72bc5d0386829828a2e2752ef7958c"
 
 [[package]]
 name = "byteorder"
@@ -1025,9 +1038,9 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "chrono"
-version = "0.4.40"
+version = "0.4.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a7964611d71df112cb1730f2ee67324fcf4d0fc6606acbbe9bfe06df124637c"
+checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -2247,7 +2260,7 @@ dependencies = [
 [[package]]
 name = "file_tree_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "build-fs-tree",
  "ignore",
@@ -3560,7 +3573,7 @@ dependencies = [
 [[package]]
 name = "holochain_scaffolding_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "dialoguer",
  "file_tree_utils",
@@ -4702,9 +4715,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a8ff92fa033afc6ab3979ed5bc8884e2f9b06b5dacebf2eae015fb31d953027"
+checksum = "578eaf9c7402a06a2a18d9bfe98023b37e9b742c9378dfcb91a2383387bf4a46"
 dependencies = [
  "bytes",
  "kitsune2_api",
@@ -4715,9 +4728,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_api"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d914870b01903c70b32ac8856ddbd78cdb5b8a856bbce19b659e08999b8357b1"
+checksum = "eca8e46628c64b150ca792a223bca0cec122ee239c46e9d55bff533fdb872fec"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -4732,9 +4745,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_bootstrap_client"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a77c80eeb2eff4f0b212119045514a7ca31e899794eafe86bca2b27d96924f2"
+checksum = "250238fa2bb80a2e6dd75fb9bc46f51cdf70f9c2d749f8cf53a8f85199490c86"
 dependencies = [
  "base64 0.22.1",
  "kitsune2_api",
@@ -4745,9 +4758,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_core"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c5865729a92d4a9a23be7f87848d3eaee01bc2a6fe7114db69d5b8c20511e53"
+checksum = "924e72f037f1dbf1480ed3bf147e8a99155a258591323ca2ef2eb2b68b9ebc23"
 dependencies = [
  "backon",
  "bytes",
@@ -4767,9 +4780,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_dht"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "74c1f464642fe5ebb20a3ea4d28d5276cc07e1ab686a6d87137bb6f8dbd104c2"
+checksum = "dd75292990e0cc6450006ff09277bca86f601a96d28e461683fca9a95c9ffc88"
 dependencies = [
  "bytes",
  "kitsune2_api",
@@ -4778,9 +4791,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_gossip"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "849937975941911079e4b5ac56cf356f2ad3edbd437b4bcab92e06fcccc49a26"
+checksum = "01b676a06a875300f905d1c9e365c225de202872e933d28e07ae7cb70d4b6bb7"
 dependencies = [
  "backon",
  "bytes",
@@ -4798,9 +4811,9 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_transport_tx5"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12382d7af5238935aaa4f5551567d46e4caceaf5b05567953c88bc30abfef154"
+checksum = "9c9c29e1cfd0504e19ff239559a1cfccd02226724cb731c723b15f7dd443e128"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -4810,6 +4823,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tx5",
+ "tx5-core 0.4.0",
  "url",
 ]
 
@@ -5501,7 +5515,7 @@ dependencies = [
 [[package]]
 name = "nix_scaffolding_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "anyhow",
  "build-fs-tree",
@@ -5541,7 +5555,7 @@ checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
 [[package]]
 name = "npm_scaffolding_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "anyhow",
  "build-fs-tree",
@@ -6477,7 +6491,7 @@ version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edce586971a4dfaa28950c6f18ed55e0406c1ab88bbce2c6f6293a7aaba73d35"
 dependencies = [
- "toml_edit 0.22.25",
+ "toml_edit 0.22.26",
 ]
 
 [[package]]
@@ -7442,7 +7456,7 @@ dependencies = [
 [[package]]
 name = "rust_scaffolding_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "anyhow",
  "build-fs-tree",
@@ -8948,7 +8962,7 @@ dependencies = [
 [[package]]
 name = "templates_scaffolding_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76"
+source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.5#307f6dc36cf30d1ba1762b1b2ef67cd8f365a46a"
 dependencies = [
  "anyhow",
  "build-fs-tree",
@@ -9241,14 +9255,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.21"
+version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "900f6c86a685850b1bc9f6223b20125115ee3f31e01207d81655bbcc0aea9231"
+checksum = "05ae329d1f08c4d17a59bed7ff5b5a769d062e64a62d34a3261b219e62cd5aae"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.22.25",
+ "toml_edit 0.22.26",
 ]
 
 [[package]]
@@ -9284,9 +9298,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.22.25"
+version = "0.22.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10558ed0bd2a1562e630926a2d1f0b98c827da99fabd3fe20920a59642504485"
+checksum = "310068873db2c5b3e7659d2cc35d21855dbafa50d1ce336397c666e3cb08137e"
 dependencies = [
  "indexmap 2.9.0",
  "serde",
@@ -9298,9 +9312,9 @@ dependencies = [
 
 [[package]]
 name = "toml_write"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28391a4201ba7eb1984cfeb6862c0b3ea2cfe23332298967c749dddc0d6cd976"
+checksum = "bfb942dfe1d8e29a7ee7fcbde5bd2b9a25fb89aa70caea2eba3bee836ff41076"
 
 [[package]]
 name = "tower"
@@ -9516,7 +9530,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tx5-connection",
- "tx5-core",
+ "tx5-core 0.3.4",
  "url",
 ]
 
@@ -9533,7 +9547,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
- "tx5-core",
+ "tx5-core 0.3.4",
  "tx5-signal",
 ]
 
@@ -9553,6 +9567,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "tx5-core"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d89c76968f7b5c6d26f36f9067044e3b3be0c45b49cd3ce58e4ca55a9fe61576"
+dependencies = [
+ "app_dirs2",
+ "base64 0.22.1",
+ "once_cell",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "tx5-signal"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9562,7 +9594,7 @@ dependencies = [
  "sbd-e2e-crypto-client",
  "tokio",
  "tracing",
- "tx5-core",
+ "tx5-core 0.3.4",
 ]
 
 [[package]]
@@ -10967,6 +10999,12 @@ dependencies = [
  "libc",
  "rustix 1.0.5",
 ]
+
+[[package]]
+name = "xdg"
+version = "2.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "213b7324336b53d2414b2db8537e56544d981803139155afa84f76eeebb7a546"
 
 [[package]]
 name = "xxhash-rust"
