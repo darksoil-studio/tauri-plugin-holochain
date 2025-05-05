@@ -321,11 +321,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1745850857,
-        "narHash": "sha256-zr2kb/jpqGpV2krh2jhT175q0z4t2jMPFruRh8SASJM=",
+        "lastModified": 1746438119,
+        "narHash": "sha256-ZDGBAJYqXaZi84pGxYwX/G7wUJke+pBiF/YqOmQcoAo=",
         "owner": "darksoil-studio",
         "repo": "holochain-nix-builders",
-        "rev": "de2aed71f76f7cec27bb94823d38413675bef195",
+        "rev": "e3fb5df90e5931de572e5a7658e85516b60c11ea",
         "type": "github"
       },
       "original": {
@@ -920,11 +920,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1745583316,
-        "narHash": "sha256-Qy0a5zywxJ3r3suCWjhoTf4xkanVXJNmAjwzRJRfVng=",
+        "lastModified": 1746180982,
+        "narHash": "sha256-DAQGPOSYr8AHv146juGmXfx3uXbL3RYCpxafYNTdc/c=",
         "owner": "darksoil-studio",
         "repo": "scaffolding",
-        "rev": "ba9c6fdb40ec9af6f3c5b220edbc7a45aeafad76",
+        "rev": "cbf72be4746a8e0233521847a4233f7321ed2441",
         "type": "github"
       },
       "original": {
