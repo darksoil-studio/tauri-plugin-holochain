@@ -12,9 +12,9 @@ use tauri::{
     AppHandle, Emitter, Manager, RunEvent, Runtime, WebviewUrl, WebviewWindowBuilder,
 };
 
-use holochain_client::{AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, InstalledAppId};
-use holochain_types::prelude::*;
-use holochain_types::{web_app::WebAppBundle, websocket::AllowedOrigins};
+use holochain_client::{AdminWebsocket, AppInfo, AppWebsocket};
+pub use holochain_types::prelude::*;
+pub use holochain_types::{web_app::WebAppBundle, websocket::AllowedOrigins};
 
 mod commands;
 mod error;

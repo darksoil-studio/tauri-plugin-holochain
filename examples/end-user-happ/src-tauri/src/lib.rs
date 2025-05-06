@@ -1,6 +1,5 @@
-use holochain_types::prelude::AppBundle;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, NetworkConfig, vec_to_locked};
+use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, NetworkConfig, vec_to_locked, AppBundle};
 use tauri::{AppHandle, Listener};
 
 const APP_ID: &'static str = "example";

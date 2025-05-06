@@ -5,7 +5,6 @@ use holochain::conductor::{
 use holochain_conductor_api::conductor::DpkiConfig;
 use holochain_keystore::paths::KeystorePath;
 use holochain_types::websocket::AllowedOrigins;
-use serde_json::json;
 use url2::Url2;
 
 use crate::{filesystem::FileSystem, launch::DEVICE_SEED_LAIR_KEYSTORE_TAG, NetworkConfig};
@@ -30,10 +29,10 @@ pub fn conductor_config(
         network_config.signal_url = local_signal_url;
     }
     if let None = network_config.advanced {
-        let advanced_config = json!({
-            "tx5Transport": {
-                "signalAllowPlainText": true,
-            },
+        let advanced_config = serde_json::json!({
+            // "tx5Transport": {
+            //     "signalAllowPlainText": true,
+            // },
             // Gossip faster to speed up the test.
             "k2Gossip": {
                 "initiateIntervalMs": 1000,
@@ -60,4 +59,3 @@ pub fn conductor_config(
 
     config
 }
-
