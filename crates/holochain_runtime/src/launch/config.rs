@@ -30,9 +30,9 @@ pub fn conductor_config(
     }
     if let None = network_config.advanced {
         let advanced_config = serde_json::json!({
-            // "tx5Transport": {
-            //     "signalAllowPlainText": true,
-            // },
+            "tx5Transport": {
+                "signalAllowPlainText": true,
+            },
             // Gossip faster to speed up the test.
             "k2Gossip": {
                 "initiateIntervalMs": 1000,
