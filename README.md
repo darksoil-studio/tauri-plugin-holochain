@@ -1,18 +1,18 @@
-# p2p-shipyard
+# tauri-plugin-holochain
 
 Build cross-platform holochain apps and runtimes.
 
 ---
 
-`p2p-shipyard` is [Source-Available](https://en.wikipedia.org/wiki/Source-available_software), you can see its source code [here](https://github.com/darksoil-studio/p2p-shipyard). We are raising funds to make it Open Source. 
+`tauri-plugin-holochain` is [Source-Available](https://en.wikipedia.org/wiki/Source-available_software), you can see its source code [here](https://github.com/darksoil-studio/tauri-plugin-holochain). We are raising funds to make it Open Source. 
 
-If you'd like to contribute to `p2p-shipyard` being open-source and free to use by everyone, please go to our open-collective page to contribute!
+If you'd like to contribute to `tauri-plugin-holochain` being open-source and free to use by everyone, please go to our open-collective page to contribute!
 
 https://opencollective.com/darksoil/projects/p2pshipyard
 
 Learn more in the main documentation page:
 
-https://darksoil.studio/p2p-shipyard
+https://darksoil.studio/tauri-plugin-holochain
 
 ## Release Branches 
 

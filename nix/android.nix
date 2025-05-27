@@ -113,14 +113,15 @@
           devShells.androidDev
           inputs'.holochain-nix-builders.devShells.holochainDev
         ];
-        packages = [ packages.androidTauriRust ];
+        packages =
+          [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
         buildInputs =
           inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs
           ++ (with pkgs; [ rust-bindgen ninja cmake ])
           ++ (lib.optionals pkgs.stdenv.isLinux [ pkgs.glibc_multi ]);
 
         shellHook = ''
-          export PS1='\[\033[1;34m\][p2p-shipyard-android:\w]\$\[\033[0m\] '
+          export PS1='\[\033[1;34m\][tauri-plugin-holochain-android:\w]\$\[\033[0m\] '
         '';
       };
     };

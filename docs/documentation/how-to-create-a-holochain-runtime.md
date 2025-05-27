@@ -30,14 +30,14 @@ nix run nixpkgs#cachix use darksoil-studio
 2. In the folder where you want to create your new holochain runtime, run this command:
 
 ```bash
-nix run github:darksoil-studio/p2p-shipyard#scaffold-holochain-runtime
+nix run github:darksoil-studio/tauri-plugin-holochain#scaffold-holochain-runtime
 ```
 
 And follow along its instructions and prompts.
 
 3. Take a look into the repository structure that the scaffold command created, specially:
 
-- `flake.nix`: with the `p2p-shipyard` input and its `devShells`.
+- `flake.nix`: with the `tauri-plugin-holochain` input and its `devShells`.
 - `package.json`: added set up scripts and some `devDependencies`.
 - `src-tauri`: here is where the code for the backend of the tauri app lives. For now it's a simple Tauri app that includes the `tauri-plugin-holochain`.
 - `index.html`: main `index.html` file that will be displayed when the app is opened.

@@ -3,7 +3,7 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/scaffolding/chore/bump-to-0.5.0-dev.22#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/scaffolding/main#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
@@ -17,7 +17,7 @@ nix run --no-update-lock-file --accept-flake-config .#scaffold-tauri-happ -- --p
 
 cd /tmp/forum-scaffold-tauri-happ
 
-nix develop --no-update-lock-file --override-input p2p-shipyard $DIR --command bash -c "
+nix develop --no-update-lock-file --override-input tauri-plugin-holochain $DIR --command bash -c "
 set -e
 
 npm install
@@ -29,7 +29,7 @@ npm run build:happ
 npm run tauri build -- --no-bundle
 "
 
-nix develop --no-update-lock-file --override-input p2p-shipyard $DIR .#androidDev --command bash -c "
+nix develop --no-update-lock-file --override-input tauri-plugin-holochain $DIR .#androidDev --command bash -c "
 set -e
 
 npm install

@@ -51,7 +51,7 @@ npm install
 3. Run this command inside the repository of your web-hApp:
 
 ```bash
-nix run github:darksoil-studio/p2p-shipyard#scaffold-tauri-happ
+nix run github:darksoil-studio/tauri-plugin-holochain#scaffold-tauri-happ
 ```
 
 And follow along to answer all the necessary prompts.
@@ -60,7 +60,7 @@ This will execute all the required steps to convert your previously scaffolded h
 
 4. Take a look into the files that the scaffold command edited, and adapt them if necessary:
 
-- `flake.nix`: added the `p2p-shipyard` input and its `devShells`.
+- `flake.nix`: added the `tauri-plugin-holochain` input and its `devShells`.
 - `package.json`: added set up scripts and some `devDependencies`.
 - `ui/vite.config.ts`: set the server configuration necessary for Tauri.
 - `src-tauri`: here is where the code for the backend of the tauri app lives. 

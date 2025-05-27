@@ -7,7 +7,7 @@
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
 
-    p2p-shipyard.url = "github:darksoil-studio/p2p-shipyard/main-0.5";
+    tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.5";
   };
 
   outputs = inputs:
@@ -16,13 +16,13 @@
       perSystem = { inputs', config, pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           inputsFrom = [ 
-            inputs'.p2p-shipyard.devShells.holochainTauriDev 
+            inputs'.tauri-plugin-holochain.devShells.holochainTauriDev 
             inputs'.holonix.devShells.default
           ];
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [ 
-            inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
+            inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev 
             inputs'.holonix.devShells.default
           ];
         };

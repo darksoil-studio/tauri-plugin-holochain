@@ -10,6 +10,9 @@
     holochain-nix-builders.url =
       "github:darksoil-studio/holochain-nix-builders/main-0.5";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    webkitnixpkgs.url =
+      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
   };
 
   nixConfig = {
@@ -71,6 +74,7 @@
         ./crates/hc-pilot/default.nix
         ./nix/tauri-cli.nix
         ./nix/android.nix
+        ./nix/custom-go-compiler.nix
         # inputs.holochain-nix-builders.outputs.flakeModules.builders
         inputs.holochain-nix-builders.outputs.flakeModules.dependencies
       ];
@@ -78,6 +82,7 @@
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
         dependencies.tauriApp = let
+          pkgs = inputs.webkitnixpkgs.legacyPackages.${system};
           buildInputs = (with pkgs;
             [
               # openssl
@@ -203,7 +208,7 @@
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
-            export PS1='\[\033[1;34m\][p2p-shipyard:\w]\$\[\033[0m\] '
+            export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
           '';
         };
 
