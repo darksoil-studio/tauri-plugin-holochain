@@ -59,6 +59,9 @@ pub enum Error {
     UpdateAppError(#[from] UpdateHappError),
 
     #[error(transparent)]
+    KitsuneError(#[from] kitsune2_api::K2Error),
+
+    #[error(transparent)]
     AddrParseError(#[from] std::net::AddrParseError),
 
     #[error("Error shutting down holochain: {0}")]

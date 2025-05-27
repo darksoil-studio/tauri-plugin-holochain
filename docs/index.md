@@ -19,7 +19,7 @@ hero:
 
 features:
   - title: Contribute to make it open-source!
-    details: p2p-shipyard is Source-Available. We are raising funds to make it Open Source.
+    details: tauri-plugin-holochain is Source-Available. We are raising funds to make it Open Source.
     link: /license/license
   - title: Supports Holochain
     details: Start building cross-platform and mobile ready hApps.

@@ -9,8 +9,8 @@ resolver = "2"
 members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "src-tauri"]
 
 [workspace.dependencies]
-hdi = "0.5.0"
-hdk = "0.4.0"
+hdi = "0.6.0"
+hdk = "0.5.0"
 serde = "1.0"
 
 [workspace.dependencies.posts]
@@ -19,3 +19,22 @@ path = "dnas/forum/zomes/coordinator/posts"
 [workspace.dependencies.posts_integrity]
 path = "dnas/forum/zomes/integrity/posts"
 
+[patch.crates-io]
+holochain = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_types = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_zome_types = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_integrity_types = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_p2p = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_timestamp = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_nonce = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_keystore = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+mr_bundle = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holochain_conductor_api = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+holo_hash = { git = "https://github.com/guillemcordoba/holochain", branch = "develop-0.5" }
+
+kitsune2 = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }
+kitsune2_api = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }
+kitsune2_core = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }
+kitsune2_dht = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }
+kitsune2_gossip = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }
+kitsune2_bootstrap_client = { git = "https://github.com/guillemcordoba/kitsune2", branch = "iroh-transport" }

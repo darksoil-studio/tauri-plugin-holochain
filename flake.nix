@@ -2,16 +2,17 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
-
-    android-nixpkgs.url =
-      "github:tadfisher/android-nixpkgs/4aeeeec599210e54aee0ac31d4fcb512f87351a0";
+    holochain-nix-builders.url =
+      "github:darksoil-studio/holochain-nix-builders/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
     gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    webkitnixpkgs.url =
+      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
   };
 
   nixConfig = {
@@ -29,35 +30,6 @@
     inputs.holonix.inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       flake = {
         lib = rec {
-          # tauriAppDeps = 
-          #   libraries = { pkgs, lib }:
-          #     with pkgs; [
-          #       (customGlib pkgs)
-          #       webkitgtk
-          #       webkitgtk_4_1
-          #       # gtk3
-          #       # cairo
-          #       # gdk-pixbuf
-          #       # glib
-          #       # # glib.dev
-          #       # dbus
-          #       # # openssl_3
-          #       # librsvg
-          #       # harfbuzz
-          #       # harfbuzzFull
-          #       # stdenv.cc.cc.lib
-          #       # zlib
-          #       # xorg.libX11
-          #       # xorg.libxcb
-          #       # fribidi
-          #       # fontconfig
-          #       # freetype
-          #       # libgpg-error
-          #       # mesa
-          #       # libdrm
-          #       # libglvnd
-          #     ];
-          # };
           filterTauriSources = { lib }:
             orig_path: type:
             let
@@ -100,47 +72,24 @@
         ./crates/scaffold-tauri-happ/default.nix
         ./crates/scaffold-holochain-runtime/default.nix
         ./crates/hc-pilot/default.nix
-        ./nix/modules/custom-go-compiler.nix
-        ./nix/modules/tauri-cli.nix
-        # inputs.tnesh-stack.outputs.flakeModules.builders
-        inputs.tnesh-stack.outputs.flakeModules.dependencies
+        ./nix/tauri-cli.nix
+        ./nix/android.nix
+        ./nix/custom-go-compiler.nix
+        # inputs.holochain-nix-builders.outputs.flakeModules.builders
+        inputs.holochain-nix-builders.outputs.flakeModules.dependencies
       ];
 
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
         dependencies.tauriApp = let
-
-          customGlib =
-            pkgs.runCommandLocal "custom-glib" { src = pkgs.glib.dev; } ''
-              mkdir $out
-              cp -R ${pkgs.glib.dev}/* $out --no-preserve=all
-              sed -i "s?^prefix=.*?prefix=${pkgs.glib.dev}?" $out/lib/pkgconfig/gio-2.0.pc
-            '';
-          customCp = let
-            cp = pkgs.runCommandLocal "custom-cp" {
-              buildInputs = [ pkgs.makeWrapper ];
-            } ''
-              mkdir $out
-              mkdir $out/bin
-              makeWrapper ${pkgs.coreutils}/bin/cp $out/bin/cp \
-                --append-flags "--preserve=links,timestamps --no-preserve=ownership,mode"
-            '';
-          in pkgs.writeShellScriptBin "cp" ''
-            if [[ "$@" == *"/nix/store"* ]]; then
-              ${cp}/bin/cp "$@"
-            else
-              ${pkgs.coreutils}/bin/cp "$@"
-            fi
-          '';
-
+          pkgs = inputs.webkitnixpkgs.legacyPackages.${system};
           buildInputs = (with pkgs;
             [
-              # this is required for glib-networking
               # openssl
-              openssl_3
+              # openssl_3
             ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-              customCp
-              customGlib
+              # this is required for glib-networking
+              glib
               webkitgtk # Brings libwebkit2gtk-4.0.so.37
               # webkitgtk.dev
               webkitgtk_4_1 # Needed for javascriptcoregtk
@@ -195,7 +144,7 @@
 
         dependencies.tauriHapp = {
           buildInputs = dependencies.tauriApp.buildInputs
-            ++ inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
+            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
         };
 
@@ -222,76 +171,7 @@
             export PATH=${pkgs.basez}/bin:$PATH
           '';
 
-          # WIP testing stuff to attempt to have npm tauri build work inside of nix shells
-          # export PKG_CONFIG_PATH=${
-          #   flake.lib.tauriAppDeps.customGlib
-          #   inputs'.webkitgtknixpkgs.legacyPackages
-          # }/lib/pkgconfig:$PKG_CONFIG_PATH
-          # export PATH=${
-          #   flake.lib.tauriAppDeps.customCp
-          #   inputs'.webkitgtknixpkgs.legacyPackages
-          # }/bin:$PATH
         };
-
-        devShells.androidDev = pkgs.mkShell {
-          packages = [ packages.android-sdk pkgs.gradle pkgs.jdk17 pkgs.aapt ];
-
-          shellHook = ''
-            export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${pkgs.aapt}/bin/aapt2";
-
-            export NDK_HOME=$ANDROID_SDK_ROOT/ndk-bundle
-          '';
-        };
-
-        devShells.androidEmulatorDev = let
-          android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
-            with sdkPkgs; [
-              cmdline-tools-latest
-              build-tools-30-0-3
-              platform-tools
-              ndk-bundle
-              platforms-android-34
-              emulator
-              system-images-android-34-google-apis-playstore-x86-64
-            ]);
-        in pkgs.mkShell {
-          inputsFrom = [ devShells.androidDev ];
-          packages = [ android-sdk ];
-
-          shellHook = ''
-            echo "no" | avdmanager -s create avd -n Pixel -k "system-images;android-34;google_apis_playstore;x86_64" --force
-          '';
-        };
-
-        devShells.tauriAndroidDev = let
-          rust = inputs.holonix.packages.${system}.rust.override {
-            extensions = [ "rust-src" ];
-            targets = [
-              "armv7-linux-androideabi"
-              "x86_64-linux-android"
-              "i686-linux-android"
-              "aarch64-unknown-linux-musl"
-              "wasm32-unknown-unknown"
-              "x86_64-pc-windows-gnu"
-              "x86_64-unknown-linux-musl"
-              "x86_64-apple-darwin"
-              "aarch64-linux-android"
-            ];
-          };
-        in pkgs.mkShell {
-          inputsFrom = [ devShells.androidDev devShells.tauriDev ];
-          packages = [ rust ];
-        };
-
-        packages.android-sdk = inputs.android-nixpkgs.sdk.${system} (sdkPkgs:
-          with sdkPkgs; [
-            cmdline-tools-latest
-            build-tools-34-0-0
-            build-tools-30-0-3
-            platform-tools
-            ndk-bundle
-            platforms-android-34
-          ]);
 
         packages.tauriRust = let
           rust = inputs.holonix.packages.${system}.rust.override {
@@ -304,11 +184,7 @@
               RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
             '';
           };
-          linuxRust = pkgs.symlinkJoin {
-            name = "rust";
-            paths = [ linuxCargo rust ];
-          };
-        in if pkgs.stdenv.isLinux then linuxRust else rust;
+        in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
         packages.holochainTauriRust = let
           rust = inputs.holonix.packages.${system}.rust.override {
@@ -322,108 +198,23 @@
               RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
             '';
           };
-          linuxRust = pkgs.symlinkJoin {
-            name = "holochain-tauri-rust-for-linux";
-            paths = [ linuxCargo rust ];
-          };
-        in if pkgs.stdenv.isLinux then linuxRust else rust;
-
-        packages.androidTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
-            extensions = [ "rust-src" ];
-            targets = [
-              "armv7-linux-androideabi"
-              "x86_64-linux-android"
-              "i686-linux-android"
-              "aarch64-unknown-linux-musl"
-              "wasm32-unknown-unknown"
-              "x86_64-pc-windows-gnu"
-              "x86_64-unknown-linux-musl"
-              "x86_64-apple-darwin"
-              "aarch64-linux-android"
-            ];
-          };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-          customZigbuildCargo = pkgs.writeShellApplication {
-            name = "cargo";
-
-            runtimeInputs = (lib.optionals pkgs.stdenv.isLinux [ linuxCargo ])
-              ++ [
-                rust
-                (pkgs.callPackage ./nix/custom-cargo-zigbuild.nix { })
-              ];
-
-            text = ''
-              if [ "$#" -ne 0 ] && [ "$1" = "build" ]
-              then
-                cargo-zigbuild "$@"
-              else
-                cargo "$@"
-              fi
-            '';
-          };
-          androidRust = pkgs.symlinkJoin {
-            name = "rust-for-android";
-            paths = [ customZigbuildCargo rust packages.android-sdk ];
-            buildInputs = [ pkgs.makeWrapper ];
-            postBuild = let
-              toolchainBinsPath =
-                "${packages.android-sdk}/share/android-sdk/ndk-bundle/toolchains/llvm/prebuilt/${
-                  if pkgs.stdenv.isLinux then
-                    "linux-x86_64"
-                  else
-                    "darwin-x86_64"
-                }/bin";
-            in ''
-              wrapProgram $out/bin/cargo \
-                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
-                --set CARGO_TARGET_I686_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
-                --set CARGO_TARGET_X86_64_LINUX_ANDROID_RUSTFLAGS "-L linker=clang" \
-                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_RUSTFLAGS "-L linker=clang" \
-                --set RANLIB ${toolchainBinsPath}/llvm-ranlib \
-                --set CC_aarch64_linux_android ${toolchainBinsPath}/aarch64-linux-android24-clang \
-                --set CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/aarch64-linux-android24-clang \
-                --set CC_i686_linux_android ${toolchainBinsPath}/i686-linux-android24-clang \
-                --set CARGO_TARGET_I686_LINUX_ANDROID_LINKER ${toolchainBinsPath}/i686-linux-android24-clang \
-                --set CC_x86_64_linux_android ${toolchainBinsPath}/x86_64-linux-android24-clang \
-                --set CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER ${toolchainBinsPath}/x86_64-linux-android24-clang \
-                --set CC_armv7_linux_androideabi ${toolchainBinsPath}/armv7a-linux-androideabi24-clang \
-                --set CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER ${toolchainBinsPath}/armv7a-linux-androideabi24-clang
-            '';
-          };
-        in androidRust;
+        in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
-          inputsFrom =
-            [ devShells.tauriDev inputs'.tnesh-stack.devShells.holochainDev ];
+          inputsFrom = [
+            devShells.tauriDev
+            inputs'.holochain-nix-builders.devShells.holochainDev
+          ];
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
-            export PS1='\[\033[1;34m\][p2p-shipyard:\w]\$\[\033[0m\] '
-          '';
-        };
-
-        devShells.holochainTauriAndroidDev = pkgs.mkShell {
-          inputsFrom = [ devShells.tauriDev devShells.androidDev ];
-          packages =
-            [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
-          buildInputs =
-            inputs.tnesh-stack.outputs.dependencies.${system}.holochain.buildInputs;
-
-          shellHook = ''
-            export PS1='\[\033[1;34m\][p2p-shipyard-android:\w]\$\[\033[0m\] '
+            export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
           '';
         };
 
         devShells.default = pkgs.mkShell {
           inputsFrom = [ devShells.holochainTauriDev ];
-          packages = [ inputs'.tnesh-stack.packages.synchronized-pnpm ];
+          packages = [ pkgs.pnpm ];
         };
       };
     };

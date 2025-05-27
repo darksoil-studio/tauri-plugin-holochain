@@ -14,3 +14,5 @@ pub use lair_signer::*;
 pub use filesystem::*;
 pub use happs::update::UpdateHappError;
 pub use utils::*;
+pub use holochain_conductor_api::conductor::NetworkConfig;
+pub use holochain_conductor_api::ZomeCallParamsSigned;

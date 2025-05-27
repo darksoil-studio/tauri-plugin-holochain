@@ -1,15 +1,15 @@
-use anyhow::anyhow;
 use clap::Parser;
 use holochain_client::AppInfo;
 use holochain_types::{
-    app::{InstallAppPayload, RoleSettings},
+    app::{AppBundle, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
 };
-use lair_keystore::dependencies::sodoken::{BufRead, BufWrite};
-use std::collections::HashMap;
+use log::LevelFilter;
 use std::path::PathBuf;
+use std::{collections::HashMap, str::FromStr};
 use tauri::{AppHandle, Context, Wry};
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig};
+use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
+use tauri_plugin_log::Target;
 use url2::url2;
 
 #[derive(Parser, Debug)]
@@ -52,20 +52,10 @@ struct Args {
     pub conductor_dir: Option<PathBuf>,
 }
 
-fn vec_to_locked(mut pass_tmp: Vec<u8>) -> std::io::Result<BufRead> {
-    match BufWrite::new_mem_locked(pass_tmp.len()) {
-        Err(e) => {
-            pass_tmp.fill(0);
-            Err(e.into())
-        }
-        Ok(p) => {
-            {
-                let mut lock = p.write_lock();
-                lock.copy_from_slice(&pass_tmp);
-                pass_tmp.fill(0);
-            }
-            Ok(p.to_read())
-        }
+fn log_level() -> LevelFilter {
+    match std::env::var("RUST_LOG") {
+        Ok(log) => LevelFilter::from_str(log.as_str()).expect("Invalid RUST_LOG value"),
+        _ => LevelFilter::Warn,
     }
 }
 
@@ -88,13 +78,17 @@ fn main() {
     let mut context: Context<Wry> = tauri::generate_context!();
     context.config_mut().build.dev_url = Some(dev_url.into());
 
-    let wan_network_config = match (args.signal_url, args.bootstrap_url) {
-        (Some(signal_url), Some(bootstrap_url)) => Some(WANNetworkConfig {
-            signal_url: url2!("{}", signal_url),
-            bootstrap_url: url2!("{}", bootstrap_url),
-            ice_servers_urls: vec![],
-        }),
-        (None, None) => None,
+    let mut network_config = NetworkConfig::default();
+
+    match (args.signal_url, args.bootstrap_url) {
+        (Some(signal_url), Some(bootstrap_url)) => {
+            network_config.signal_url = url2!("{}", signal_url);
+            network_config.bootstrap_url = url2!("{}", bootstrap_url);
+        }
+        (None, None) => {
+            network_config.bootstrap_url = url2!("http://localhost:0000");
+            network_config.signal_url = url2!("ws://localhost:0000");
+        }
         (Some(_), None) => {
             panic!("Invalid arguments: --signal-url was provided without --bootstrap-url")
         }
@@ -106,17 +100,18 @@ fn main() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Warn)
+                .level(log_level())
+                .clear_targets()
+                .target(Target::new(tauri_plugin_log::TargetKind::Stdout))
                 .build(),
         )
         .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(password.as_bytes().to_vec()).expect("Can't build passphrase"),
+            vec_to_locked(password.as_bytes().to_vec()),
             HolochainPluginConfig {
-                wan_network_config,
+                network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
-                gossip_arc_clamp: None,
-                fallback_to_lan_only: true
+                fallback_to_lan_only: true,
             },
         ))
         .setup(|app| {
@@ -166,25 +161,19 @@ async fn setup(
     agent_key: Option<AgentPubKey>,
     network_seed: Option<String>,
 ) -> anyhow::Result<AppInfo> {
-    let admin_ws = handle.holochain()?.admin_websocket().await?;
-    let app_info = admin_ws
-        .install_app(InstallAppPayload {
-            agent_key,
-            roles_settings,
-            network_seed,
-            source: holochain_types::app::AppBundleSource::Path(app_bundle_path),
-            installed_app_id: None,
-            ignore_genesis_failure: false,
-            allow_throwaway_random_agent_key: false,
-        })
-        .await
-        .map_err(|err| anyhow!("Error installing the app: {err:?}"))?;
+    let bytes = std::fs::read(app_bundle_path)?;
+    let app_bundle = AppBundle::decode(&bytes)?;
+    let app_id = app_bundle
+        .clone()
+        .into_inner()
+        .manifest()
+        .app_name()
+        .to_string();
+    let app_info = handle
+        .holochain()?
+        .install_app(app_id, app_bundle, roles_settings, agent_key, network_seed)
+        .await?;
     log::info!("Installed app {app_info:?}");
 
-    let response = admin_ws
-        .enable_app(app_info.installed_app_id.clone())
-        .await
-        .map_err(|err| anyhow!("Error enabling the app: {err:?}"))?;
-
-    Ok(response.app)
+    Ok(app_info)
 }

@@ -2,12 +2,12 @@
   description = "Template for Holochain app development";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
 
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
 
-    p2p-shipyard.url = "path:../..";
+    tauri-plugin-holochain.url = "path:../..";
   };
 
   outputs = inputs:
@@ -16,15 +16,19 @@
       perSystem = { inputs', config, pkgs, system, ... }: {
         devShells.default = pkgs.mkShell {
           inputsFrom = [
-            inputs'.p2p-shipyard.devShells.holochainTauriDev
+            inputs'.tauri-plugin-holochain.devShells.holochainTauriDev
             inputs'.holonix.devShells.default
           ];
+          packages = [ inputs'.tauri-plugin-holochain.packages.hc-pilot ];
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [
-            inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev
+            inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev
             inputs'.holonix.devShells.default
           ];
+          shellHook = ''
+            export CARGO_TARGET_DIR=$(pwd)/target/android
+          '';
         };
       };
     };

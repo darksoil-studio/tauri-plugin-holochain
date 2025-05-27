@@ -4,7 +4,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "p2p Shipyard",
   description: "Build cross-platform holochain apps and runtimes",
-  base: "/p2p-shipyard",
+  base: "/tauri-plugin-holochain",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
@@ -79,7 +79,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: "github",
-        link: "https://github.com/darksoil-studio/p2p-shipyard",
+        link: "https://github.com/darksoil-studio/tauri-plugin-holochain",
       },
     ],
   },
