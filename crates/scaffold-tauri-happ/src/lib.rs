@@ -242,11 +242,11 @@ pub fn scaffold_tauri_happ(
             let flake_nix_content = 
                 flake_nix_content.replace("            rust # For Rust development, with the WASM target included for zome builds","" );
 
-            // - Add the `p2p-shipyard` as input to the flake
+            // - Add the `tauri-plugin-holochain` as input to the flake
             let flake_nix_content = add_flake_input_to_flake_file(
                 flake_nix_content,
-                String::from("p2p-shipyard"),
-                String::from("github:darksoil-studio/p2p-shipyard/main-0.5"),
+                String::from("tauri-plugin-holochain"),
+                String::from("github:darksoil-studio/tauri-plugin-holochain/main-0.5"),
             )?;
 
             let scope_opener = String::from("devShells.default = pkgs.mkShell {");
@@ -273,7 +273,7 @@ pub fn scaffold_tauri_happ(
                 .replace(
                     "inputsFrom = [",
                     r#"inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev"#,
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev"#,
                 )
                 .replace("holonix.devShells.def2ault", "holonix.devShells.default");
 
@@ -281,7 +281,7 @@ pub fn scaffold_tauri_happ(
             let default_dev_shell = flake_nix_content[open..close].to_string().replace(
                 "inputsFrom = [",
                 r#"inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriDev"#,
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriDev"#,
             );
 
             let flake_nix_content = format!(
@@ -400,7 +400,7 @@ mod tests {
   description = "Template for Holochain app development";
   
   inputs = {
-    p2p-shipyard.url = "github:darksoil-studio/p2p-shipyard/main-0.5";
+    tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.5";
     nixpkgs.follows = "holonix/nixpkgs";
 
     holonix.url = "github:holochain/holonix/main-0.5";
@@ -422,14 +422,14 @@ mod tests {
         }: {
           devShells.default = pkgs.mkShell {
             inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriDev 
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriDev 
               inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
           devShells.androidDev = pkgs.mkShell {
             inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev 
               inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];

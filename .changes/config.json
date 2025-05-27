@@ -1,5 +1,5 @@
 {
-  "gitSiteUrl": "https://www.github.com/darksoil-studio/p2p-shipyard/",
+  "gitSiteUrl": "https://www.github.com/darksoil-studio/tauri-plugin-holochain/",
   "pkgManagers": {
     "rust": {
       "version": true,

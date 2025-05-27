@@ -208,7 +208,7 @@
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
-            export PS1='\[\033[1;34m\][p2p-shipyard:\w]\$\[\033[0m\] '
+            export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
           '';
         };
 
