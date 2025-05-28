@@ -1,43 +1,43 @@
-use holochain_types::prelude::AppBundle;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, WANNetworkConfig, vec_to_locked};
+use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, NetworkConfig, vec_to_locked, AppBundle};
 use tauri::{AppHandle, Listener};
 
 const APP_ID: &'static str = "example";
-const SIGNAL_URL: &'static str = "wss://sbd.holo.host";
-const BOOTSTRAP_URL: &'static str = "https://bootstrap.holo.host";
 
 pub fn example_happ() -> AppBundle {
     let bytes = include_bytes!("../../workdir/forum.happ");
     AppBundle::decode(bytes).expect("Failed to decode example happ")
 }
 
-fn wan_network_config() -> Option<WANNetworkConfig> {
+fn network_config() -> NetworkConfig {
+    let mut network_config = NetworkConfig::default();
+
+    // Don't use the bootstrap service on tauri dev mode
     if tauri::is_dev() {
-        None
-    } else {
-        Some(WANNetworkConfig {
-            signal_url: url2::url2!("{SIGNAL_URL}"),
-            bootstrap_url: url2::url2!("{BOOTSTRAP_URL}"),
-            ice_servers_urls: vec![]
-        })
+        network_config.bootstrap_url = url2::Url2::parse("http://0.0.0.0:8888");
     }
+
+    // Don't hold any slice of the DHT in mobile
+    if cfg!(mobile) {
+        network_config.target_arc_factor = 0;
+    }
+
+    network_config
 }
 
 fn holochain_dir() -> PathBuf {
     if tauri::is_dev() {
-        #[cfg(target_os = "android")]
-        {
-            app_dirs2::app_root(
-                app_dirs2::AppDataType::UserCache,
-                &app_dirs2::AppInfo {
-                    name: "studio.darksoil.p2pshipyard",
-                    author: "darksoil.studio",
-                },
-            ).expect("Could not get the UserCache directory")
-        }
-        #[cfg(not(target_os = "android"))]
-        {
+        // if cfg!(target_os = "android") {
+        //     app_dirs2::app_root(
+        //         app_dirs2::AppDataType::UserData,
+        //         &app_dirs2::AppInfo {
+        //             name: "example-forum",
+        //             author: std::env!("CARGO_PKG_AUTHORS"),
+        //         },
+        //     )
+        //     .expect("Could not get app root")
+        //     .join("holochain")
+        // } else {
             let tmp_dir =
                 tempdir::TempDir::new("forum").expect("Could not create temporary directory");
 
@@ -45,7 +45,7 @@ fn holochain_dir() -> PathBuf {
             // without deleting the directory.
             let tmp_path = tmp_dir.into_path();
             tmp_path
-        }
+        // }
     } else {
         app_dirs2::app_root(
             app_dirs2::AppDataType::UserData,
@@ -68,8 +68,8 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_holochain::async_init(
-            vec_to_locked(vec![]).expect("Can't build passphrase"),
-            HolochainPluginConfig::new(holochain_dir(), wan_network_config())
+            vec_to_locked(vec![]),
+            HolochainPluginConfig::new(holochain_dir(), network_config())
         ))
         .setup(|app| {
             let handle = app.handle().clone();
@@ -78,7 +78,7 @@ pub fn run() {
                 tauri::async_runtime::spawn(async move {
                     setup(handle.clone()).await.expect("Failed to setup");
 
-                    let mut builder =  handle
+                    handle
                         .holochain()
                         .expect("Failed to get holochain")
                         .main_window_builder(String::from("main"), false, Some(APP_ID.into()), None).await

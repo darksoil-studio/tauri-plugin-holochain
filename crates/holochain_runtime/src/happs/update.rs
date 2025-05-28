@@ -75,7 +75,7 @@ pub async fn update_app(
     for (role_name, new_dna_file) in new_dna_files {
         let cells = app
             .cell_info
-            .remove(&role_name)
+            .swap_remove(&role_name)
             .ok_or(UpdateHappError::RoleNotFound(
                 role_name.clone(),
                 app.installed_app_id.clone(),

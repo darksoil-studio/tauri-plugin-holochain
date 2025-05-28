@@ -168,11 +168,6 @@ pub fn scaffold_tauri_happ(
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
-                &String::from("internal-ip-cli"),
-                &String::from("^2.0.0"),
-            )?;
-            let package_json_content = add_npm_dev_dependency_to_package(
-                &(root_package_json_path.clone(), package_json_content),
                 &String::from("new-port-cli"),
                 &String::from("^1.0.0"),
             )?;
@@ -247,11 +242,11 @@ pub fn scaffold_tauri_happ(
             let flake_nix_content = 
                 flake_nix_content.replace("            rust # For Rust development, with the WASM target included for zome builds","" );
 
-            // - Add the `p2p-shipyard` as input to the flake
+            // - Add the `tauri-plugin-holochain` as input to the flake
             let flake_nix_content = add_flake_input_to_flake_file(
                 flake_nix_content,
-                String::from("p2p-shipyard"),
-                String::from("github:darksoil-studio/p2p-shipyard/main-0.4"),
+                String::from("tauri-plugin-holochain"),
+                String::from("github:darksoil-studio/tauri-plugin-holochain/main-0.5"),
             )?;
 
             let scope_opener = String::from("devShells.default = pkgs.mkShell {");
@@ -278,7 +273,7 @@ pub fn scaffold_tauri_happ(
                 .replace(
                     "inputsFrom = [",
                     r#"inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev"#,
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev"#,
                 )
                 .replace("holonix.devShells.def2ault", "holonix.devShells.default");
 
@@ -286,7 +281,7 @@ pub fn scaffold_tauri_happ(
             let default_dev_shell = flake_nix_content[open..close].to_string().replace(
                 "inputsFrom = [",
                 r#"inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriDev"#,
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriDev"#,
             );
 
             let flake_nix_content = format!(
@@ -394,7 +389,6 @@ mod tests {
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "internal-ip-cli": "^2.0.0",
     "new-port-cli": "^1.0.0"
   }
 }"#
@@ -406,11 +400,11 @@ mod tests {
   description = "Template for Holochain app development";
   
   inputs = {
-    p2p-shipyard.url = "github:darksoil-studio/p2p-shipyard/main-0.4";
+    tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.5";
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.4";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 
   outputs = inputs @ { ... }:
@@ -428,15 +422,15 @@ mod tests {
         }: {
           devShells.default = pkgs.mkShell {
             inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriDev 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriDev 
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
           devShells.androidDev = pkgs.mkShell {
             inputsFrom = [
-              inputs'.p2p-shipyard.devShells.holochainTauriAndroidDev 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev 
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
@@ -564,8 +558,6 @@ roles:
       modifiers:
         network_seed: ~
         properties: ~
-        origin_time: ~
-        quantum_time: ~
       installed_hash: ~
       clone_limit: 0
 "#
@@ -580,8 +572,8 @@ roles:
   inputs = {
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.4";
-    tnesh-stack.url = "github:darksoil-studio/tnesh-stack/main-0.4";
+    holonix.url = "github:holochain/holonix/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 
   outputs = inputs @ { ... }:
@@ -599,7 +591,7 @@ roles:
         }: {
           devShells.default = pkgs.mkShell {
             inputsFrom = [ 
-              inputs'.tnesh-stack.devShells.synchronized-pnpm
+              inputs'.scaffolding.devShells.synchronized-pnpm
               inputs'.holonix.devShells.default
             ];
           };
