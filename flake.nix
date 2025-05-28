@@ -12,7 +12,7 @@
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
     gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     webkitnixpkgs.url =
-      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
+      "github:nixos/nixpkgs/087f43a1fa052b17efd441001c4581813c34bc19";
   };
 
   nixConfig = {
