@@ -82,60 +82,55 @@
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
         dependencies.tauriApp = let
-          pkgs = inputs.webkitnixpkgs.legacyPackages.${system};
-          buildInputs = (with pkgs;
-            [
-              # openssl
-              # openssl_3
-            ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-              # this is required for glib-networking
-              glib
-              webkitgtk # Brings libwebkit2gtk-4.0.so.37
-              # webkitgtk.dev
-              webkitgtk_4_1 # Needed for javascriptcoregtk
-              # webkitgtk_4_1.dev
-              # webkitgtk_6_0
-              gdk-pixbuf
-              gtk3
-              # glib
-              # stdenv.cc.cc.lib
-              # harfbuzz
-              # harfbuzzFull
-              # zlib
-              # xorg.libX11
-              # xorg.libxcb
-              # fribidi
-              # fontconfig
-              # freetype
-              # libgpg-error
-              # mesa
-              # libdrm
-              # libglvnd
-              # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-              gst_all_1.gstreamer
-              # Common plugins like "filesrc" to combine within e.g. gst-launch
-              gst_all_1.gst-plugins-base
-              # Specialized plugins separated by quality
-              gst_all_1.gst-plugins-good
-              gst_all_1.gst-plugins-bad
-              gst_all_1.gst-plugins-ugly
-              # Plugins to reuse ffmpeg to play almost every video format
-              gst_all_1.gst-libav
-              # Support the Video Audio (Hardware) Acceleration API
-              gst_all_1.gst-vaapi
-              libsoup_3
-              dbus
-              librsvg
-            ])) ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
-              basez
-              darwin.apple_sdk.frameworks.Security
-              darwin.apple_sdk.frameworks.CoreServices
-              darwin.apple_sdk.frameworks.CoreFoundation
-              darwin.apple_sdk.frameworks.Foundation
-              darwin.apple_sdk.frameworks.AppKit
-              darwin.apple_sdk.frameworks.WebKit
-              darwin.apple_sdk.frameworks.Cocoa
-            ]);
+          buildInputs = (with inputs.webkitnixpkgs.legacyPackages.${system}; [
+            webkitgtk # Brings libwebkit2gtk-4.0.so.37
+            webkitgtk_4_1 # Needed for javascriptcoregtk
+          ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+            # openssl
+            # openssl_3
+            # this is required for glib-networking
+            glib
+            gdk-pixbuf
+            gtk3
+            # glib
+            # stdenv.cc.cc.lib
+            # harfbuzz
+            # harfbuzzFull
+            # zlib
+            # xorg.libX11
+            # xorg.libxcb
+            # fribidi
+            # fontconfig
+            # freetype
+            # libgpg-error
+            # mesa
+            # libdrm
+            # libglvnd
+            # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
+            gst_all_1.gstreamer
+            # Common plugins like "filesrc" to combine within e.g. gst-launch
+            gst_all_1.gst-plugins-base
+            # Specialized plugins separated by quality
+            gst_all_1.gst-plugins-good
+            gst_all_1.gst-plugins-bad
+            gst_all_1.gst-plugins-ugly
+            # Plugins to reuse ffmpeg to play almost every video format
+            gst_all_1.gst-libav
+            # Support the Video Audio (Hardware) Acceleration API
+            gst_all_1.gst-vaapi
+            libsoup_3
+            dbus
+            librsvg
+          ])) ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
+            basez
+            darwin.apple_sdk.frameworks.Security
+            darwin.apple_sdk.frameworks.CoreServices
+            darwin.apple_sdk.frameworks.CoreFoundation
+            darwin.apple_sdk.frameworks.Foundation
+            darwin.apple_sdk.frameworks.AppKit
+            darwin.apple_sdk.frameworks.WebKit
+            darwin.apple_sdk.frameworks.Cocoa
+          ]);
           nativeBuildInputs = (with pkgs; [ perl pkg-config makeWrapper ])
             ++ (lib.optionals pkgs.stdenv.isLinux
               (with pkgs; [ wrapGAppsHook ]))
