@@ -19,7 +19,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FROM_BRANCH: "main"
-          TO_BRANCH: "main-0.4"
+          TO_BRANCH: "main-0.5"
 
       - name: Enable Pull Request Automerge
         uses: peter-evans/enable-pull-request-automerge@v3
