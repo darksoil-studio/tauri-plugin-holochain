@@ -1,8 +1,8 @@
 use clap::Parser;
+use holochain::conductor::api::AppInfo;
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
-    AppInfo,
 };
 use log::LevelFilter;
 use std::path::PathBuf;
