@@ -643,7 +643,7 @@ dependencies = [
  "bitflags 2.9.1",
  "cexpr",
  "clang-sys",
- "itertools 0.10.5",
+ "itertools 0.12.1",
  "lazy_static",
  "lazycell",
  "log",
@@ -1010,9 +1010,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.24"
+version = "1.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16595d3be041c03b09d08d0858631facccee9221e579704070e6e9e4915d3bc7"
+checksum = "d0fc897dc1e865cc67c0e05a836d9d3f1df3cbe442aa4a9473b18e12624a4951"
 dependencies = [
  "jobserver",
  "libc",
@@ -1214,7 +1214,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2456,8 +2456,8 @@ checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
 
 [[package]]
 name = "fixt"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "holochain_serialized_bytes",
  "lazy_static",
@@ -3179,8 +3179,8 @@ dependencies = [
 
 [[package]]
 name = "hc_deepkey_sdk"
-version = "0.8.2-rc.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.8.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "hc_deepkey_types",
  "hdk",
@@ -3190,8 +3190,8 @@ dependencies = [
 
 [[package]]
 name = "hc_deepkey_types"
-version = "0.9.2-rc.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.9.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "hdi",
  "holo_hash",
@@ -3229,8 +3229,8 @@ dependencies = [
 
 [[package]]
 name = "hdi"
-version = "0.6.2-rc.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.6.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "getrandom 0.2.16",
  "hdk_derive",
@@ -3246,8 +3246,8 @@ dependencies = [
 
 [[package]]
 name = "hdk"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "getrandom 0.2.16",
  "hdi",
@@ -3265,8 +3265,8 @@ dependencies = [
 
 [[package]]
 name = "hdk_derive"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "darling 0.14.4",
  "heck 0.5.0",
@@ -3405,8 +3405,8 @@ checksum = "ad6880c8d4a9ebf39c6e8b77007ce223f646a4d21ce29d99f70cb16420545425"
 
 [[package]]
 name = "holo_hash"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "base64 0.22.1",
  "blake2b_simd",
@@ -3429,8 +3429,8 @@ dependencies = [
 
 [[package]]
 name = "holochain"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3466,7 +3466,7 @@ dependencies = [
  "holochain_util",
  "holochain_wasm_test_utils",
  "holochain_wasmer_host",
- "holochain_websocket 0.5.1 (git+https://github.com/guillemcordoba/holochain?branch=develop-0.5)",
+ "holochain_websocket 0.5.2 (git+https://github.com/guillemcordoba/holochain?branch=develop-0.5)",
  "holochain_zome_types",
  "hostname 0.4.1",
  "human-panic",
@@ -3521,8 +3521,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_cascade"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "async-trait",
  "fixt",
@@ -3548,8 +3548,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_chc"
-version = "0.2.2-rc.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.2.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "async-trait",
  "derive_more 0.99.20",
@@ -3585,7 +3585,7 @@ dependencies = [
  "holochain_conductor_api",
  "holochain_nonce",
  "holochain_types",
- "holochain_websocket 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "holochain_websocket 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "holochain_zome_types",
  "kitsune2_api",
  "lair_keystore_api",
@@ -3598,8 +3598,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_conductor_api"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "cfg-if 1.0.0",
  "derive_more 0.99.20",
@@ -3625,8 +3625,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_conductor_config"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -3642,8 +3642,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_conductor_services"
-version = "0.4.2-rc.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.4.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3671,8 +3671,8 @@ checksum = "be0aa773b74c40ef5e4e02f414d8cbfc4e92520a93511055a3fbccc12d2dd045"
 
 [[package]]
 name = "holochain_integrity_types"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "derive_builder",
  "holo_hash",
@@ -3689,8 +3689,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_keystore"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "base64 0.22.1",
  "derive_more 0.99.20",
@@ -3718,8 +3718,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_metrics"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "influxive",
  "opentelemetry_api",
@@ -3728,8 +3728,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_nonce"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "getrandom 0.2.16",
  "holochain_secure_primitive",
@@ -3738,8 +3738,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_p2p"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "async-trait",
  "blake2b_simd",
@@ -3830,8 +3830,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_secure_primitive"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "paste",
  "serde",
@@ -3865,8 +3865,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_sqlite"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3908,8 +3908,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_state"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "async-recursion",
  "chrono",
@@ -3939,8 +3939,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_state_types"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "holo_hash",
  "holochain_integrity_types",
@@ -3949,8 +3949,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_timestamp"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "chrono",
  "rusqlite",
@@ -3959,8 +3959,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_trace"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "chrono",
  "derive_more 0.99.20",
@@ -3976,8 +3976,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_types"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4029,8 +4029,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_util"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "backtrace",
  "cfg-if 1.0.0",
@@ -4046,8 +4046,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_wasm_test_utils"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "holochain_types",
  "holochain_util",
@@ -4103,9 +4103,9 @@ dependencies = [
 
 [[package]]
 name = "holochain_websocket"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0c1e5a0809b26e7bfca8f226664d856b93a5aad6d8376ff84a8e8e711948b15"
+checksum = "cc6543831e10eee97a6b7b8a9d3372b601844a70985aaf914222cd448a3eb63c"
 dependencies = [
  "async-trait",
  "futures",
@@ -4121,8 +4121,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_websocket"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "async-trait",
  "futures",
@@ -4138,8 +4138,8 @@ dependencies = [
 
 [[package]]
 name = "holochain_zome_types"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "derive_builder",
  "derive_more 0.99.20",
@@ -4313,7 +4313,7 @@ dependencies = [
  "httpdate",
  "itoa 1.0.15",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -4408,7 +4408,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.59.0",
+ "windows-core 0.61.2",
 ]
 
 [[package]]
@@ -5047,6 +5047,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5444,7 +5453,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667"
 dependencies = [
  "cfg-if 1.0.0",
- "windows-targets 0.48.5",
+ "windows-targets 0.53.0",
 ]
 
 [[package]]
@@ -5545,9 +5554,9 @@ dependencies = [
 
 [[package]]
 name = "lock_api"
-version = "0.4.12"
+version = "0.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07af8b9cdd281b7915f413fa73f29ebd5d55d0d3f0155584dade1ff18cea1b17"
+checksum = "96936507f153605bddfcda068dd804796c84324ed2510809e5b2a624c81da765"
 dependencies = [
  "autocfg 1.4.0",
  "scopeguard",
@@ -5834,8 +5843,8 @@ checksum = "7843ec2de400bcbc6a6328c958dc38e5359da6e93e72e37bc5246bf1ae776389"
 
 [[package]]
 name = "mr_bundle"
-version = "0.5.1"
-source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#23f7dd4f1a586723c6790d54eff400c412882ef4"
+version = "0.5.2"
+source = "git+https://github.com/guillemcordoba/holochain?branch=develop-0.5#130b86b78622474a3ad2d698518c354abb6a5ee4"
 dependencies = [
  "derive_more 0.99.20",
  "flate2",
@@ -6347,7 +6356,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af1844ef2428cc3e1cb900be36181049ef3d3193c63e43026cfe202983b27a56"
 dependencies = [
- "proc-macro-crate 1.3.1",
+ "proc-macro-crate 3.3.0",
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -6742,9 +6751,9 @@ checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "parking_lot"
-version = "0.12.3"
+version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1bf18183cf54e8d6059647fc3063646a1801cf30896933ec2311622cc4b9a27"
+checksum = "70d58bf43669b5795d1576d0641cfb6fbb2057bf629506267a92807158584a13"
 dependencies = [
  "lock_api",
  "parking_lot_core",
@@ -6752,9 +6761,9 @@ dependencies = [
 
 [[package]]
 name = "parking_lot_core"
-version = "0.9.10"
+version = "0.9.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e401f977ab385c9e4e3ab30627d6f26d00e2c73eef317493c4ec6d468726cf8"
+checksum = "bc838d2a56b5b1a6c25f55575dfc605fabb63bb2365f6c2353ef9159aa69e4a5"
 dependencies = [
  "cfg-if 1.0.0",
  "libc",
@@ -7525,7 +7534,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.10.5",
+ "itertools 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -11625,7 +11634,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
