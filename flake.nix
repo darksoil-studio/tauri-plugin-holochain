@@ -3,7 +3,7 @@
 
   inputs = {
     holonix.url = "github:holochain/holonix/main-0.5";
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
