@@ -3,37 +3,18 @@
 {
   perSystem = { inputs', lib, pkgs, self', system, ... }:
     let
-      sdkPath = "${self'.packages.android-sdk}/libexec/android-sdk";
-      ndkPath = "${sdkPath}/ndk-bundle";
-      toolchainSystem =
-        if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64";
-      prebuiltPath = "${ndkPath}/toolchains/llvm/prebuilt/${toolchainSystem}";
-      toolchainBinsPath = "${prebuiltPath}/bin";
+      mkAndroidEnv = { sdk }:
+        let
+          sdkPath = "${sdk}/libexec/android-sdk";
+          ndkPath = "${sdkPath}/ndk-bundle";
+          toolchainSystem =
+            if pkgs.stdenv.isLinux then "linux-x86_64" else "darwin-x86_64";
+          prebuiltPath =
+            "${ndkPath}/toolchains/llvm/prebuilt/${toolchainSystem}";
+          toolchainBinsPath = "${prebuiltPath}/bin";
 
-    in rec {
-
-      packages.android-sdk = let
-        pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          config.android_sdk.accept_license = true;
-        };
-      in (pkgs.androidenv.composeAndroidPackages {
-        platformVersions = [ "30" "34" ];
-        buildToolsVersions = [ "30.0.3" "34.0.0" ];
-        systemImageTypes = [ "google_apis_playstore" ];
-        abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
-        includeNDK = true;
-        ndkVersion = "25.2.9519653";
-
-        # includeExtras = [ "extras" "google" "auto" ];
-      }).androidsdk;
-
-      devShells.androidDev = pkgs.mkShell {
-        packages = [ packages.android-sdk pkgs.gradle pkgs.jdk17 pkgs.aapt ];
-
-        shellHook = ''
-          export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${pkgs.aapt}/bin/aapt2";
+        in ''
+          export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/34.0.0/aapt2"
 
           export ANDROID_HOME=${sdkPath} 
           export ANDROID_SDK_ROOT=${sdkPath} 
@@ -79,7 +60,58 @@
           export CFLAGS_ARMV7_LINUX_ANDROID="--target=armv7-linux-androideabi --sysroot=${prebuiltPath}/sysroot" 
           export CXXFLAGS_ARMV7_LINUX_ANDROID="--target=armv7-linux-androideabi" 
           export BINDGEN_EXTRA_CLANG_ARGS_ARMV7_LINUX_ANDROIDEABI="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi" 
+
         '';
+    in rec {
+
+      packages.android-sdk = let
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
+        };
+      in (pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [ "30" "34" ];
+        buildToolsVersions = [ "30.0.3" "34.0.0" ];
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
+        includeNDK = true;
+        ndkVersion = "25.2.9519653";
+
+        # ndkVersion = "28.0.13004108";
+
+        # ndkVersion = "27.0.12077973";
+        # ndkVersion = "28.1.13356709";
+
+        # includeExtras = [ "extras" "google" "auto" ];
+      }).androidsdk;
+
+      packages.android-sdk-armv7 = let
+        pkgs = import inputs.nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
+        };
+      in (pkgs.androidenv.composeAndroidPackages {
+        platformVersions = [ "30" "34" ];
+        buildToolsVersions = [ "30.0.3" "34.0.0" ];
+        systemImageTypes = [ "google_apis_playstore" ];
+        abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
+        includeNDK = true;
+        # ndkVersion = "25.2.9519653";
+
+        # ndkVersion = "28.0.13004108";
+
+        ndkVersion = "27.0.12077973";
+        # ndkVersion = "28.1.13356709";
+
+        # includeExtras = [ "extras" "google" "auto" ];
+      }).androidsdk;
+
+      devShells.androidDev = pkgs.mkShell {
+        packages = [ packages.android-sdk pkgs.gradle pkgs.jdk17 pkgs.aapt ];
+
+        shellHook = mkAndroidEnv { sdk = packages.android-sdk; };
       };
 
       packages.androidTauriRust = let
@@ -97,15 +129,20 @@
             "aarch64-linux-android"
           ];
         };
-        linuxCargo = pkgs.writeShellApplication {
-          name = "cargo";
-          runtimeInputs = [ rust ];
-          text = ''
-            RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-          '';
-        };
 
-      in if pkgs.stdenv.isLinux then linuxCargo else rust;
+      in pkgs.writeShellApplication {
+        name = "cargo";
+        runtimeInputs =
+          [ rust self'.packages.android-sdk self'.packages.android-sdk-armv7 ];
+        text = ''
+          if [[ "$*" == *"armv7-linux-androideabi"* ]]; then
+          ${mkAndroidEnv { sdk = self'.packages.android-sdk-armv7; }}
+            ANDROID_TOOLCHAIN_FILE=${self'.packages.android-sdk-armv7}/libexec/android-sdk/ndk-bundle/build/cmake/android-legacy.toolchain.cmake CMAKE_TOOLCHAIN_FILE=${self'.packages.android-sdk-armv7}/libexec/android-sdk/ndk-bundle/build/cmake/android-legacy.toolchain.cmake cargo "$@"
+          else
+            cargo "$@"
+          fi
+        '';
+      };
 
       devShells.holochainTauriAndroidDev = pkgs.mkShell {
         inputsFrom = [
