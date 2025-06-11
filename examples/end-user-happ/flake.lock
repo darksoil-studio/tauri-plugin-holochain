@@ -876,7 +876,7 @@
         "holochain": "holochain_6",
         "kitsune2": "kitsune2_5",
         "lair-keystore": "lair-keystore_5",
-        "nixpkgs": "nixpkgs_7",
+        "nixpkgs": "nixpkgs_6",
         "playground": "playground_5",
         "rust-overlay": "rust-overlay_6"
       },
@@ -904,7 +904,7 @@
         "holochain": "holochain_7",
         "kitsune2": "kitsune2_6",
         "lair-keystore": "lair-keystore_6",
-        "nixpkgs": "nixpkgs_8",
+        "nixpkgs": "nixpkgs_7",
         "playground": "playground_6",
         "rust-overlay": "rust-overlay_7"
       },
@@ -1359,21 +1359,6 @@
     },
     "nixpkgs_6": {
       "locked": {
-        "lastModified": 1748864588,
-        "narHash": "sha256-+HpS21nM7Q+UEcuvI8fbpfDyW8045kTQlqCAaqSVUTc=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "cb563c82f1236e58dc991a0a6cbc45393c121eff",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_7": {
-      "locked": {
         "lastModified": 1746557022,
         "narHash": "sha256-QkNoyEf6TbaTW5UZYX0OkwIJ/ZMeKSSoOMnSDPQuol0=",
         "owner": "nixos",
@@ -1388,7 +1373,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_8": {
+    "nixpkgs_7": {
       "locked": {
         "lastModified": 1746557022,
         "narHash": "sha256-QkNoyEf6TbaTW5UZYX0OkwIJ/ZMeKSSoOMnSDPQuol0=",
@@ -1772,7 +1757,11 @@
         "gonixpkgs": "gonixpkgs",
         "holochain-nix-builders": "holochain-nix-builders",
         "holonix": "holonix_3",
-        "nixpkgs": "nixpkgs_6",
+        "nixpkgs": [
+          "tauri-plugin-holochain",
+          "holonix",
+          "nixpkgs"
+        ],
         "rust-overlay": [
           "tauri-plugin-holochain",
           "holonix",
@@ -1783,7 +1772,7 @@
       },
       "locked": {
         "lastModified": 0,
-        "narHash": "sha256-yc3z9cxN1nPVSCHq2DTJ0BMe/7JnbUpBSHBd4E8gFJU=",
+        "narHash": "sha256-sMHdeHDxlxEU8kzg/NyTHBmj4ETcIilpSdOscvLRs/U=",
         "path": "../..",
         "type": "path"
       },
