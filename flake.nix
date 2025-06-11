@@ -81,6 +81,12 @@
 
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
+        # packages.rust = inputs.holonix.packages.${system}.rust;
+        packages.rust = let
+          overlays = [ (import inputs.rust-overlay) ];
+          pkgs = import inputs.nixpkgs { inherit system overlays; };
+        in pkgs.rust-bin.stable."1.85.0".minimal;
+
         dependencies.tauriApp = let
           pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
             inputs.webkitnixpkgs.legacyPackages.${system}
@@ -172,9 +178,7 @@
         };
 
         packages.tauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
-            extensions = [ "rust-src" ];
-          };
+          rust = packages.rust.override { extensions = [ "rust-src" ]; };
           linuxCargo = pkgs.writeShellApplication {
             name = "cargo";
             runtimeInputs = [ rust ];
@@ -185,7 +189,7 @@
         in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
         packages.holochainTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
+          rust = packages.rust.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
