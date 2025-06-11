@@ -3,7 +3,7 @@
 {
   perSystem = { inputs', self', pkgs, system, lib, ... }: {
     packages.hc-pilot = let
-      rust = inputs'.holonix.packages.rust;
+      rust = self'.packages.rust;
       craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rust;
 
       cratePath = ./.;
