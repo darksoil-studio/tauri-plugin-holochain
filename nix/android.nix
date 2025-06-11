@@ -115,7 +115,7 @@
       };
 
       packages.androidTauriRust = let
-        rust = inputs.holonix.packages.${system}.rust.override {
+        rust = self'.packages.rust.override {
           extensions = [ "rust-src" "rustfmt" ];
           targets = [
             "armv7-linux-androideabi"
