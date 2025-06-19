@@ -33,11 +33,6 @@ pub fn conductor_config(
             "tx5Transport": {
                 "signalAllowPlainText": true,
             },
-            // Gossip faster to speed up the test.
-            "k2Gossip": {
-                "initiateIntervalMs": 1000,
-                "minInitiateIntervalMs": 0,
-            },
         });
         network_config.advanced = Some(advanced_config);
     }
