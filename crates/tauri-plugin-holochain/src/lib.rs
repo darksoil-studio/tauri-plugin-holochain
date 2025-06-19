@@ -547,6 +547,14 @@ async fn launch_and_setup_holochain<R: Runtime>(
     // http_server::start_http_server(app_handle.clone(), http_server_port).await?;
     // log::info!("Starting http server at port {http_server_port:?}");
 
+    let crypto_provider = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    if crypto_provider.is_err() {
+        log::error!(
+            "could not set crypto provider for tls: {:?}.",
+            crypto_provider
+        );
+    }
+
     let holochain_runtime = HolochainRuntime::launch(passphrase, config).await?;
 
     #[cfg(desktop)]
