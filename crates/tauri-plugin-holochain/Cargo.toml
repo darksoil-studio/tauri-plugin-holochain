@@ -22,6 +22,7 @@ holochain_client = "0.7.0"
 
 holochain_runtime = { path = "../holochain_runtime" }
 
+rustls = "0.23"
 log = "0.4"
 symlink = "0.1.0"
 nanoid = "0.4.0"

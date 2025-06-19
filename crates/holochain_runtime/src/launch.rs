@@ -33,12 +33,6 @@ pub(crate) async fn launch_holochain_runtime(
     // if let Some(info) = lock.to_owned() {
     //     return Ok(info);
     // }
-    if rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .is_err()
-    {
-        log::error!("could not set crypto provider for tls");
-    }
 
     let filesystem = FileSystem::new(config.holochain_dir).await?;
     let admin_port = if let Some(admin_port) = config.admin_port {
