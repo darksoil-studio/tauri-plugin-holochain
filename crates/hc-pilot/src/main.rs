@@ -111,7 +111,6 @@ fn main() {
                 network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
-                fallback_to_lan_only: true,
             },
         ))
         .setup(|app| {

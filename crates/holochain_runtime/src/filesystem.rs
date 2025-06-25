@@ -9,6 +9,7 @@ use holochain_types::web_app::WebAppBundle;
 use mr_bundle::error::MrBundleError;
 use zip::result::ZipError;
 
+#[derive(Clone)]
 pub struct FileSystem {
     pub app_data_dir: PathBuf,
     pub bundle_store: BundleStore,
@@ -48,6 +49,7 @@ impl FileSystem {
     }
 }
 
+#[derive(Clone)]
 pub struct BundleStore {
     path: PathBuf,
     pub installed_apps_store: InstalledAppsStore,
@@ -163,6 +165,7 @@ pub struct InstalledAppInfo {
 
 pub type InstalledAppsInfo = HashMap<String, InstalledAppInfo>;
 
+#[derive(Clone)]
 pub struct InstalledAppsStore {
     json_config_path: PathBuf,
     installed_apps: Arc<RwLock<InstalledAppsInfo>>,
