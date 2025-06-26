@@ -12,6 +12,7 @@ members = ["dnas/*/zomes/coordinator/*", "dnas/*/zomes/integrity/*", "src-tauri"
 hdi = "0.6.0"
 hdk = "0.5.0"
 serde = "1.0"
+holochain_serialized_bytes = "*"
 
 [workspace.dependencies.posts]
 path = "dnas/forum/zomes/coordinator/posts"

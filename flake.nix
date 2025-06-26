@@ -81,11 +81,14 @@
 
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
-        # packages.rust = inputs.holonix.packages.${system}.rust;
-        packages.rust = let
-          overlays = [ (import inputs.rust-overlay) ];
-          pkgs = import inputs.nixpkgs { inherit system overlays; };
-        in pkgs.rust-bin.stable."1.85.0".minimal;
+        # Use upstream rust version
+        packages.rust = inputs.holonix.packages.${system}.rust;
+
+        # Custom rust version
+        # packages.rust = let
+        #   overlays = [ (import inputs.rust-overlay) ];
+        #   pkgs = import inputs.nixpkgs { inherit system overlays; };
+        # in pkgs.rust-bin.stable."1.85.0".minimal;
 
         dependencies.tauriApp = let
           pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
@@ -130,16 +133,7 @@
             libsoup_3
             dbus
             librsvg
-          ])) ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
-            basez
-            darwin.apple_sdk.frameworks.Security
-            darwin.apple_sdk.frameworks.CoreServices
-            darwin.apple_sdk.frameworks.CoreFoundation
-            darwin.apple_sdk.frameworks.Foundation
-            darwin.apple_sdk.frameworks.AppKit
-            darwin.apple_sdk.frameworks.WebKit
-            darwin.apple_sdk.frameworks.Cocoa
-          ]);
+          ]));
           nativeBuildInputs = (with pkgs; [ perl pkg-config makeWrapper ])
             ++ (lib.optionals pkgs.stdenv.isLinux
               (with pkgs; [ wrapGAppsHook ]))
