@@ -8,10 +8,6 @@ pub struct HolochainRuntimeConfig {
     // Holochain network config
     pub network_config: NetworkConfig,
 
-    /// Fallback to LAN only mode if the signal server configured in NetworkConfig can't be
-    /// reached at launch
-    pub fallback_to_lan_only: bool,
-
     /// Force the conductor to run at this admin port
     pub admin_port: Option<u16>,
 }
@@ -22,7 +18,6 @@ impl HolochainRuntimeConfig {
             holochain_dir,
             network_config,
             admin_port: None,
-            fallback_to_lan_only: true,
         }
     }
 

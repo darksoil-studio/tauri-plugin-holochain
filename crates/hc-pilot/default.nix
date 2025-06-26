@@ -32,6 +32,7 @@
 
         # Make sure libdatachannel can find C++ standard libraries from clang.
         LIBCLANG_PATH = "${pkgs.llvmPackages_18.libclang.lib}/lib";
+        cargoExtraArgs = " -p hc-pilot";
       };
       # cargoArtifacts = craneLib.buildDepsOnly (commonArgs // {
       #   pname = crate;
@@ -45,7 +46,6 @@
     in pkgs.runCommandNoCC crate { buildInputs = [ pkgs.makeWrapper ]; } ''
       mkdir $out
       mkdir $out/bin
-      # Because we create this ourself, by creating a wrapper
       makeWrapper ${binary}/bin/hc-pilot $out/bin/hc-pilot \
         --set WEBKIT_DISABLE_DMABUF_RENDERER 1
     '';
