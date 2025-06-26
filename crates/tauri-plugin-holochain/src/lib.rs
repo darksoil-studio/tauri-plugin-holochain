@@ -6,6 +6,7 @@ use std::{
 use hc_seed_bundle::SharedLockedArray;
 use http_server::{pong_iframe, read_asset};
 use tauri::{
+    async_runtime::RwLock,
     http::response,
     ipc::CapabilityBuilder,
     plugin::{Builder, TauriPlugin},
@@ -538,14 +539,17 @@ pub fn async_init<R: Runtime>(
         .build()
 }
 
-async fn launch_and_setup_holochain<R: Runtime>(
-    app_handle: AppHandle<R>,
+static RUNNING_HOLOCHAIN_RUNTIME: RwLock<Option<HolochainRuntime>> = RwLock::const_new(None);
+
+pub async fn launch_holochain_runtime(
     passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
-) -> crate::Result<()> {
-    // let http_server_port = portpicker::pick_unused_port().expect("No ports free");
-    // http_server::start_http_server(app_handle.clone(), http_server_port).await?;
-    // log::info!("Starting http server at port {http_server_port:?}");
+) -> crate::Result<HolochainRuntime> {
+    let mut lock = RUNNING_HOLOCHAIN_RUNTIME.write().await;
+
+    if let Some(runtime) = lock.to_owned() {
+        return Ok(runtime);
+    }
 
     let crypto_provider = rustls::crypto::aws_lc_rs::default_provider().install_default();
     if crypto_provider.is_err() {
@@ -556,6 +560,18 @@ async fn launch_and_setup_holochain<R: Runtime>(
     }
 
     let holochain_runtime = HolochainRuntime::launch(passphrase, config).await?;
+
+    *lock = Some(holochain_runtime.clone());
+
+    Ok(holochain_runtime)
+}
+
+async fn launch_and_setup_holochain<R: Runtime>(
+    app_handle: AppHandle<R>,
+    passphrase: SharedLockedArray,
+    config: HolochainPluginConfig,
+) -> crate::Result<()> {
+    let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
 
     #[cfg(desktop)]
     if tauri::is_dev() {

@@ -5,7 +5,6 @@ use holochain::conductor::{
 use holochain_conductor_api::conductor::DpkiConfig;
 use holochain_keystore::paths::KeystorePath;
 use holochain_types::websocket::AllowedOrigins;
-use url2::Url2;
 
 use crate::{filesystem::FileSystem, launch::DEVICE_SEED_LAIR_KEYSTORE_TAG, NetworkConfig};
 
@@ -14,7 +13,6 @@ pub fn conductor_config(
     admin_port: u16,
     lair_root: KeystorePath,
     mut network_config: NetworkConfig,
-    local_signal_url: Option<Url2>,
 ) -> ConductorConfig {
     let mut config = ConductorConfig::default();
     config.data_root_path = Some(fs.conductor_dir().into());
@@ -25,9 +23,6 @@ pub fn conductor_config(
     config.dpki = DpkiConfig::disabled();
 
     // LAN
-    if let Some(local_signal_url) = local_signal_url {
-        network_config.signal_url = local_signal_url;
-    }
     if let None = network_config.advanced {
         let advanced_config = serde_json::json!({
             "tx5Transport": {
