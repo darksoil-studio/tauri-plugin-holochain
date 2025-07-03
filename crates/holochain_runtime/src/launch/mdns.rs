@@ -145,7 +145,8 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
 async fn wait_until_admin_ws_is_available(admin_port: u16) -> crate::Result<AdminWebsocket> {
     let mut retry_count = 0;
     loop {
-        let connect_result = AdminWebsocket::connect(format!("localhost:{}", admin_port)).await;
+        let connect_result =
+            AdminWebsocket::connect(format!("ws://localhost:{}", admin_port)).await;
         match connect_result {
             Ok(admin_ws) => {
                 return Ok(admin_ws);
