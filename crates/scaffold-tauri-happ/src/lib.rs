@@ -454,7 +454,7 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
-    host: process.env.TAURI_DEV_HOST || false,
+    host: "0.0.0.0",
     hmr: process.env.TAURI_DEV_HOST
       ? {
           protocol: "ws",
