@@ -146,7 +146,7 @@ async fn wait_until_admin_ws_is_available(admin_port: u16) -> crate::Result<Admi
     let mut retry_count = 0;
     loop {
         let connect_result =
-            AdminWebsocket::connect(format!("ws://localhost:{}", admin_port)).await;
+            AdminWebsocket::connect(format!("ws://127.0.0.1:{}", admin_port)).await;
         match connect_result {
             Ok(admin_ws) => {
                 return Ok(admin_ws);
