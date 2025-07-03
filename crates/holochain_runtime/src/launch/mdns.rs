@@ -79,7 +79,7 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
 }
 
 pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crate::Result<()> {
-    let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port))
+    let admin_ws = AdminWebsocket::connect(format!("ws://127.0.0.1:{}", admin_port))
         .await
         .map_err(|err| {
             crate::Error::WebsocketConnectionError(format!(
