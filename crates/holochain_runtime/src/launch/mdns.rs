@@ -65,6 +65,10 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
                 if let Ok(str_buffer) = agent_info.encode() {
                     let buffer = str_buffer.as_bytes();
 
+                    log::debug!(
+                        "Broadcasting mDNS agent {agent_b64} in space {space_b64} with URL {:?}.",
+                        agent_info.url
+                    );
                     let handle = mdns_create_broadcast_thread(space_b64, agent_b64, &buffer);
                     // store handle in self
                     cells_ids_broadcasted.insert(cell_id, handle);
@@ -89,6 +93,7 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
     let space_b64 = base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(&space[..]);
 
     tokio::spawn(async move {
+        log::debug!("Listening for mDNS agents for space {space_b64}.");
         let stream = mdns_listen(space_b64);
         tokio::pin!(stream);
         while let Some(maybe_response) = stream.next().await {
@@ -107,7 +112,9 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
                         log::error!("Failed to decode MDNS peer {:?}", maybe_agent_info_signed);
                         continue;
                     };
-                    let Ok(encoded_agent_infos) = admin_ws.agent_info(None).await else {
+                    let response = admin_ws.agent_info(None).await;
+                    let Ok(encoded_agent_infos) = response else {
+                        log::error!("Failed to get agent infos: {response:?}");
                         continue;
                     };
 
@@ -123,7 +130,9 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
                         .find(|agent_info| remote_agent_info_signed.eq(&agent_info))
                         .is_none()
                     {
-                        let Ok(encoded_agent_info) = remote_agent_info_signed.encode() else {
+                        let result = remote_agent_info_signed.encode();
+                        let Ok(encoded_agent_info) = result else {
+                            log::error!("Failed to encode agent info: {result:?}");
                             continue;
                         };
                         log::info!("Adding agent info {encoded_agent_info:?}");
