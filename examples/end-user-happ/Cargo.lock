@@ -8665,6 +8665,7 @@ name = "tauri-plugin-holochain"
 version = "0.0.0"
 dependencies = [
  "anyhow",
+ "app_dirs2",
  "bzip2 0.4.4",
  "ctrlc",
  "either",
@@ -8685,6 +8686,7 @@ dependencies = [
  "symlink",
  "tauri",
  "tauri-plugin",
+ "tempdir",
  "thiserror 1.0.69",
  "tls-listener",
  "url",

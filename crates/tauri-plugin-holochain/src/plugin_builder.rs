@@ -1,0 +1,269 @@
+use hc_seed_bundle::SharedLockedArray;
+use holochain_runtime::{vec_to_locked, HolochainRuntimeConfig, NetworkConfig};
+use std::path::PathBuf;
+use tauri::{http::response, plugin::TauriPlugin, AppHandle, Emitter, Manager, RunEvent, Runtime};
+
+use crate::{
+    create_hc_live_file, delete_hc_live_file,
+    http_server::{pong_iframe, read_asset},
+    launch_holochain_runtime, HolochainExt, HolochainPlugin, HolochainPluginConfig,
+};
+
+pub struct Builder {
+    pub mdns_discovery: bool,
+    pub passphrase: SharedLockedArray,
+    pub network_config: NetworkConfig,
+    pub admin_port: Option<u16>,
+    pub holochain_dir: PathBuf,
+}
+
+impl Default for Builder {
+    fn default() -> Self {
+        let mut network_config = NetworkConfig::default();
+
+        // Don't hold any slice of the DHT in mobile
+        if cfg!(mobile) {
+            network_config.target_arc_factor = 0;
+        }
+
+        Builder {
+            mdns_discovery: false,
+            passphrase: vec_to_locked(vec![]),
+            network_config,
+            admin_port: None,
+            holochain_dir: default_holochain_dir(),
+        }
+    }
+}
+
+fn default_holochain_dir() -> PathBuf {
+    if tauri::is_dev() {
+        #[cfg(target_os = "android")]
+        {
+            app_dirs2::app_root(
+                app_dirs2::AppDataType::UserCache,
+                &app_dirs2::AppInfo {
+                    name: "launcher",
+                    author: std::env!("CARGO_PKG_AUTHORS"),
+                },
+            )
+            .expect("Could not get the UserCache directory")
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let tmp_dir =
+                tempdir::TempDir::new("launcher").expect("Could not create temporary directory");
+
+            // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
+            // without deleting the directory.
+            let tmp_path = tmp_dir.into_path();
+            tmp_path
+        }
+    } else {
+        app_dirs2::app_root(
+            app_dirs2::AppDataType::UserData,
+            &app_dirs2::AppInfo {
+                name: "launcher",
+                author: std::env!("CARGO_PKG_AUTHORS"),
+            },
+        )
+        .expect("Could not get app root")
+        .join("holochain")
+    }
+}
+
+impl Builder {
+    pub fn mdns_discovery(mut self) -> Self {
+        self.mdns_discovery = true;
+        self
+    }
+
+    pub fn passphrase(mut self, passphrase: SharedLockedArray) -> Self {
+        self.passphrase = passphrase;
+        self
+    }
+
+    pub fn network_config(mut self, network_config: NetworkConfig) -> Self {
+        self.network_config = network_config;
+        self
+    }
+
+    pub fn holochain_dir(mut self, holochain_dir: PathBuf) -> Self {
+        self.holochain_dir = holochain_dir;
+        self
+    }
+
+    pub fn admin_port(mut self, admin_port: Option<u16>) -> Self {
+        self.admin_port = admin_port;
+        self
+    }
+
+    pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
+        tauri::plugin::Builder::new("holochain")
+            .invoke_handler(tauri::generate_handler![
+                crate::commands::sign_zome_call::sign_zome_call,
+                crate::commands::open_app::open_app,
+                crate::commands::install::install_web_app,
+                crate::commands::install::uninstall_web_app,
+                crate::commands::install::list_apps,
+                crate::commands::get_runtime_info::is_holochain_ready
+            ])
+            .register_uri_scheme_protocol("happ", |context, request| {
+                log::info!("Received request {}", request.uri().to_string());
+                if request.uri().to_string().starts_with("happ://ping") {
+                    return response::Builder::new()
+                        .status(tauri::http::StatusCode::ACCEPTED)
+                        .header("Content-Type", "text/html;charset=utf-8")
+                        .body(pong_iframe().as_bytes().to_vec())
+                        .expect("Failed to build body of accepted response");
+                }
+                // prepare our response
+                tauri::async_runtime::block_on(async move {
+                    // let mutex = app_handle.state::<Mutex<AdminWebsocket>>();
+                    // let mut admin_ws = mutex.lock().await;
+
+                    let uri_without_protocol = request
+                        .uri()
+                        .to_string()
+                        .split("://")
+                        .map(|s| s.to_string())
+                        .collect::<Vec<String>>()
+                        .get(1)
+                        .expect("Malformed request: not enough items")
+                        .clone();
+                    let uri_without_querystring: String = uri_without_protocol
+                        .split("?")
+                        .map(|s| s.to_string())
+                        .collect::<Vec<String>>()
+                        .get(0)
+                        .expect("Malformed request: not enough items 2")
+                        .clone();
+                    let uri_components: Vec<String> = uri_without_querystring
+                        .split("/")
+                        .map(|s| s.to_string())
+                        .collect();
+                    let lowercase_app_id = uri_components
+                        .get(0)
+                        .expect("Malformed request: not enough items 3");
+                    let mut asset_file = PathBuf::new();
+                    for i in 1..uri_components.len() {
+                        asset_file = asset_file.join(uri_components[i].clone());
+                    }
+
+                    let Ok(holochain_plugin) = context.app_handle().holochain() else {
+                        return response::Builder::new()
+                            .status(tauri::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(
+                                format!("Called http UI before initializing holochain")
+                                    .as_bytes()
+                                    .to_vec(),
+                            )
+                            .expect("Failed to build asset with not internal server error");
+                    };
+
+                    let r = match read_asset(
+                        &holochain_plugin.holochain_runtime.filesystem,
+                        lowercase_app_id,
+                        asset_file
+                            .as_os_str()
+                            .to_str()
+                            .expect("Malformed request: not enough items 4")
+                            .to_string(),
+                    )
+                    .await
+                    {
+                        Ok(Some((asset, mime_type))) => {
+                            log::info!("Got asset for app with id: {}", lowercase_app_id);
+                            let mut response =
+                                response::Builder::new().status(tauri::http::StatusCode::ACCEPTED);
+                            if let Some(mime_type) = mime_type {
+                                response = response
+                                    .header("Content-Type", format!("{};charset=utf-8", mime_type))
+                            } else {
+                                response = response.header("Content-Type", "charset=utf-8")
+                            }
+
+                            return response
+                                .body(asset)
+                                .expect("Failed to build response with asset");
+                        }
+                        Ok(None) => response::Builder::new()
+                            .status(tauri::http::StatusCode::NOT_FOUND)
+                            .body(vec![])
+                            .expect("Failed to build asset with not found"),
+                        Err(e) => response::Builder::new()
+                            .status(500)
+                            .body(format!("{:?}", e).into())
+                            .expect("Failed to build body of error response"),
+                    };
+                    r
+                })
+            })
+            .on_event(|app, event| match event {
+                RunEvent::Exit => {
+                    if tauri::is_dev() {
+                        if let Ok(h) = app.holochain() {
+                            if let Err(err) = delete_hc_live_file(h.holochain_runtime.admin_port) {
+                                log::error!("Failed to delete hc live file: {err:?}");
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            })
+            .setup(move |app, _api| {
+                let handle = app.clone();
+                let config = HolochainRuntimeConfig {
+                    holochain_dir: self.holochain_dir,
+                    network_config: self.network_config,
+                    admin_port: self.admin_port.clone(),
+                };
+                tauri::async_runtime::spawn(async move {
+                    if let Err(err) =
+                        launch_and_setup_holochain(handle.clone(), self.passphrase, config).await
+                    {
+                        log::error!("Failed to launch holochain: {err:?}");
+                        if let Err(err) = handle.emit("holochain://setup-failed", ()) {
+                            log::error!(
+                                "Failed to emit \"holochain://setup-failed\" event: {err:?}"
+                            );
+                        }
+                    }
+                });
+
+                Ok(())
+            })
+            .build()
+    }
+}
+
+async fn launch_and_setup_holochain<R: Runtime>(
+    app_handle: AppHandle<R>,
+    passphrase: SharedLockedArray,
+    config: HolochainPluginConfig,
+) -> crate::Result<()> {
+    let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
+
+    #[cfg(desktop)]
+    if tauri::is_dev() {
+        create_hc_live_file(holochain_runtime.admin_port)?;
+
+        ctrlc::set_handler(move || {
+            if let Err(err) = delete_hc_live_file(holochain_runtime.admin_port) {
+                log::error!("Failed to delete hc live file: {err:?}");
+            }
+            std::process::exit(0);
+        })?;
+    }
+
+    let p = HolochainPlugin::<R> {
+        app_handle: app_handle.clone(),
+        holochain_runtime,
+    };
+
+    // manage state so it is accessible by the commands
+    app_handle.manage(p);
+    app_handle.emit("holochain://setup-completed", ())?;
+
+    Ok(())
+}

@@ -1,32 +1,23 @@
-use std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-};
+use std::collections::{HashMap, HashSet};
 
 use hc_seed_bundle::SharedLockedArray;
-use http_server::{pong_iframe, read_asset};
-use tauri::{
-    async_runtime::RwLock,
-    http::response,
-    ipc::CapabilityBuilder,
-    plugin::{Builder, TauriPlugin},
-    AppHandle, Emitter, Manager, RunEvent, Runtime, WebviewUrl, WebviewWindowBuilder,
-};
-
 use holochain_client::{AdminWebsocket, AppInfo, AppWebsocket};
-pub use holochain_types::prelude::*;
-pub use holochain_types::{web_app::WebAppBundle, websocket::AllowedOrigins};
+use tauri::{async_runtime::RwLock, AppHandle, Emitter, Manager, Runtime, WebviewWindowBuilder};
 
+pub use holochain_types::{prelude::*, web_app::WebAppBundle, websocket::AllowedOrigins};
+
+mod plugin_builder;
+pub use plugin_builder::*;
 mod commands;
 mod error;
 mod hc_live_file;
 mod http_server;
+mod window_builder;
+pub use window_builder::*;
 
 pub use error::{Error, Result};
 use hc_live_file::*;
 pub use holochain_runtime::*;
-
-const ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT: &'static str = include_str!("../zome-call-signer.js");
 
 /// Access to the holochain APIs.
 pub struct HolochainPlugin<R: Runtime> {
@@ -62,18 +53,6 @@ impl<R: Runtime> HolochainPlugin<R> {
     ) -> crate::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
         let app_id: String = app_id.into();
 
-        let allowed_origins = self.get_allowed_origins(&app_id, false);
-        let app_websocket_auth = self
-            .holochain_runtime
-            .get_app_websocket_auth(&app_id, allowed_origins)
-            .await?;
-
-        let token_vector: Vec<String> = app_websocket_auth
-            .token
-            .iter()
-            .map(|n| n.to_string())
-            .collect();
-        let token = token_vector.join(",");
         let url_origin = happ_origin(&app_id.clone().into());
 
         let url_path = url_path.unwrap_or_default();
@@ -83,102 +62,7 @@ impl<R: Runtime> HolochainPlugin<R> {
         )?);
         let window_builder =
             WebviewWindowBuilder::new(&self.app_handle, app_id.clone(), webview_url)
-                .initialization_script(
-                    format!(
-                        r#"
-            if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
-            window.__HC_LAUNCHER_ENV__.APP_INTERFACE_PORT = {};
-            window.__HC_LAUNCHER_ENV__.APP_INTERFACE_TOKEN = [{}];
-            window.__HC_LAUNCHER_ENV__.INSTALLED_APP_ID = "{}";
-        "#,
-                        app_websocket_auth.app_websocket_port, token, app_id
-                    )
-                    .as_str(),
-                )
-                .initialization_script(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT);
-
-        let mut capability_builder =
-            CapabilityBuilder::new("sign-zome-call").permission("holochain:allow-sign-zome-call");
-
-        capability_builder = capability_builder.window(app_id);
-
-        self.app_handle.add_capability(capability_builder)?;
-
-        Ok(window_builder)
-    }
-
-    /// Build a window that opens the main UI for your Tauri app.
-    /// This is equivalent to creating a window with `WebviewUrl::App(PathBuf::from("index.html"))`.
-    ///
-    /// * `label` - the identifier of the window.
-    /// * `enable_admin_websocket` - whether the window should have direct access to the `AdminWebsocket`'s API.
-    /// * `enabled_app` - an optional `app_id` for the app whose `AppWebsocket` should be enabled in the window.
-    /// * `url_path` - [url path](https://developer.mozilla.org/en-US/docs/Web/API/URL/pathname) for the window that will be opened.
-    pub async fn main_window_builder(
-        &self,
-        label: String,
-        enable_admin_websocket: bool,
-        enabled_app: Option<InstalledAppId>,
-        url_path: Option<String>,
-    ) -> crate::Result<WebviewWindowBuilder<R, AppHandle<R>>> {
-        let url_path = url_path.unwrap_or_default();
-
-        let mut window_builder = WebviewWindowBuilder::new(
-            &self.app_handle,
-            label.clone(),
-            // Pointing to index.html
-            WebviewUrl::App(format!("{url_path}").into()),
-        );
-
-        if enable_admin_websocket {
-            window_builder = window_builder.initialization_script(
-                format!(
-                    r#"
-            if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
-            window.__HC_LAUNCHER_ENV__.ADMIN_INTERFACE_PORT = {};
-                        
-                    "#,
-                    self.holochain_runtime.admin_port
-                )
-                .as_str(),
-            )
-        }
-
-        if let Some(enabled_app) = enabled_app {
-            let allowed_origins = self.get_allowed_origins(&enabled_app, true);
-            let app_websocket_auth = self
-                .holochain_runtime
-                .get_app_websocket_auth(&enabled_app, allowed_origins)
-                .await?;
-
-            let token_vector: Vec<String> = app_websocket_auth
-                .token
-                .iter()
-                .map(|n| n.to_string())
-                .collect();
-            let token = token_vector.join(",");
-            window_builder = window_builder
-                .initialization_script(
-                    format!(
-                        r#"
-            if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
-            window.__HC_LAUNCHER_ENV__.APP_INTERFACE_PORT = {};
-            window.__HC_LAUNCHER_ENV__.APP_INTERFACE_TOKEN = [{}];
-            window.__HC_LAUNCHER_ENV__.INSTALLED_APP_ID = "{}";
-        "#,
-                        app_websocket_auth.app_websocket_port, token, enabled_app
-                    )
-                    .as_str(),
-                )
-                .initialization_script(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT);
-
-            let mut capability_builder = CapabilityBuilder::new("sign-zome-call")
-                .permission("holochain:allow-sign-zome-call");
-
-            capability_builder = capability_builder.window(label);
-
-            self.app_handle.add_capability(capability_builder)?;
-        }
+                .enable_app_interface(app_id);
 
         Ok(window_builder)
     }
@@ -382,163 +266,6 @@ impl<R: Runtime, T: Manager<R>> crate::HolochainExt<R> for T {
 
 pub type HolochainPluginConfig = HolochainRuntimeConfig;
 
-fn plugin_builder<R: Runtime>() -> Builder<R> {
-    Builder::new("holochain")
-        .invoke_handler(tauri::generate_handler![
-            commands::sign_zome_call::sign_zome_call,
-            commands::open_app::open_app,
-            commands::install::install_web_app,
-            commands::install::uninstall_web_app,
-            commands::install::list_apps,
-            commands::get_runtime_info::is_holochain_ready
-        ])
-        .register_uri_scheme_protocol("happ", |context, request| {
-            log::info!("Received request {}", request.uri().to_string());
-            if request.uri().to_string().starts_with("happ://ping") {
-                return response::Builder::new()
-                    .status(tauri::http::StatusCode::ACCEPTED)
-                    .header("Content-Type", "text/html;charset=utf-8")
-                    .body(pong_iframe().as_bytes().to_vec())
-                    .expect("Failed to build body of accepted response");
-            }
-            // prepare our response
-            tauri::async_runtime::block_on(async move {
-                // let mutex = app_handle.state::<Mutex<AdminWebsocket>>();
-                // let mut admin_ws = mutex.lock().await;
-
-                let uri_without_protocol = request
-                    .uri()
-                    .to_string()
-                    .split("://")
-                    .map(|s| s.to_string())
-                    .collect::<Vec<String>>()
-                    .get(1)
-                    .expect("Malformed request: not enough items")
-                    .clone();
-                let uri_without_querystring: String = uri_without_protocol
-                    .split("?")
-                    .map(|s| s.to_string())
-                    .collect::<Vec<String>>()
-                    .get(0)
-                    .expect("Malformed request: not enough items 2")
-                    .clone();
-                let uri_components: Vec<String> = uri_without_querystring
-                    .split("/")
-                    .map(|s| s.to_string())
-                    .collect();
-                let lowercase_app_id = uri_components
-                    .get(0)
-                    .expect("Malformed request: not enough items 3");
-                let mut asset_file = PathBuf::new();
-                for i in 1..uri_components.len() {
-                    asset_file = asset_file.join(uri_components[i].clone());
-                }
-
-                let Ok(holochain_plugin) = context.app_handle().holochain() else {
-                    return response::Builder::new()
-                        .status(tauri::http::StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(
-                            format!("Called http UI before initializing holochain")
-                                .as_bytes()
-                                .to_vec(),
-                        )
-                        .expect("Failed to build asset with not internal server error");
-                };
-
-                let r = match read_asset(
-                    &holochain_plugin.holochain_runtime.filesystem,
-                    lowercase_app_id,
-                    asset_file
-                        .as_os_str()
-                        .to_str()
-                        .expect("Malformed request: not enough items 4")
-                        .to_string(),
-                )
-                .await
-                {
-                    Ok(Some((asset, mime_type))) => {
-                        log::info!("Got asset for app with id: {}", lowercase_app_id);
-                        let mut response =
-                            response::Builder::new().status(tauri::http::StatusCode::ACCEPTED);
-                        if let Some(mime_type) = mime_type {
-                            response = response
-                                .header("Content-Type", format!("{};charset=utf-8", mime_type))
-                        } else {
-                            response = response.header("Content-Type", "charset=utf-8")
-                        }
-
-                        return response
-                            .body(asset)
-                            .expect("Failed to build response with asset");
-                    }
-                    Ok(None) => response::Builder::new()
-                        .status(tauri::http::StatusCode::NOT_FOUND)
-                        .body(vec![])
-                        .expect("Failed to build asset with not found"),
-                    Err(e) => response::Builder::new()
-                        .status(500)
-                        .body(format!("{:?}", e).into())
-                        .expect("Failed to build body of error response"),
-                };
-                r
-            })
-        })
-        .on_event(|app, event| match event {
-            RunEvent::Exit => {
-                if tauri::is_dev() {
-                    if let Ok(h) = app.holochain() {
-                        if let Err(err) = delete_hc_live_file(h.holochain_runtime.admin_port) {
-                            log::error!("Failed to delete hc live file: {err:?}");
-                        }
-                    }
-                }
-            }
-            _ => {}
-        })
-}
-
-/// Initializes the plugin, waiting for holochain to launch before finishing the app's setup.
-pub fn init<R: Runtime>(
-    passphrase: SharedLockedArray,
-    config: HolochainPluginConfig,
-) -> TauriPlugin<R> {
-    plugin_builder()
-        .setup(|app, _api| {
-            let handle = app.clone();
-            let result = tauri::async_runtime::block_on(async move {
-                launch_and_setup_holochain(handle, passphrase, config).await
-            });
-
-            Ok(result?)
-        })
-        .build()
-}
-
-/// Initializes the plugin without waiting for holochain to launch to continue the setup of the app
-/// If you use this version of init, you should listen to the `holochain://setup-completed` event in your `setup()` hook
-pub fn async_init<R: Runtime>(
-    passphrase: SharedLockedArray,
-    config: HolochainPluginConfig,
-) -> TauriPlugin<R> {
-    plugin_builder()
-        .setup(|app, _api| {
-            let handle = app.clone();
-            tauri::async_runtime::spawn(async move {
-                if let Err(err) =
-                    launch_and_setup_holochain(handle.clone(), passphrase, config).await
-                {
-                    log::error!("Failed to launch holochain: {err:?}");
-                    if let Err(err) = handle.emit("holochain://setup-failed", ()) {
-                        log::error!("Failed to emit \"holochain://setup-failed\" event: {err:?}");
-                    }
-                }
-            });
-
-            Ok(())
-        })
-        .build()
-}
-
 static RUNNING_HOLOCHAIN_RUNTIME: RwLock<Option<HolochainRuntime>> = RwLock::const_new(None);
 
 pub async fn launch_holochain_runtime(
@@ -564,36 +291,4 @@ pub async fn launch_holochain_runtime(
     *lock = Some(holochain_runtime.clone());
 
     Ok(holochain_runtime)
-}
-
-async fn launch_and_setup_holochain<R: Runtime>(
-    app_handle: AppHandle<R>,
-    passphrase: SharedLockedArray,
-    config: HolochainPluginConfig,
-) -> crate::Result<()> {
-    let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
-
-    #[cfg(desktop)]
-    if tauri::is_dev() {
-        create_hc_live_file(holochain_runtime.admin_port)?;
-
-        ctrlc::set_handler(move || {
-            if let Err(err) = delete_hc_live_file(holochain_runtime.admin_port) {
-                log::error!("Failed to delete hc live file: {err:?}");
-            }
-            std::process::exit(0);
-        })?;
-    }
-
-    let p = HolochainPlugin::<R> {
-        app_handle: app_handle.clone(),
-        holochain_runtime,
-    };
-
-    // manage state so it is accessible by the commands
-    app_handle.manage(p);
-
-    app_handle.emit("holochain://setup-completed", ())?;
-
-    Ok(())
 }
