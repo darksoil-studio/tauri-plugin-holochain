@@ -10,7 +10,6 @@
     holochain-nix-builders.url =
       "github:darksoil-studio/holochain-nix-builders/main-0.5";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
-    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
     webkitnixpkgs.url =
       "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
   };
@@ -74,7 +73,6 @@
         ./crates/hc-pilot/default.nix
         ./nix/tauri-cli.nix
         ./nix/android.nix
-        ./nix/custom-go-compiler.nix
         # inputs.holochain-nix-builders.outputs.flakeModules.builders
         inputs.holochain-nix-builders.outputs.flakeModules.dependencies
       ];
