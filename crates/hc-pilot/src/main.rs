@@ -1,5 +1,5 @@
 use clap::Parser;
-use holochain_client::AppInfo;
+use holochain::conductor::api::AppInfo;
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     dna::{AgentPubKey, AgentPubKeyB64},
@@ -111,7 +111,6 @@ fn main() {
                 network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
-                fallback_to_lan_only: true,
             },
         ))
         .setup(|app| {

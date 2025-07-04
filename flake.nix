@@ -81,61 +81,59 @@
 
       systems = builtins.attrNames inputs.holonix.devShells;
       perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
+        # Use upstream rust version
+        packages.rust = inputs.holonix.packages.${system}.rust;
+
+        # Custom rust version
+        # packages.rust = let
+        #   overlays = [ (import inputs.rust-overlay) ];
+        #   pkgs = import inputs.nixpkgs { inherit system overlays; };
+        # in pkgs.rust-bin.stable."1.85.0".minimal;
+
         dependencies.tauriApp = let
-          pkgs = inputs.webkitnixpkgs.legacyPackages.${system};
-          buildInputs = (with pkgs;
-            [
-              # openssl
-              # openssl_3
-            ]) ++ (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-              # this is required for glib-networking
-              glib
-              webkitgtk # Brings libwebkit2gtk-4.0.so.37
-              # webkitgtk.dev
-              webkitgtk_4_1 # Needed for javascriptcoregtk
-              # webkitgtk_4_1.dev
-              # webkitgtk_6_0
-              gdk-pixbuf
-              gtk3
-              # glib
-              # stdenv.cc.cc.lib
-              # harfbuzz
-              # harfbuzzFull
-              # zlib
-              # xorg.libX11
-              # xorg.libxcb
-              # fribidi
-              # fontconfig
-              # freetype
-              # libgpg-error
-              # mesa
-              # libdrm
-              # libglvnd
-              # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-              gst_all_1.gstreamer
-              # Common plugins like "filesrc" to combine within e.g. gst-launch
-              gst_all_1.gst-plugins-base
-              # Specialized plugins separated by quality
-              gst_all_1.gst-plugins-good
-              gst_all_1.gst-plugins-bad
-              gst_all_1.gst-plugins-ugly
-              # Plugins to reuse ffmpeg to play almost every video format
-              gst_all_1.gst-libav
-              # Support the Video Audio (Hardware) Acceleration API
-              gst_all_1.gst-vaapi
-              libsoup_3
-              dbus
-              librsvg
-            ])) ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
-              basez
-              darwin.apple_sdk.frameworks.Security
-              darwin.apple_sdk.frameworks.CoreServices
-              darwin.apple_sdk.frameworks.CoreFoundation
-              darwin.apple_sdk.frameworks.Foundation
-              darwin.apple_sdk.frameworks.AppKit
-              darwin.apple_sdk.frameworks.WebKit
-              darwin.apple_sdk.frameworks.Cocoa
-            ]);
+          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+            inputs.webkitnixpkgs.legacyPackages.${system}
+          else
+            inputs.nixpkgs.legacyPackages.${system};
+          buildInputs = (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
+            webkitgtk # Brings libwebkit2gtk-4.0.so.37
+            webkitgtk_4_1 # Needed for javascriptcoregtk
+            # openssl
+            # openssl_3
+            # this is required for glib-networking
+            glib
+            gdk-pixbuf
+            gtk3
+            # glib
+            # stdenv.cc.cc.lib
+            # harfbuzz
+            # harfbuzzFull
+            # zlib
+            # xorg.libX11
+            # xorg.libxcb
+            # fribidi
+            # fontconfig
+            # freetype
+            # libgpg-error
+            # mesa
+            # libdrm
+            # libglvnd
+            # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
+            gst_all_1.gstreamer
+            # Common plugins like "filesrc" to combine within e.g. gst-launch
+            gst_all_1.gst-plugins-base
+            # Specialized plugins separated by quality
+            gst_all_1.gst-plugins-good
+            gst_all_1.gst-plugins-bad
+            gst_all_1.gst-plugins-ugly
+            # Plugins to reuse ffmpeg to play almost every video format
+            gst_all_1.gst-libav
+            # Support the Video Audio (Hardware) Acceleration API
+            gst_all_1.gst-vaapi
+            libsoup_3
+            dbus
+            librsvg
+          ]));
           nativeBuildInputs = (with pkgs; [ perl pkg-config makeWrapper ])
             ++ (lib.optionals pkgs.stdenv.isLinux
               (with pkgs; [ wrapGAppsHook ]))
@@ -174,9 +172,7 @@
         };
 
         packages.tauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
-            extensions = [ "rust-src" ];
-          };
+          rust = packages.rust.override { extensions = [ "rust-src" ]; };
           linuxCargo = pkgs.writeShellApplication {
             name = "cargo";
             runtimeInputs = [ rust ];
@@ -187,7 +183,7 @@
         in if pkgs.stdenv.isLinux then linuxCargo else rust;
 
         packages.holochainTauriRust = let
-          rust = inputs.holonix.packages.${system}.rust.override {
+          rust = packages.rust.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };

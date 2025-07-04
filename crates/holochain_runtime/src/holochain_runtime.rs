@@ -20,7 +20,6 @@ use holochain_types::{
     websocket::AllowedOrigins,
 };
 use lair_keystore_api::types::SharedLockedArray;
-use sbd_server::SbdServer;
 
 use crate::{
     filesystem::{AppBundleStore, BundleStore, FileSystem},
@@ -41,12 +40,12 @@ pub struct AppWebsocketAuth {
     pub token: Vec<u8>,
 }
 
+#[derive(Clone)]
 pub struct HolochainRuntime {
     pub filesystem: FileSystem,
     pub apps_websockets_auths: Arc<Mutex<Vec<AppWebsocketAuth>>>,
     pub admin_port: u16,
     pub conductor_handle: ConductorHandle,
-    pub(crate) _local_sbd_server: Option<SbdServer>,
 }
 
 impl HolochainRuntime {

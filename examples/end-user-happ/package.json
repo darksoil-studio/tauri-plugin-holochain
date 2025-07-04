@@ -6,13 +6,13 @@
   "workspaces": ["ui"],
   "scripts": {
     "start": "AGENTS=2 npm run network | grep -v \"spawn_blocking\" ",
-    "pilot": "npm run build:happ && UI_PORT=1420 concurrently -k \"npm start -w ui\" \"AGENTS=${AGENTS:-2} npm run launch:pilot\"",
-    "network": "npm run build:happ && concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run launch\"",
-    "launch": "concurrently-repeat \"npm run tauri dev\" $AGENTS",
+    "pilot": "npm run build:happ && UI_PORT=1420 concurrently -k \"npm start -w ui\" \"AGENTS=${AGENTS:-2} npm run launch:pilot\" \"hc playground\"",
+    "network": "npm run build:happ && concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run launch\" \"hc playground\"",
+    "launch": "concurrently-repeat \"npm run tauri dev --release\" $AGENTS",
     "launch:pilot": "concurrently-repeat \"hc-pilot workdir/forum.happ --ui-port=$UI_PORT \" $AGENTS",
     "network:android": "npm run build:happ && concurrently -k \"UI_PORT=1420 npm start -w ui\" \"npm run tauri dev --release\" \"npm run tauri dev --release\" \"npm run tauri dev --release\" \"npm run tauri android dev --release\"",
-    "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:webhapp": "npm run build:zomes && npm run package -w ui && hc web-app pack workdir --recursive",
+    "build:happ": "npm run build:zomes && hc app pack workdir --recursive",
     "build:zomes": "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown --workspace --exclude example-end-user-happ",
     "tauri": "tauri"
   },

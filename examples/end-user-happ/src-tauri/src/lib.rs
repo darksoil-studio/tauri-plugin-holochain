@@ -66,7 +66,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::default()
-                .level(log::LevelFilter::Warn)
+                .level(log::LevelFilter::Info)
+                .level_for("tracing::span", log::LevelFilter::Error)
+                .level_for("holochain_sqlite", log::LevelFilter::Error)
                 .build(),
         )
         .plugin(tauri_plugin_holochain::async_init(
