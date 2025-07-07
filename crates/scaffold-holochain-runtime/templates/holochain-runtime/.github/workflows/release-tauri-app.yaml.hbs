@@ -127,7 +127,7 @@ jobs:
 
       - name: Install and Build 🔧 
         run: |
-          nix develop --accept-flake-config .#androidDev --command bash -c "{{lower_case package_manager}} install && {{lower_case package_manager}} run tauri android build"
+          nix develop --accept-flake-config .#androidDev --command bash -c "npm install && npm run tauri android build"
  
       - uses: AButler/upload-release-assets@v3.0
         with:
