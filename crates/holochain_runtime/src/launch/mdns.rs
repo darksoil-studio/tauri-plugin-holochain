@@ -83,7 +83,7 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
 }
 
 pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crate::Result<()> {
-    let admin_ws = AdminWebsocket::connect(format!("127.0.0.1:{}", admin_port))
+    let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port))
         .await
         .map_err(|err| {
             crate::Error::WebsocketConnectionError(format!(
@@ -100,7 +100,7 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
             match maybe_response {
                 Ok(response) => {
                     log::debug!(
-                        "Peer found via MDNS with service type {}, service name {} and address {}.",
+                        "Peer found via mDNS with service type {}, service name {} and address {}.",
                         response.service_type,
                         response.service_name,
                         response.addr
@@ -109,7 +109,7 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
                     let maybe_agent_info_signed: Result<Arc<AgentInfoSigned>, K2Error> =
                         AgentInfoSigned::decode(&Ed25519Verifier, response.buffer.as_slice());
                     let Ok(remote_agent_info_signed) = maybe_agent_info_signed else {
-                        log::error!("Failed to decode MDNS peer {:?}", maybe_agent_info_signed);
+                        log::error!("Failed to decode mDNS peer {:?}", maybe_agent_info_signed);
                         continue;
                     };
                     let response = admin_ws.agent_info(None).await;
@@ -137,12 +137,12 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
                         };
                         log::info!("Adding agent info {encoded_agent_info:?}");
                         if let Err(e) = admin_ws.add_agent_info(vec![encoded_agent_info]).await {
-                            log::error!("Failed to store MDNS peer {:?}", e);
+                            log::error!("Failed to store mDNS peer {:?}", e);
                         }
                     }
                 }
                 Err(e) => {
-                    log::error!("Failed to get peers from MDNS {:?}", e);
+                    log::error!("Failed to get peers from mDNS {:?}", e);
                 }
             }
         }
@@ -154,7 +154,7 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
 async fn wait_until_admin_ws_is_available(admin_port: u16) -> crate::Result<AdminWebsocket> {
     let mut retry_count = 0;
     loop {
-        let connect_result = AdminWebsocket::connect(format!("127.0.0.1:{}", admin_port)).await;
+        let connect_result = AdminWebsocket::connect(format!("localhost:{}", admin_port)).await;
         match connect_result {
             Ok(admin_ws) => {
                 return Ok(admin_ws);
