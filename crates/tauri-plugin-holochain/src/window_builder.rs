@@ -1,7 +1,5 @@
 use crate::{HolochainExt, HolochainPlugin};
-use futures::lock::Mutex;
 use holochain_client::InstalledAppId;
-use std::sync::Arc;
 use tauri::{
     ipc::CapabilityBuilder, webview::PageLoadEvent, AppHandle, Listener, Manager, Runtime,
     WebviewWindow, WebviewWindowBuilder,
@@ -16,19 +14,12 @@ pub trait HappWindowBuilder: Sized {
 
 impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle<R>> {
     fn enable_admin_interface(self) -> Self {
-        let done = Arc::new(Mutex::new(false));
         self.on_page_load(move |window, payload| {
             let PageLoadEvent::Started = payload.event() else {
                 return ();
             };
 
-            let done = done.clone();
             tauri::async_runtime::spawn(async move {
-                let done = done.lock().await;
-                if *done {
-                    return;
-                }
-
                 if let Ok(holochain_plugin) = window.holochain() {
                     if let Err(err) = enable_admin_interface(&window, holochain_plugin).await
                     {
@@ -58,38 +49,24 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
     }
 
     fn enable_app_interface(self, app_id: InstalledAppId) -> Self {
-        let done = Arc::new(Mutex::new(false));
         self.on_page_load(move |window, payload| {
-            println!("aaaa");
             let PageLoadEvent::Started = payload.event() else {
                 return ();
             };
-            println!("aaa1");
 
             let app_id = app_id.clone();
-            let done = done.clone();
             tauri::async_runtime::spawn(async move {
-            println!("aaa2");
-                let done = done.lock().await;
-                if *done {
-                    return;
-                }
-            println!("aaa2");
 
                 if let Ok(holochain_plugin) = window.holochain() {
-            println!("aaa3");
                     if let Err(err) = enable_app_interface(&window, holochain_plugin, &app_id).await
                     {
-                        println!("nooo");
                         log::error!("Failed to enable app interface: {err:?}.");
                     }
                 } else {
-            println!("aaa4");
                     let w = window.clone();
                     window
                         .app_handle()
                         .listen("holochain://setup-completed", move |_e| {
-            println!("aaa5");
                             let app_id = app_id.clone();
                             let w = w.clone();
                             tauri::async_runtime::spawn(async move {
