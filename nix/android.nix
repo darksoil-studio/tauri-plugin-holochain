@@ -155,8 +155,7 @@
           devShells.androidDev
           inputs'.holochain-nix-builders.devShells.holochainDev
         ];
-        packages =
-          [ packages.androidTauriRust self'.packages.custom-go-wrapper ];
+        packages = [ packages.androidTauriRust ];
         buildInputs =
           inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs
           ++ (with pkgs; [ rust-bindgen ninja cmake ])
