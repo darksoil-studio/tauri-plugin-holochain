@@ -24,5 +24,5 @@ set -e
 
 npm i
 npm run tauri android init -- --skip-targets-install
-npm run tauri android build -- --target aarch64
+npm run tauri android build
 "
