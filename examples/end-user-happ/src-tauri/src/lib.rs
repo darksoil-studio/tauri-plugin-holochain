@@ -67,7 +67,7 @@ pub fn run() {
                 .level(log::LevelFilter::Info)
                 .level_for("tracing::span", log::LevelFilter::Error)
                 .level_for("holochain_sqlite", log::LevelFilter::Error)
-                .level_for("holochain_runtime", log::LevelFilter::Info)
+                .level_for("holochain_runtime", log::LevelFilter::Debug)
                 .level_for("kitsune2_transport_iroh", log::LevelFilter::Debug)
                 .build(),
         )

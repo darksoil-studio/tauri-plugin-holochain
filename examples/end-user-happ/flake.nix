@@ -21,7 +21,7 @@
             inputs'.holonix.devShells.default
           ];
           packages = [
-            inputs'.tauri-plugin-holochain.packages.hc-pilot
+            # inputs'.tauri-plugin-holochain.packages.hc-pilot
             inputs'.playground.packages.hc-playground
             pkgs.mprocs
           ];
