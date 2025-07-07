@@ -7,6 +7,7 @@
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
 
+    playground.url = "github:darksoil-studio/holochain-playground/main-0.5";
     tauri-plugin-holochain.url = "path:../..";
   };
 
@@ -19,7 +20,10 @@
             inputs'.tauri-plugin-holochain.devShells.holochainTauriDev
             inputs'.holonix.devShells.default
           ];
-          packages = [ inputs'.tauri-plugin-holochain.packages.hc-pilot ];
+          packages = [
+            inputs'.tauri-plugin-holochain.packages.hc-pilot
+            inputs'.playground.packages.hc-playground
+          ];
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [
