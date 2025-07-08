@@ -84,7 +84,7 @@
         export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=${toolchainBinsPath}/armv7a-linux-androideabi24-clang 
         export CFLAGS_ARMV7_LINUX_ANDROID="--target=armv7-linux-androideabi --sysroot=${prebuiltPath}/sysroot" 
         export CXXFLAGS_ARMV7_LINUX_ANDROID="--target=armv7-linux-androideabi" 
-        export BINDGEN_EXTRA_CLANG_ARGS_armv7_linux_androideabi="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi -I${prebuiltPath}/lib/clang/19/include" 
+        export BINDGEN_EXTRA_CLANG_ARGS_armv7_linux_androideabi="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi" 
       '';
     };
 
