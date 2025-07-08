@@ -138,7 +138,7 @@ pub fn scaffold_tauri_happ(
     let ui_package = match ui_package {
         Some(ui_package) => ui_package,
         None => {
-            let npm_package=choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
+            let npm_package = choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
             let name = get_npm_package_name(&npm_package)?;
             name
         },
@@ -469,7 +469,15 @@ export default defineConfig({
 
         assert_eq!(
             file_content(&repo, PathBuf::from("Cargo.toml").as_path()).unwrap(),
-        r#"[profile.dev]
+        r#"[patch.crates-io.wasmer-types]
+branch = "fix-x86"
+git = "https://github.com/guillemcordoba/wasmer"
+
+[patch.crates-io.wasmer-vm]
+branch = "fix-x86"
+git = "https://github.com/guillemcordoba/wasmer"
+
+[profile.dev]
 opt-level = "z"
 
 [profile.release]
