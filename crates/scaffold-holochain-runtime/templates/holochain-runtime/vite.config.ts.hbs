@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
+import localIpAddress from 'local-ip-address';
 
-const host = process.env.TAURI_DEV_HOST;
+const host = localIpAddress();
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -16,7 +17,7 @@ export default defineConfig(async () => ({
     hmr: host
       ? {
           protocol: 'ws',
-          host: host,
+          host,
           port: 1430,
         }
       : undefined,

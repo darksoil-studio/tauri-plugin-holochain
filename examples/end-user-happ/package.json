@@ -25,7 +25,6 @@
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "new-port-cli": "^1.0.0",
     "svelte": "^3.49.0",
     "vite": "^3.0.2"
   }

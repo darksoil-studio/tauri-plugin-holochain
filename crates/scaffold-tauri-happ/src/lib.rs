@@ -168,7 +168,7 @@ pub fn scaffold_tauri_happ(
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
-                &String::from("new-port-cli"),
+                &String::from("local-ip-address"),
                 &String::from("^1.0.0"),
             )?;
             let package_json_content = add_npm_script_to_package(
@@ -389,7 +389,7 @@ mod tests {
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "new-port-cli": "^1.0.0"
+    "local-ip-address": "^1.0.0"
   }
 }"#
         );
@@ -446,7 +446,10 @@ mod tests {
 
         assert_eq!(
             file_content(&repo, PathBuf::from("ui/vite.config.ts").as_path()).unwrap(),
-            r#"import { defineConfig } from "vite";
+            r#"import localIpAddress from 'local-ip-address';
+const host = localIpAddress();
+
+import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 // https://vitejs.dev/config/
@@ -455,10 +458,10 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     host: "0.0.0.0",
-    hmr: process.env.TAURI_DEV_HOST
+    hmr: host
       ? {
           protocol: "ws",
-          host: process.env.TAURI_DEV_HOST,
+          host,
           port: 1430,
         }
       : undefined,
