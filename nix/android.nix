@@ -57,7 +57,7 @@
         export AWS_LC_SYS_CXX_aarch64_linux_android=${toolchainBinsPath}/aarch64-linux-android24-clang++ 
         export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=${toolchainBinsPath}/aarch64-linux-android24-clang 
         export CFLAGS_aarch64_linux_android="--sysroot=${prebuiltPath}/sysroot" 
-        export CXXFLAGS_aarch64_linux_android="--sysroot=${prebuiltPath}/sysroot"
+        export CXXFLAGS_aarch64_linux_android="--target=aarch64-linux-android"
         export BINDGEN_EXTRA_CLANG_ARGS_aarch64_linux_android="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/aarch64-linux-android" 
 
         export CC_i686_linux_android=${toolchainBinsPath}/i686-linux-android24-clang 
@@ -65,7 +65,7 @@
         export AWS_LC_SYS_CXX_i686_linux_android=${toolchainBinsPath}/i686-linux-android24-clang++ 
         export CARGO_TARGET_I686_LINUX_ANDROID_LINKER=${toolchainBinsPath}/i686-linux-android24-clang 
         export CFLAGS_i686_linux_android="--sysroot=${prebuiltPath}/sysroot" 
-        export CXXFLAGS_i686_linux_android="--sysroot=${prebuiltPath}/sysroot"
+        export CXXFLAGS_i686_linux_android="--target=i686-linux-android"
         export BINDGEN_EXTRA_CLANG_ARGS_i686_linux_android="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/i686-linux-android"
 
         export CC_x86_64_linux_android=${toolchainBinsPath}/x86_64-linux-android24-clang 
@@ -73,7 +73,7 @@
         export AWS_LC_SYS_CXX_x86_64_linux_android=${toolchainBinsPath}/x86_64-linux-android24-clang++ 
         export CARGO_TARGET_X86_64_LINUX_ANDROID_LINKER=${toolchainBinsPath}/x86_64-linux-android24-clang 
         export CFLAGS_x86_64_linux_android="--sysroot=${prebuiltPath}/sysroot" 
-        export CXXFLAGS_x86_64_linux_android="--sysroot=${prebuiltPath}/sysroot"
+        export CXXFLAGS_x86_64_linux_android="--target=x86-64-linux-android"
         export BINDGEN_EXTRA_CLANG_ARGS_x86_64_linux_android="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/x86_64-linux-android" 
 
         export CC_armv7_linux_androideabi=${toolchainBinsPath}/armv7a-linux-androideabi24-clang 
@@ -81,9 +81,8 @@
         export AWS_LC_SYS_CXX_armv7_linux_androideabi=${toolchainBinsPath}/armv7a-linux-androideabi24-clang++ 
         export CARGO_TARGET_ARMV7_LINUX_ANDROIDEABI_LINKER=${toolchainBinsPath}/armv7a-linux-androideabi24-clang 
         export CFLAGS_armv7_linux_androideabi="--sysroot=${prebuiltPath}/sysroot" 
-        export CXXFLAGS_armv7_linux_androideabi="--sysroot=${prebuiltPath}/sysroot" 
+        export CXXFLAGS_armv7_linux_androideabi="--target=armv7-linux-androideabi" 
         export BINDGEN_EXTRA_CLANG_ARGS_armv7_linux_androideabi="--sysroot=${prebuiltPath}/sysroot -I${prebuiltPath}/sysroot/usr/include/arm-linux-androideabi"
-
       '';
     };
 
