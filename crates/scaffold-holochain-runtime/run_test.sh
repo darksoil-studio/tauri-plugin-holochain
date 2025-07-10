@@ -13,6 +13,7 @@ nix develop --override-input tauri-plugin-holochain $DIR --command bash -c "
 set -e
 npm i
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
+cargo update
 cd src-tauri
 cargo add -p test-scaffold-holochain-runtime --path $DIR/crates/tauri-plugin-holochain
 cd ..
