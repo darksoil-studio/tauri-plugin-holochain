@@ -1,13 +1,16 @@
+import localIpAddress from 'local-ip-address';
+const host = localIpAddress();
+
 {{#merge previous_file_content}}
   {{#match_scope "export default defineConfig({"}}
   server: {
     port: 1420,
     strictPort: true,
     host: "0.0.0.0",
-    hmr: process.env.TAURI_DEV_HOST
+    hmr: host
       ? {
           protocol: "ws",
-          host: process.env.TAURI_DEV_HOST,
+          host,
           port: 1430,
         }
       : undefined,

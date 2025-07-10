@@ -11,7 +11,6 @@ use crate::{filesystem::FileSystem, HolochainRuntime, HolochainRuntimeConfig};
 mod config;
 mod keystore;
 mod mdns;
-mod signal;
 use mdns::spawn_mdns_bootstrap;
 
 pub const DEVICE_SEED_LAIR_KEYSTORE_TAG: &'static str = "DEVICE_SEED";

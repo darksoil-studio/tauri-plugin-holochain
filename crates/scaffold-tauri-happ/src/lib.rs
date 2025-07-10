@@ -138,7 +138,7 @@ pub fn scaffold_tauri_happ(
     let ui_package = match ui_package {
         Some(ui_package) => ui_package,
         None => {
-            let npm_package=choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
+            let npm_package = choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
             let name = get_npm_package_name(&npm_package)?;
             name
         },
@@ -168,7 +168,7 @@ pub fn scaffold_tauri_happ(
             )?;
             let package_json_content = add_npm_dev_dependency_to_package(
                 &(root_package_json_path.clone(), package_json_content),
-                &String::from("new-port-cli"),
+                &String::from("local-ip-address"),
                 &String::from("^1.0.0"),
             )?;
             let package_json_content = add_npm_script_to_package(
@@ -389,7 +389,7 @@ mod tests {
     "@tauri-apps/cli": "^2.0.0",
     "concurrently": "^8.2.2",
     "concurrently-repeat": "^0.0.1",
-    "new-port-cli": "^1.0.0"
+    "local-ip-address": "^1.0.0"
   }
 }"#
         );
@@ -446,7 +446,10 @@ mod tests {
 
         assert_eq!(
             file_content(&repo, PathBuf::from("ui/vite.config.ts").as_path()).unwrap(),
-            r#"import { defineConfig } from "vite";
+            r#"import localIpAddress from 'local-ip-address';
+const host = localIpAddress();
+
+import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
 // https://vitejs.dev/config/
@@ -455,10 +458,10 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     host: "0.0.0.0",
-    hmr: process.env.TAURI_DEV_HOST
+    hmr: host
       ? {
           protocol: "ws",
-          host: process.env.TAURI_DEV_HOST,
+          host,
           port: 1430,
         }
       : undefined,
@@ -469,7 +472,15 @@ export default defineConfig({
 
         assert_eq!(
             file_content(&repo, PathBuf::from("Cargo.toml").as_path()).unwrap(),
-        r#"[profile.dev]
+        r#"[patch.crates-io.wasmer-types]
+branch = "fix-x86"
+git = "https://github.com/guillemcordoba/wasmer"
+
+[patch.crates-io.wasmer-vm]
+branch = "fix-x86"
+git = "https://github.com/guillemcordoba/wasmer"
+
+[profile.dev]
 opt-level = "z"
 
 [profile.release]
