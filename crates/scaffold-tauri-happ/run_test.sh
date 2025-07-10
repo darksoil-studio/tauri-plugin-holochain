@@ -22,8 +22,8 @@ set -e
 
 npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
-cargo update
 cd src-tauri
+cargo update
 cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
 cd ..
 npm run build:happ
