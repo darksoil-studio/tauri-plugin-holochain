@@ -11,7 +11,7 @@
         hash = "sha256-qVFHfKvLQmAc7CDUDFXQbn7zBAs/lups5c17MsG/KoU=";
       };
 
-      cargoHash = "sha256-sXkJGNeeC6Osy++eNvWSX1TGD+aTaQ4n9FHMSed2DFI=";
+      cargoHash = "sha256-Se9U7ZNHcMiS/Rr+/9+XAq7c6x1U44yhtg/huCVSt6o=";
       cargoDepsName = pname;
     };
   };
