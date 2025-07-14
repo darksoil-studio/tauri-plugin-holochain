@@ -8,10 +8,10 @@
 
       src = pkgs.fetchCrate {
         inherit pname version;
-        hash = "sha256-5uhJIxqq3wG6FCZIAh7nITecwmlUZ82XlDFyLITSwxc=";
+        hash = "sha256-qVFHfKvLQmAc7CDUDFXQbn7zBAs/lups5c17MsG/KoU=";
       };
 
-      cargoHash = "sha256-62QLBdB8AWPTKqWBs8ejx407AO17DrLdPdM/jIlEzbI=";
+      cargoHash = "sha256-sXkJGNeeC6Osy++eNvWSX1TGD+aTaQ4n9FHMSed2DFI=";
       cargoDepsName = pname;
     };
   };
