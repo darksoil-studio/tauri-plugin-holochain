@@ -38,7 +38,7 @@
         clangVersion = "19";
 
       in ''
-        export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/34.0.0/aapt2"
+        export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/35.0.0/aapt2"
 
         export ANDROID_HOME=${sdkPath} 
         export ANDROID_SDK_ROOT=${sdkPath} 
