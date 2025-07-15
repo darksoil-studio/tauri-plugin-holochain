@@ -4,20 +4,17 @@
   inputs = {
     holonix.url = "github:holochain/holonix/main-0.5";
 
-    # TODO: Remove when https://github.com/holochain/holochain/issues/5130 is resolved
-    holonix.inputs.holochain.follows = "holochain";
-    holochain.url = "github:holochain/holochain/holochain-0.5.4";
-    holochain.inputs.repo-git.follows = "empty";
-    empty.url = "github:steveej/empty";
-    empty.flake = false;
-
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
     holochain-nix-builders.url =
       "github:darksoil-studio/holochain-nix-builders/main-0.5";
+    holochain-nix-builders.inputs.holonix.follows = "holonix";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    scaffolding.inputs.holochain-nix-builders.follows =
+      "holochain-nix-builders";
+    scaffolding.inputs.holonix.follows = "holonix";
     webkitnixpkgs.url =
       "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
   };
@@ -149,7 +146,8 @@
         dependencies.tauriHapp = {
           buildInputs = dependencies.tauriApp.buildInputs
             ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
-          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
+          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs
+            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
         };
 
         devShells.tauriDev = pkgs.mkShell {
