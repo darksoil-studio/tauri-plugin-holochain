@@ -9,7 +9,6 @@ pub fn example_happ() -> AppBundle {
     AppBundle::decode(bytes).expect("Failed to decode example happ")
 }
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -22,10 +21,17 @@ pub fn run() {
         )
         .plugin(
             tauri_plugin_holochain::Builder::default()
-                // .happ(example_happ())
+                // .install_or_update_happ(APP_ID.into(), example_happ())
                 .build()
         )
         .setup(|app| {
+            let h = app.handle().clone();
+            app.listen("holochain://setup-completed", move |_e| {
+                let h = h.clone();
+                tauri::async_runtime::spawn(async move {
+                   setup(h).await.expect("Failed to setup app"); 
+                });
+            });
             WebviewWindowBuilder::new(app.handle(), "main", WebviewUrl::App(PathBuf::from("")))
                 .enable_app_interface(APP_ID.into())
                 .build()?;

@@ -7,8 +7,10 @@ use holochain_types::{
 use log::LevelFilter;
 use std::path::PathBuf;
 use std::{collections::HashMap, str::FromStr};
-use tauri::{AppHandle, Context, Wry};
-use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
+use tauri::{AppHandle, Context, WebviewUrl, WebviewWindowBuilder, Wry};
+use tauri_plugin_holochain::{
+    vec_to_locked, HappWindowBuilder, HolochainExt, HolochainPluginConfig, NetworkConfig,
+};
 use tauri_plugin_log::Target;
 use url2::url2;
 
@@ -105,14 +107,12 @@ fn main() {
                 .target(Target::new(tauri_plugin_log::TargetKind::Stdout))
                 .build(),
         )
-        .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(password.as_bytes().to_vec()),
-            HolochainPluginConfig {
-                network_config,
-                holochain_dir: conductor_dir,
-                admin_port: args.admin_port,
-            },
-        ))
+        .plugin(
+            tauri_plugin_holochain::Builder::default()
+                .network_config(network_config)
+                .data_dir(conductor_dir)
+                .build(),
+        )
         .setup(|app| {
             let agent_key = match args.agent_key {
                 Some(key) => {
@@ -132,15 +132,8 @@ fn main() {
                 )
                 .await?;
 
-                handle
-                    .holochain()?
-                    .main_window_builder(
-                        String::from("main"),
-                        false,
-                        Some(app_info.installed_app_id),
-                        None,
-                    )
-                    .await?
+                WebviewWindowBuilder::new(handle, "main", WebviewUrl::App(PathBuf::from("")))
+                    .enable_app_interface(app_info.installed_app_id)
                     .build()?;
 
                 Ok(())

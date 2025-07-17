@@ -14,7 +14,8 @@ pub struct Builder {
     pub passphrase: SharedLockedArray,
     pub network_config: NetworkConfig,
     pub admin_port: Option<u16>,
-    pub holochain_dir: PathBuf,
+    pub data_dir: PathBuf,
+    pub licensed: bool,
 }
 
 impl Default for Builder {
@@ -27,53 +28,18 @@ impl Default for Builder {
         }
 
         Builder {
-            mdns_discovery: false,
+            mdns_discovery: true,
             passphrase: vec_to_locked(vec![]),
             network_config,
             admin_port: None,
-            holochain_dir: default_holochain_dir(),
+            data_dir: default_holochain_dir(),
+            licensed: false,
         }
-    }
-}
-
-fn default_holochain_dir() -> PathBuf {
-    if tauri::is_dev() {
-        #[cfg(target_os = "android")]
-        {
-            app_dirs2::app_root(
-                app_dirs2::AppDataType::UserCache,
-                &app_dirs2::AppInfo {
-                    name: "launcher",
-                    author: std::env!("CARGO_PKG_AUTHORS"),
-                },
-            )
-            .expect("Could not get the UserCache directory")
-        }
-        #[cfg(not(target_os = "android"))]
-        {
-            let tmp_dir =
-                tempdir::TempDir::new("launcher").expect("Could not create temporary directory");
-
-            // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
-            // without deleting the directory.
-            let tmp_path = tmp_dir.into_path();
-            tmp_path
-        }
-    } else {
-        app_dirs2::app_root(
-            app_dirs2::AppDataType::UserData,
-            &app_dirs2::AppInfo {
-                name: "launcher",
-                author: std::env!("CARGO_PKG_AUTHORS"),
-            },
-        )
-        .expect("Could not get app root")
-        .join("holochain")
     }
 }
 
 impl Builder {
-    pub fn mdns_discovery(mut self) -> Self {
+    pub fn disable_mdns_discovery(mut self) -> Self {
         self.mdns_discovery = true;
         self
     }
@@ -88,8 +54,8 @@ impl Builder {
         self
     }
 
-    pub fn holochain_dir(mut self, holochain_dir: PathBuf) -> Self {
-        self.holochain_dir = holochain_dir;
+    pub fn data_dir(mut self, data_dir: PathBuf) -> Self {
+        self.data_dir = data_dir;
         self
     }
 
@@ -106,7 +72,6 @@ impl Builder {
                 crate::commands::install::install_web_app,
                 crate::commands::install::uninstall_web_app,
                 crate::commands::install::list_apps,
-                crate::commands::get_runtime_info::is_holochain_ready
             ])
             .register_uri_scheme_protocol("happ", |context, request| {
                 log::info!("Received request {}", request.uri().to_string());
@@ -214,7 +179,7 @@ impl Builder {
             .setup(move |app, _api| {
                 let handle = app.clone();
                 let config = HolochainRuntimeConfig {
-                    holochain_dir: self.holochain_dir,
+                    holochain_dir: self.data_dir,
                     network_config: self.network_config,
                     admin_port: self.admin_port.clone(),
                 };
@@ -234,6 +199,28 @@ impl Builder {
                 Ok(())
             })
             .build()
+    }
+}
+
+fn default_holochain_dir() -> PathBuf {
+    if tauri::is_dev() {
+        let tmp_dir =
+            tempdir::TempDir::new("holochain").expect("Could not create temporary directory");
+
+        // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
+        // without deleting the directory.
+        let tmp_path = tmp_dir.into_path();
+        tmp_path
+    } else {
+        app_dirs2::app_root(
+            app_dirs2::AppDataType::UserData,
+            &app_dirs2::AppInfo {
+                name: "holochain",
+                author: std::env!("CARGO_PKG_AUTHORS"),
+            },
+        )
+        .expect("Could not get app root")
+        .join("holochain")
     }
 }
 

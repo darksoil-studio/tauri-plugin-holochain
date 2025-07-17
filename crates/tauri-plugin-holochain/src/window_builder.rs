@@ -56,7 +56,6 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
 
             let app_id = app_id.clone();
             tauri::async_runtime::spawn(async move {
-
                 if let Ok(holochain_plugin) = window.holochain() {
                     if let Err(err) = enable_app_interface(&window, holochain_plugin, &app_id).await
                     {
@@ -64,9 +63,35 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
                     }
                 } else {
                     let w = window.clone();
+                    let a = app_id.clone();
                     window
                         .app_handle()
                         .listen("holochain://setup-completed", move |_e| {
+                            let app_id = a.clone();
+                            let w = w.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let Ok(holochain_plugin) = w.holochain() else {
+                                    log::error!("Could not get holochain plugin after holochain setup completed");
+                                    return;
+                                };
+                                if let Err(err) =
+                                    enable_app_interface(&w, holochain_plugin, &app_id).await
+                                {
+                                    log::error!("Failed to enable app interface: {err:?}.");
+                                }
+                            });
+                        });
+
+                    let w = window.clone();
+                    window
+                        .app_handle()
+                        .listen("holochain://app-installed", move |e| {
+                            let Ok(serde_json::Value::String(installed_app_id)) = serde_json::from_str(e.payload()) else {
+                                return ();
+                            };
+                            if installed_app_id != app_id {
+                                return ();
+                            }
                             let app_id = app_id.clone();
                             let w = w.clone();
                             tauri::async_runtime::spawn(async move {
@@ -94,21 +119,41 @@ pub async fn enable_admin_interface<R: Runtime>(
     let admin_port = holochain_plugin.holochain_runtime.admin_port;
 
     window.eval(format!(
-        r#"
-if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
+        r#"if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
 window.__HC_LAUNCHER_ENV__.ADMIN_INTERFACE_PORT = {};
-                    "#,
+"#,
         admin_port
     ))?;
 
     Ok(())
 }
 
+// Sets the launcher environment and the signing zome call capability to the given window
 pub async fn enable_app_interface<R: Runtime>(
     window: &WebviewWindow<R>,
     holochain_plugin: &HolochainPlugin<R>,
     app_id: &InstalledAppId,
 ) -> crate::Result<()> {
+    log::debug!("Attempting to enabling app interface for app {app_id}.");
+
+    window.eval(format!(
+        r#"if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
+window.__HC_LAUNCHER_ENV__.INSTALLED_APP_ID = "{}";
+"#,
+        app_id
+    ))?;
+
+    let apps = holochain_plugin
+        .admin_websocket()
+        .await?
+        .list_apps(Some(holochain_client::AppStatusFilter::Running))
+        .await
+        .map_err(|err| crate::Error::ConductorApiError(err))?;
+
+    if !apps.iter().any(|app| app.installed_app_id.eq(app_id)) {
+        return Err(holochain_runtime::Error::AppDoesNotExist(app_id.clone()))?;
+    }
+
     let allowed_origins = holochain_plugin.get_allowed_origins(app_id, true);
     let app_websocket_auth = holochain_plugin
         .holochain_runtime
@@ -122,13 +167,14 @@ pub async fn enable_app_interface<R: Runtime>(
         .collect();
     let token = token_vector.join(",");
 
+    log::info!("Enabling app interface for app {app_id}.");
+
     window.eval(format!(
-        r#"
-if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
+        r#"if (!window.__HC_LAUNCHER_ENV__) window.__HC_LAUNCHER_ENV__ = {{}};
 window.__HC_LAUNCHER_ENV__.APP_INTERFACE_PORT = {};
 window.__HC_LAUNCHER_ENV__.APP_INTERFACE_TOKEN = [{}];
 window.__HC_LAUNCHER_ENV__.INSTALLED_APP_ID = "{}";
-    "#,
+"#,
         app_websocket_auth.app_websocket_port, token, app_id
     ))?;
     window.eval(ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT)?;
