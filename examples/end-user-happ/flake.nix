@@ -14,25 +14,23 @@
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = builtins.attrNames inputs.holonix.devShells;
-      perSystem = { inputs', config, pkgs, system, ... }: {
+      perSystem = { inputs', config, pkgs, system, ... }: rec {
         devShells.default = pkgs.mkShell {
           inputsFrom = [
             inputs'.tauri-plugin-holochain.devShells.holochainTauriDev
             inputs'.holonix.devShells.default
           ];
           packages = [
-            inputs'.tauri-plugin-holochain.packages.hc-pilot
+            # inputs'.tauri-plugin-holochain.packages.hc-pilot
             inputs'.playground.packages.hc-playground
+            pkgs.mprocs
           ];
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [
             inputs'.tauri-plugin-holochain.devShells.holochainTauriAndroidDev
-            inputs'.holonix.devShells.default
+            devShells.default
           ];
-          shellHook = ''
-            export CARGO_TARGET_DIR=$(pwd)/target/android
-          '';
         };
       };
     };

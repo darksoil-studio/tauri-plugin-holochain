@@ -1,0 +1,8 @@
+procs:
+  agent1: npm run tauri dev -- --release --no-watch
+  agent2: npm run tauri dev -- --release --no-watch
+  playground: hc playground
+  ui: npm -w ui start
+  android: adb uninstall my.org.example | true && npm run tauri android dev -- --no-watch --release
+  logcat: adb logcat | grep -F "`adb shell ps | grep my.org.example | tr -s [:space:] ' ' | cut -d' ' -f2`"
+

@@ -23,6 +23,8 @@ set -e
 npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
+cargo update
+cargo update wasmer-middlewares --precise 6.0.1
 cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
 cd ..
 npm run build:happ
@@ -34,5 +36,5 @@ set -e
 
 npm install
 npm run tauri android init -- --skip-targets-install
-npm run tauri android build -- --target aarch64
+npm run tauri android build
 "
