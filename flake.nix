@@ -149,7 +149,14 @@
             ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
         };
 
-        devShells.tauriDev = pkgs.mkShell {
+        devShells.tauriDev = let
+
+          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+            inputs.webkitnixpkgs.legacyPackages.${system}
+          else
+            inputs.nixpkgs.legacyPackages.${system};
+
+        in pkgs.mkShell {
           packages = with pkgs; [
             nodejs_20
             packages.tauriRust
@@ -158,7 +165,6 @@
           ];
 
           buildInputs = dependencies.tauriApp.buildInputs;
-
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
 
           shellHook = if pkgs.stdenv.isLinux then ''
