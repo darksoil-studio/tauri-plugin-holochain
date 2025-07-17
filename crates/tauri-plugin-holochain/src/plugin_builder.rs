@@ -10,12 +10,12 @@ use crate::{
 };
 
 pub struct Builder {
-    pub mdns_discovery: bool,
-    pub passphrase: SharedLockedArray,
-    pub network_config: NetworkConfig,
-    pub admin_port: Option<u16>,
-    pub data_dir: PathBuf,
-    pub licensed: bool,
+    mdns_discovery: bool,
+    passphrase: SharedLockedArray,
+    network_config: NetworkConfig,
+    admin_port: Option<u16>,
+    data_dir: PathBuf,
+    licensed: bool,
 }
 
 impl Default for Builder {
@@ -61,6 +61,11 @@ impl Builder {
 
     pub fn admin_port(mut self, admin_port: Option<u16>) -> Self {
         self.admin_port = admin_port;
+        self
+    }
+
+    pub fn licensed(mut self) -> Self {
+        self.licensed = true;
         self
     }
 
@@ -184,8 +189,13 @@ impl Builder {
                     admin_port: self.admin_port.clone(),
                 };
                 tauri::async_runtime::spawn(async move {
-                    if let Err(err) =
-                        launch_and_setup_holochain(handle.clone(), self.passphrase, config).await
+                    if let Err(err) = launch_and_setup_holochain(
+                        handle.clone(),
+                        self.passphrase,
+                        config,
+                        self.licensed,
+                    )
+                    .await
                     {
                         log::error!("Failed to launch holochain: {err:?}");
                         if let Err(err) = handle.emit("holochain://setup-failed", ()) {
@@ -228,6 +238,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
     app_handle: AppHandle<R>,
     passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
+    licensed: bool,
 ) -> crate::Result<()> {
     let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
 
@@ -246,6 +257,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
     let p = HolochainPlugin::<R> {
         app_handle: app_handle.clone(),
         holochain_runtime,
+        licensed,
     };
 
     // manage state so it is accessible by the commands

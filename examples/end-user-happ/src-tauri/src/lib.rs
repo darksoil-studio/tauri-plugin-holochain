@@ -21,6 +21,7 @@ pub fn run() {
         )
         .plugin(
             tauri_plugin_holochain::Builder::default()
+                .licensed()
                 // .install_or_update_happ(APP_ID.into(), example_happ())
                 .build()
         )

@@ -6,6 +6,7 @@ use tauri::{
 };
 
 const ZOME_CALL_SIGNER_INITIALIZATION_SCRIPT: &'static str = include_str!("../zome-call-signer.js");
+const WATERMARK_SCRIPT: &'static str = include_str!("../watermark.js");
 
 pub trait HappWindowBuilder: Sized {
     fn enable_admin_interface(self) -> Self;
@@ -142,6 +143,10 @@ window.__HC_LAUNCHER_ENV__.INSTALLED_APP_ID = "{}";
 "#,
         app_id
     ))?;
+
+    if !holochain_plugin.licensed {
+        window.eval(WATERMARK_SCRIPT)?;
+    }
 
     let apps = holochain_plugin
         .admin_websocket()

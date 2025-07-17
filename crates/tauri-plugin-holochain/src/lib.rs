@@ -23,6 +23,7 @@ pub use holochain_runtime::*;
 pub struct HolochainPlugin<R: Runtime> {
     pub app_handle: AppHandle<R>,
     pub holochain_runtime: HolochainRuntime,
+    pub licensed: bool,
 }
 
 fn happ_origin(app_id: &String) -> String {

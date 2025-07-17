@@ -94,10 +94,10 @@
         # in pkgs.rust-bin.stable."1.85.0".minimal;
 
         dependencies.tauriApp = let
-          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
-            inputs.webkitnixpkgs.legacyPackages.${system}
-          else
-            inputs.nixpkgs.legacyPackages.${system};
+          # pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+          #   inputs.webkitnixpkgs.legacyPackages.${system}
+          # else
+          #   inputs.nixpkgs.legacyPackages.${system};
           buildInputs = (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
             webkitgtk # Brings libwebkit2gtk-4.0.so.37
             webkitgtk_4_1 # Needed for javascriptcoregtk
@@ -107,7 +107,6 @@
             glib
             gdk-pixbuf
             gtk3
-            # glib
             # stdenv.cc.cc.lib
             # harfbuzz
             # harfbuzzFull
