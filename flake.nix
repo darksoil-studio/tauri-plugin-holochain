@@ -16,7 +16,7 @@
       "holochain-nix-builders";
     scaffolding.inputs.holonix.follows = "holonix";
     webkitnixpkgs.url =
-      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
+      "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
   };
 
   nixConfig = {
