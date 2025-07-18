@@ -31,7 +31,7 @@ pub enum Error {
     HolochainRuntimeError(#[from] holochain_runtime::Error),
 
     #[error(transparent)]
-    UpdateHappError(#[from] holochain_runtime::UpdateHappError),
+    UpdateHappError(#[from] holochain_runtime::UpdateAppError),
 
     #[error("Http server error: {0}")]
     HttpServerError(String),

@@ -25,14 +25,13 @@ pub async fn install_app(
             ignore_genesis_failure: false,
             allow_throwaway_random_agent_key: false
         })
-        .await
-        .map_err(|err| crate::Error::ConductorApiError(err))?;
+        .await?;
+
     log::info!("Installed app {app_info:?}");
 
     let response = admin_ws
         .enable_app(app_id.clone())
-        .await
-        .map_err(|err| crate::Error::ConductorApiError(err))?;
+        .await?;
 
     log::info!("Enabled app {app_id:?}");
 

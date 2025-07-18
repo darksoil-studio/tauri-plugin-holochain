@@ -22,7 +22,7 @@ pub(crate) async fn uninstall_web_app<R: Runtime>(
     app_id: String,
 ) -> crate::Result<()> {
     let admin_ws = app.holochain()?.admin_websocket().await?;
-     admin_ws.uninstall_app(app_id, false).await.map_err(|err| crate::Error::ConductorApiError(err))?;
+     admin_ws.uninstall_app(app_id, false).await?;
     Ok(())
 }
 
@@ -31,7 +31,7 @@ pub(crate) async fn list_apps<R: Runtime>(
     app: AppHandle<R>,
 ) -> crate::Result<Vec<AppInfo>> {
     let admin_ws = app.holochain()?.admin_websocket().await?;
-    let apps = admin_ws.list_apps(None).await.map_err(|err| crate::Error::ConductorApiError(err))?;
+    let apps = admin_ws.list_apps(None).await?;
 
     Ok(apps)
 }

@@ -22,19 +22,12 @@ pub fn run() {
         )
         .plugin(
             tauri_plugin_holochain::Builder::default()
-                // .licensed()
-                // .install_or_update_happ(APP_ID.into(), example_happ())
+                .licensed()
+                .install_or_update_app(APP_ID.into(), example_happ(), None)
                 .build()
         )
         .setup(|app| {
-            let h = app.handle().clone();
-            app.listen("holochain://setup-completed", move |_e| {
-                let h = h.clone();
-                tauri::async_runtime::spawn(async move {
-                   setup(h).await.expect("Failed to setup app"); 
-                });
-            });
-            WebviewWindowBuilder::new(app.handle(), "main", WebviewUrl::App(PathBuf::from("")))
+            WebviewWindowBuilder::new(app.handle(), "main", WebviewUrl::App(PathBuf::new()))
                 .enable_app_interface(APP_ID.into())
                 .build()?;
 
@@ -56,8 +49,7 @@ async fn setup(handle: AppHandle) -> anyhow::Result<()> {
 
     let installed_apps = admin_ws
         .list_apps(None)
-        .await
-        .map_err(|err| tauri_plugin_holochain::Error::ConductorApiError(err))?;
+        .await?;
 
     // DeepKey comes preinstalled as the first app
     if installed_apps.iter().find(|app| app.installed_app_id.as_str().eq(APP_ID)).is_none() {

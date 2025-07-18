@@ -15,8 +15,8 @@ kitsune_p2p_mdns = "0.4"
 kitsune2_api = "0.1"
 kitsune2_core = "0.1"
 
-sbd-server = "0.1.0"
-tx5-signal = "0.3.3"
+hc_zome_traits_utils = { git = "https://github.com/holochain-open-dev/zome-traits", branch = "main" }
+migration_zome_trait = { git = "https://github.com/darksoil-studio/migration-zome-trait", branch = "main-0.5" }
 
 # Lair dependencies
 lair_keystore_api = "0.6.0"

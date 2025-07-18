@@ -1,6 +1,8 @@
 use hc_seed_bundle::SharedLockedArray;
-use holochain_runtime::{vec_to_locked, HolochainRuntimeConfig, NetworkConfig};
-use std::path::PathBuf;
+use holochain_client::InstalledAppId;
+use holochain_runtime::{vec_to_locked, HolochainRuntime, HolochainRuntimeConfig, NetworkConfig};
+use holochain_types::app::AppBundle;
+use std::{collections::HashMap, path::PathBuf};
 use tauri::{http::response, plugin::TauriPlugin, AppHandle, Emitter, Manager, RunEvent, Runtime};
 
 use crate::{
@@ -15,6 +17,7 @@ pub struct Builder {
     network_config: NetworkConfig,
     admin_port: Option<u16>,
     data_dir: PathBuf,
+    managed_happs: HashMap<InstalledAppId, (AppBundle, Option<RolesSettingsMap>)>,
     licensed: bool,
 }
 
@@ -26,6 +29,7 @@ impl Default for Builder {
             network_config: default_network_config(),
             admin_port: None,
             data_dir: default_holochain_dir(),
+            managed_happs: HashMap::new(),
             licensed: false,
         }
     }
@@ -59,6 +63,18 @@ impl Builder {
 
     pub fn licensed(mut self) -> Self {
         self.licensed = true;
+        self
+    }
+
+    pub fn install_or_update_app(
+        mut self,
+        app_id: InstalledAppId,
+        app_bundle: AppBundle,
+        roles_settings: Option<RolesSettingsMap>,
+    ) -> Self {
+        self.managed_happs
+            .insert(app_id, (app_bundle, roles_settings));
+
         self
     }
 
@@ -182,19 +198,30 @@ impl Builder {
                     admin_port: self.admin_port.clone(),
                 };
                 tauri::async_runtime::spawn(async move {
-                    if let Err(err) = launch_and_setup_holochain(
+                    let launch_result = launch_and_setup_holochain(
                         handle.clone(),
                         self.passphrase,
                         config,
                         self.licensed,
                     )
-                    .await
-                    {
-                        log::error!("Failed to launch holochain: {err:?}");
-                        if let Err(err) = handle.emit("holochain://setup-failed", ()) {
-                            log::error!(
-                                "Failed to emit \"holochain://setup-failed\" event: {err:?}"
-                            );
+                    .await;
+
+                    match launch_result {
+                        Ok(holochain_runtime) => {
+                            for (app_id, (app_bundle, roles_settings)) in self.managed_happs {
+                                let versioned_app = holochain_runtime.versioned_app(app_id);
+                                versioned_app
+                                    .install_or_update(app_bundle, roles_settings)
+                                    .await?;
+                            }
+                        }
+                        Err(err) => {
+                            log::error!("Failed to launch holochain: {err:?}");
+                            if let Err(err) = handle.emit("holochain://setup-failed", ()) {
+                                log::error!(
+                                    "Failed to emit \"holochain://setup-failed\" event: {err:?}"
+                                );
+                            }
                         }
                     }
                 });
@@ -224,8 +251,7 @@ fn default_network_config() -> NetworkConfig {
 fn default_holochain_dir() -> PathBuf {
     if tauri::is_dev() {
         let tmp_dir =
-            tempdir::TempDir::new("holochain")
-                .expect("Could not create temporary directory");
+            tempdir::TempDir::new("holochain").expect("Could not create temporary directory");
 
         // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
         // without deleting the directory.
@@ -249,7 +275,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
     passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
     licensed: bool,
-) -> crate::Result<()> {
+) -> crate::Result<HolochainRuntime> {
     let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
 
     #[cfg(desktop)]
@@ -266,7 +292,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
 
     let p = HolochainPlugin::<R> {
         app_handle: app_handle.clone(),
-        holochain_runtime,
+        holochain_runtime: holochain_runtime.clone(),
         licensed,
     };
 
@@ -274,5 +300,5 @@ async fn launch_and_setup_holochain<R: Runtime>(
     app_handle.manage(p);
     app_handle.emit("holochain://setup-completed", ())?;
 
-    Ok(())
+    Ok(holochain_runtime)
 }
