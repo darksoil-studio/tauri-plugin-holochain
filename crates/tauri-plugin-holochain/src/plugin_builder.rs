@@ -20,17 +20,10 @@ pub struct Builder {
 
 impl Default for Builder {
     fn default() -> Self {
-        let mut network_config = NetworkConfig::default();
-
-        // Don't hold any slice of the DHT in mobile
-        if cfg!(mobile) {
-            network_config.target_arc_factor = 0;
-        }
-
         Builder {
             mdns_discovery: true,
             passphrase: vec_to_locked(vec![]),
-            network_config,
+            network_config: default_network_config(),
             admin_port: None,
             data_dir: default_holochain_dir(),
             licensed: false,
@@ -212,10 +205,27 @@ impl Builder {
     }
 }
 
+fn default_network_config() -> NetworkConfig {
+    let mut network_config = NetworkConfig::default();
+
+    // Only use mDNS discovery on tauri dev
+    if tauri::is_dev() {
+        network_config.bootstrap_url = url2::Url2::parse("http://bad.bad");
+    }
+
+    // Don't hold any slice of the DHT in mobile
+    if cfg!(mobile) {
+        network_config.target_arc_factor = 0;
+    }
+
+    network_config
+}
+
 fn default_holochain_dir() -> PathBuf {
     if tauri::is_dev() {
         let tmp_dir =
-            tempdir::TempDir::new("holochain").expect("Could not create temporary directory");
+            tempdir::TempDir::new("holochain")
+                .expect("Could not create temporary directory");
 
         // Convert `tmp_dir` into a `Path`, destroying the `TempDir`
         // without deleting the directory.

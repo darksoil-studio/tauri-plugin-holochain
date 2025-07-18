@@ -17,11 +17,12 @@ pub fn run() {
                 .level(log::LevelFilter::Info)
                 .level_for("tracing::span", log::LevelFilter::Error)
                 .level_for("holochain_sqlite", log::LevelFilter::Error)
+                .level_for("iroh", log::LevelFilter::Warn)
                 .build(),
         )
         .plugin(
             tauri_plugin_holochain::Builder::default()
-                .licensed()
+                // .licensed()
                 // .install_or_update_happ(APP_ID.into(), example_happ())
                 .build()
         )
