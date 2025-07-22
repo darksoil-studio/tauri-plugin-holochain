@@ -159,7 +159,7 @@
 
         in pkgs.mkShell {
           packages = with pkgs; [
-            nodejs_20
+            nodejs_22
             packages.tauriRust
             shared-mime-info
             gsettings-desktop-schemas
