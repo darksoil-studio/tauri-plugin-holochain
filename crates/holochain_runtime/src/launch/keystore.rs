@@ -10,35 +10,27 @@ use lair_keystore_api::{
 };
 use tokio::io::AsyncWriteExt;
 
-fn read_config(config_path: &std::path::Path) -> crate::Result<LairServerConfig> {
+fn read_config(config_path: &std::path::Path) -> LairResult<LairServerConfig> {
     let bytes = std::fs::read(config_path)?;
 
     let config =
-        LairServerConfigInner::from_bytes(&bytes).map_err(|err| crate::Error::LairError(err))?;
-
-    if let Err(e) = std::fs::read(config.clone().pid_file) {
-        // Workaround xcode different containers
-        std::fs::remove_dir_all(config_path.parent().unwrap())?;
-        std::fs::create_dir_all(config_path.parent().unwrap())?;
-        return Err(e)?;
-    }
+        LairServerConfigInner::from_bytes(&bytes)?;
 
     Ok(Arc::new(config))
 }
 
 /// Spawn an in-process keystore backed by lair_keystore.
 pub async fn spawn_lair_keystore_in_proc(
-    config_path: std::path::PathBuf,
+    config_path: &std::path::PathBuf,
     passphrase: SharedLockedArray,
 ) -> LairResult<MetaLairClient> {
-    let config = get_config(&config_path, passphrase.clone()).await?;
+    let config = get_config(config_path, passphrase.clone()).await?;
 
     let store_factory = create_sql_pool_factory(&config.store_file, &config.database_salt);
 
     let in_proc_keystore = InProcKeystore::new(config, store_factory, passphrase).await?;
     let lair_client = in_proc_keystore.new_client().await?;
 
-    // now, just connect to it : )
     let k = MetaLairClient::from_client(lair_client).await?;
     Ok(k)
 }
@@ -47,16 +39,17 @@ pub async fn get_config(
     config_path: &std::path::Path,
     passphrase: SharedLockedArray,
 ) -> LairResult<LairServerConfig> {
-    match read_config(config_path) {
-        Ok(config) => Ok(config),
-        Err(_) => write_config(config_path, passphrase).await,
+    if !std::fs::exists(&config_path)? {
+        write_config(config_path, passphrase).await?;
     }
+    read_config(config_path)
 }
 
 pub async fn write_config(
     config_path: &std::path::Path,
     passphrase: SharedLockedArray,
 ) -> LairResult<LairServerConfig> {
+    log::debug!("Creating new lair config.");
     let lair_root = config_path
         .parent()
         .ok_or_else(|| one_err::OneErr::from("InvalidLairConfigDir"))?;
@@ -77,6 +70,7 @@ pub async fn write_config(
     config_f.write_all(config.to_string().as_bytes()).await?;
     config_f.shutdown().await?;
     drop(config_f);
+    log::debug!("Written new lair config in {:?}.", config_path);
 
     Ok(Arc::new(config))
 }

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use async_std::sync::Mutex;
-use holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc;
+use keystore::spawn_lair_keystore_in_proc;
+// use holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc;
 use lair_keystore::dependencies::hc_seed_bundle::SharedLockedArray;
 
 use holochain::conductor::Conductor;
@@ -34,10 +35,14 @@ pub(crate) async fn launch_holochain_runtime(
         config.network_config,
     );
 
+    log::debug!("Built conductor config: {:?}.", config);
+
     let keystore =
         spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
             .await
             .map_err(|err| crate::Error::LairError(err))?;
+
+    log::info!("Keystore spawned successfully.");
 
     let seed_already_exists = keystore
         .lair_client()

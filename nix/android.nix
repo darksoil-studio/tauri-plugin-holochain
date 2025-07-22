@@ -9,8 +9,8 @@
         config.android_sdk.accept_license = true;
       };
     in (pkgs.androidenv.composeAndroidPackages {
-      platformVersions = [ "30" "34" "35" ];
-      buildToolsVersions = [ "30.0.3" "34.0.0" "35.0.0" ];
+      platformVersions = [ "30" "34" "36" ];
+      buildToolsVersions = [ "30.0.3" "34.0.0" "36.0.0" ];
       systemImageTypes = [ "google_apis_playstore" ];
       abiVersions = [ "armeabi-v7a" "arm64-v8a" "x86" "x86_64" ];
       includeNDK = true;
@@ -38,7 +38,7 @@
         clangVersion = "19";
 
       in ''
-        export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/35.0.0/aapt2"
+        export GRADLE_OPTS="-Dorg.gradle.project.android.aapt2FromMavenOverride=${sdkPath}/build-tools/34.0.0/aapt2"
 
         export ANDROID_HOME=${sdkPath} 
         export ANDROID_SDK_ROOT=${sdkPath} 
