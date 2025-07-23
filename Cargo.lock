@@ -3592,7 +3592,6 @@ dependencies = [
  "holochain_websocket",
  "holochain_zome_types",
  "kitsune2_api",
- "lair_keystore_api",
  "parking_lot",
  "rand 0.8.5",
  "serde",

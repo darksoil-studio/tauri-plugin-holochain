@@ -16,7 +16,7 @@
       "holochain-nix-builders";
     scaffolding.inputs.holonix.follows = "holonix";
     webkitnixpkgs.url =
-      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
+      "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
   };
 
   nixConfig = {
@@ -150,16 +150,17 @@
             ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
         };
 
-        devShells.tauriDev = pkgs.mkShell {
-          packages = with pkgs; [
-            nodejs_20
-            packages.tauriRust
-            shared-mime-info
-            gsettings-desktop-schemas
-          ];
+        devShells.tauriDev = let
+          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+            inputs.webkitnixpkgs.legacyPackages.${system}
+          else
+            inputs.nixpkgs.legacyPackages.${system};
+        in pkgs.mkShell {
+          packages = with pkgs;
+            [ packages.tauriRust shared-mime-info gsettings-desktop-schemas ]
+            ++ [ inputs.nixpkgs.outputs.legacyPackages.${system}.nodejs_22 ];
 
           buildInputs = dependencies.tauriApp.buildInputs;
-
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
 
           shellHook = if pkgs.stdenv.isLinux then ''
