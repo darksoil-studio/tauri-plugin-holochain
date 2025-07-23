@@ -3803,6 +3803,7 @@ dependencies = [
  "holochain_conductor_api",
  "holochain_keystore",
  "holochain_types",
+ "holochain_util",
  "kitsune2_api",
  "kitsune2_core",
  "kitsune_p2p_mdns",

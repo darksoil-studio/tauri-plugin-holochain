@@ -39,7 +39,6 @@ pub(crate) async fn launch_holochain_runtime(
 
     let keystore =
         spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
-            .await
             .map_err(|err| crate::Error::LairError(err))?;
 
     log::info!("Keystore spawned successfully.");
