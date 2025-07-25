@@ -1,7 +1,7 @@
 use hc_seed_bundle::SharedLockedArray;
 use holochain_client::InstalledAppId;
 use holochain_runtime::{vec_to_locked, HolochainRuntime, HolochainRuntimeConfig, NetworkConfig};
-use holochain_types::app::AppBundle;
+use holochain_types::app::{AppBundle, RoleSettingsMap};
 use std::{collections::HashMap, path::PathBuf};
 use tauri::{http::response, plugin::TauriPlugin, AppHandle, Emitter, Manager, RunEvent, Runtime};
 
@@ -17,7 +17,7 @@ pub struct Builder {
     network_config: NetworkConfig,
     admin_port: Option<u16>,
     data_dir: PathBuf,
-    managed_happs: HashMap<InstalledAppId, (AppBundle, Option<RolesSettingsMap>)>,
+    managed_happs: HashMap<InstalledAppId, (AppBundle, Option<RoleSettingsMap>)>,
     licensed: bool,
 }
 
@@ -70,7 +70,7 @@ impl Builder {
         mut self,
         app_id: InstalledAppId,
         app_bundle: AppBundle,
-        roles_settings: Option<RolesSettingsMap>,
+        roles_settings: Option<RoleSettingsMap>,
     ) -> Self {
         self.managed_happs
             .insert(app_id, (app_bundle, roles_settings));
@@ -198,30 +198,20 @@ impl Builder {
                     admin_port: self.admin_port.clone(),
                 };
                 tauri::async_runtime::spawn(async move {
-                    let launch_result = launch_and_setup_holochain(
+                    if let Err(err) = launch_and_setup_holochain(
                         handle.clone(),
                         self.passphrase,
                         config,
                         self.licensed,
+                        self.managed_happs,
                     )
-                    .await;
-
-                    match launch_result {
-                        Ok(holochain_runtime) => {
-                            for (app_id, (app_bundle, roles_settings)) in self.managed_happs {
-                                let versioned_app = holochain_runtime.versioned_app(app_id);
-                                versioned_app
-                                    .install_or_update(app_bundle, roles_settings)
-                                    .await?;
-                            }
-                        }
-                        Err(err) => {
-                            log::error!("Failed to launch holochain: {err:?}");
-                            if let Err(err) = handle.emit("holochain://setup-failed", ()) {
-                                log::error!(
-                                    "Failed to emit \"holochain://setup-failed\" event: {err:?}"
-                                );
-                            }
+                    .await
+                    {
+                        log::error!("Failed to launch holochain: {err:?}");
+                        if let Err(err) = handle.emit("holochain://setup-failed", ()) {
+                            log::error!(
+                                "Failed to emit \"holochain://setup-failed\" event: {err:?}"
+                            );
                         }
                     }
                 });
@@ -275,6 +265,7 @@ async fn launch_and_setup_holochain<R: Runtime>(
     passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
     licensed: bool,
+    managed_happs: HashMap<InstalledAppId, (AppBundle, Option<RoleSettingsMap>)>,
 ) -> crate::Result<HolochainRuntime> {
     let holochain_runtime = launch_holochain_runtime(passphrase, config).await?;
 
@@ -295,6 +286,13 @@ async fn launch_and_setup_holochain<R: Runtime>(
         holochain_runtime: holochain_runtime.clone(),
         licensed,
     };
+
+    for (app_id, (app_bundle, roles_settings)) in managed_happs {
+        let versioned_app = holochain_runtime.versioned_app(app_id);
+        versioned_app
+            .install_or_update(app_bundle, roles_settings)
+            .await?;
+    }
 
     // manage state so it is accessible by the commands
     app_handle.manage(p);

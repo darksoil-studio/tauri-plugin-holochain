@@ -24,8 +24,8 @@ pub enum Error {
     #[error(transparent)]
     UrlParseError(#[from] url::ParseError),
 
-    #[error("ConductorApiError: `{0:?}`")]
-    ConductorApiError(ConductorApiError),
+    #[error(transparent)]
+    ConductorApiError(#[from] ConductorApiError),
 
     #[error(transparent)]
     HolochainRuntimeError(#[from] holochain_runtime::Error),

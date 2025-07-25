@@ -24,7 +24,7 @@ use lair_keystore_api::types::SharedLockedArray;
 use crate::{
     filesystem::{AppBundleStore, BundleStore, FileSystem},
     happs::{
-        install::install_app, migrate::{migrate_app, MigrateAppError}, update::{update_app, UpdateAppError}, versioned_happ::VersionedApp
+        install::install_app, migrate::{migrate_app}, update::{update_app, UpdateAppError}, versioned_happ::VersionedApp
     },
     lair_signer::LairAgentSignerWithProvenance,
     launch::launch_holochain_runtime,

@@ -49,7 +49,7 @@ impl VersionedApp {
                         .as_str()
                         .starts_with(&self.app_id_prefix)
                 })
-                .min_by_key(|app_info| app_info.installed_at);
+                .max_by_key(|app_info| app_info.installed_at);
 
             if let Some(previous_app) = previous_app {
                 migrate_app(
@@ -101,6 +101,8 @@ impl VersionedApp {
                     .starts_with(format!("{}-", self.app_id_prefix).as_str())
             })
             .collect();
+
+        log::error!("yooo {:?} {}", filtered_apps.len(), self.app_id_prefix);
 
         Ok(filtered_apps)
     }
