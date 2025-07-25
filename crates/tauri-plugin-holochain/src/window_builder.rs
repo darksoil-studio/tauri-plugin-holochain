@@ -77,16 +77,9 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
                                 };
                                 let versioned_app = holochain_plugin.holochain_runtime.versioned_app(app_id.clone());
 
-                                let current_version = match versioned_app.current_app().await {
-                                    Ok(c) => c,
-                                    Err(_) => None
-                                };
-
-                                log::error!("hey {:?}", current_version);
-
-                                let app_id_to_open = match current_version {
-                                    Some(current_version) => current_version.installed_app_id,
-                                    None => app_id
+                                let app_id_to_open = match versioned_app.current_app().await {
+                                    Ok(Some(current_version)) => current_version.installed_app_id,
+                                    _ => app_id
                                 };
                                 if let Err(err) =
                                     enable_app_interface(&w, holochain_plugin, &app_id_to_open).await
@@ -100,7 +93,6 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
                     window
                         .app_handle()
                         .listen("holochain://app-installed", move |e| {
-                            log::error!("iooo1");
                             let app_id = app_id.clone();
                             let w = w.clone();
                             tauri::async_runtime::spawn(async move {
@@ -112,13 +104,11 @@ impl<'a, R: Runtime> HappWindowBuilder for WebviewWindowBuilder<'a, R, AppHandle
                                     return;
                                 };
                                 let versioned_app = holochain_plugin.holochain_runtime.versioned_app(app_id.clone());
-                                log::error!("iooo");
 
                                 let current_version = match versioned_app.current_app().await {
                                     Ok(c) => c,
                                     Err(_) => None
                                 };
-                                log::error!("iooo2");
 
                                 let current_versioned_app_installed = match current_version {
                                     Some(current_version) => {
