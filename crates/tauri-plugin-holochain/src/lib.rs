@@ -1,10 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use hc_seed_bundle::SharedLockedArray;
-use holochain_client::{AdminWebsocket, AppInfo, AppWebsocket};
 use tauri::{async_runtime::RwLock, AppHandle, Emitter, Manager, Runtime, WebviewWindowBuilder};
 
-pub use holochain_types::{prelude::*, web_app::WebAppBundle, websocket::AllowedOrigins};
+pub use holochain_client::*;
+pub use holochain_types::prelude::*;
+pub use holochain_types::{web_app::WebAppBundle, websocket::AllowedOrigins};
 
 mod plugin_builder;
 pub use plugin_builder::*;
@@ -273,11 +274,17 @@ pub async fn launch_holochain_runtime(
     passphrase: SharedLockedArray,
     config: HolochainPluginConfig,
 ) -> crate::Result<HolochainRuntime> {
+    log::debug!("Attempting to lock process wide holochain runtime RwLock.");
     let mut lock = RUNNING_HOLOCHAIN_RUNTIME.write().await;
+    log::debug!("Successfully locked process wide holochain runtime RwLock.");
 
     if let Some(runtime) = lock.to_owned() {
+        log::info!(
+            "There was already a holochain runtime running for this process, returning that."
+        );
         return Ok(runtime);
     }
+    log::info!("There was no holochain runtime running in this process yet. Launching...");
 
     let crypto_provider = rustls::crypto::aws_lc_rs::default_provider().install_default();
     if crypto_provider.is_err() {
@@ -287,7 +294,11 @@ pub async fn launch_holochain_runtime(
         );
     }
 
+    log::debug!("Installed default crypto provider.");
+
     let holochain_runtime = HolochainRuntime::launch(passphrase, config).await?;
+
+    log::info!("Successfully launched holochain runtime.");
 
     *lock = Some(holochain_runtime.clone());
 

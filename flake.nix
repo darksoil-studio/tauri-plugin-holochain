@@ -150,19 +150,14 @@
         };
 
         devShells.tauriDev = let
-
           pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
             inputs.webkitnixpkgs.legacyPackages.${system}
           else
             inputs.nixpkgs.legacyPackages.${system};
-
         in pkgs.mkShell {
-          packages = with pkgs; [
-            nodejs_20
-            packages.tauriRust
-            shared-mime-info
-            gsettings-desktop-schemas
-          ];
+          packages = with pkgs;
+            [ packages.tauriRust shared-mime-info gsettings-desktop-schemas ]
+            ++ [ inputs.nixpkgs.outputs.legacyPackages.${system}.nodejs_22 ];
 
           buildInputs = dependencies.tauriApp.buildInputs;
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
