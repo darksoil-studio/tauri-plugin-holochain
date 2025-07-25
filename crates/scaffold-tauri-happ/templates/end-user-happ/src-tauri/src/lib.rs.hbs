@@ -130,8 +130,7 @@ async fn setup(handle: AppHandle) -> anyhow::Result<()> {
 
     let installed_apps = admin_ws
         .list_apps(None)
-        .await
-        .map_err(|err| tauri_plugin_holochain::Error::ConductorApiError(err))?;
+        .await?;
 
     if installed_apps.iter().find(|app| app.installed_app_id.as_str().eq(APP_ID)).is_none() {
         handle

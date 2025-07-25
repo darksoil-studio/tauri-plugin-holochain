@@ -107,7 +107,6 @@
             glib
             gdk-pixbuf
             gtk3
-            # glib
             # stdenv.cc.cc.lib
             # harfbuzz
             # harfbuzzFull

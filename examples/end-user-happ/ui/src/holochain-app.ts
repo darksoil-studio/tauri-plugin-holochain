@@ -9,6 +9,30 @@ import { clientContext } from "./contexts.js";
 import "./forum/posts/all-posts.js";
 import "./forum/posts/create-post.js";
 
+function getLauncherEnv() {
+  return (window as any).__HC_LAUNCHER_ENV__ as any;
+}
+
+async function waitForAppSetup() {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      const env = getLauncherEnv();
+      if (
+        env &&
+        env.APP_INTERFACE_PORT != undefined &&
+        env.APP_INTERFACE_TOKEN != undefined
+      ) {
+        resolve(undefined);
+        clearInterval(interval);
+      }
+    }, 100);
+    setTimeout(() => {
+      reject(new Error("Timeout waiting for the app to be set up."));
+      clearInterval(interval);
+    }, 60_000);
+  });
+}
+
 @customElement("holochain-app")
 export class HolochainApp extends LitElement {
   @state() loading = true;
@@ -23,6 +47,7 @@ export class HolochainApp extends LitElement {
 
   async firstUpdated() {
     try {
+      await waitForAppSetup();
       this.client = await AppWebsocket.connect();
     } catch (e) {
       this.error = e;

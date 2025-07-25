@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use tauri_plugin_holochain::{HolochainExt, HolochainPluginConfig, vec_to_locked};
+use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -12,16 +12,12 @@ pub fn run() {
         )
         .plugin(tauri_plugin_holochain::init(
             vec_to_locked(vec![]).expect("Can't build passphrase"),
-            HolochainPluginConfig::new(holochain_dir(), wan_network_config())
+            HolochainPluginConfig::new(holochain_dir(), wan_network_config()),
         ))
         .setup(|app| {
-            let handle = app.handle().clone();
-            tauri::async_runtime::block_on(async move {
-                app.holochain()?
-                    .main_window_builder(String::from("main"), true, None, None).await?
-                    .build()?;
-                Ok(())
-            })?;
+            WebviewWindowBuilder::new(app.handle(), "main", WebviewUrl::App(PathBuf::from("")))
+                .enable_app_interface(APP_ID.into())
+                .build()?;
 
             Ok(())
         })
@@ -39,7 +35,7 @@ fn wan_network_config() -> Option<WANNetworkConfig> {
             ice_servers_urls: vec![
                 url2::url2!("stun:stun-0.main.infra.holo.host:443"),
                 url2::url2!("stun:stun-1.main.infra.holo.host:443"),
-            ]
+            ],
         })
     }
 }
@@ -54,7 +50,8 @@ fn holochain_dir() -> PathBuf {
                     name: "launcher",
                     author: std::env!("CARGO_PKG_AUTHORS"),
                 },
-            ).expect("Could not get the UserCache directory")
+            )
+            .expect("Could not get the UserCache directory")
         }
         #[cfg(not(target_os = "android"))]
         {
