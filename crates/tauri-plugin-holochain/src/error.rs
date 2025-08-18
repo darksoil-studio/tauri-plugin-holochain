@@ -15,9 +15,6 @@ pub enum Error {
     #[error(transparent)]
     TauriError(#[from] tauri::Error),
 
-    #[error(transparent)]
-    CtrclError(#[from] ctrlc::Error),
-
     #[error("Lock error: {0}")]
     LockError(String),
 
@@ -38,6 +35,9 @@ pub enum Error {
 
     #[error("Sign zome call error: {0}")]
     SignZomeCallError(String),
+
+    #[error("Sign zome call error: {0}")]
+    ShutdownError(String),
 
     #[error("Error opening app: {0}")]
     OpenAppError(String),
