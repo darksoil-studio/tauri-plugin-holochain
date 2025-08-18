@@ -1,6 +1,7 @@
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    process,
 };
 
 use hc_seed_bundle::SharedLockedArray;
@@ -13,8 +14,8 @@ use tauri::{
     AppHandle, Emitter, Manager, RunEvent, Runtime, WebviewUrl, WebviewWindowBuilder,
 };
 
-pub use holochain_types::prelude::*;
 pub use holochain_client::*;
+pub use holochain_types::prelude::*;
 pub use holochain_types::{web_app::WebAppBundle, websocket::AllowedOrigins};
 
 mod commands;
@@ -493,8 +494,31 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
                     }
                 }
             }
+            RunEvent::ExitRequested { code, api, .. } => {
+                api.prevent_exit();
+
+                if let Err(err) = shutdown_runtime(app) {
+                    log::error!("Error shutting down holochain runtime: {err:?}.");
+
+                    process::exit(1);
+                } else {
+                    process::exit(code.unwrap_or(0));
+                }
+            }
             _ => {}
         })
+}
+
+fn shutdown_runtime<R: Runtime>(app: &AppHandle<R>) -> crate::Result<()> {
+    tauri::async_runtime::block_on(async move {
+        let holochain = app
+            .holochain()
+            .map_err(|_err| crate::Error::HolochainNotInitializedError)?;
+
+        holochain.holochain_runtime.shutdown().await?;
+
+        Ok(())
+    })
 }
 
 /// Initializes the plugin, waiting for holochain to launch before finishing the app's setup.
@@ -550,7 +574,9 @@ pub async fn launch_holochain_runtime(
     log::debug!("Successfully locked process wide holochain runtime RwLock.");
 
     if let Some(runtime) = lock.to_owned() {
-        log::info!("There was already a holochain runtime running for this process, returning that.");
+        log::info!(
+            "There was already a holochain runtime running for this process, returning that."
+        );
         return Ok(runtime);
     }
     log::info!("There was no holochain runtime running in this process yet. Launching...");
