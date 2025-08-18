@@ -34,8 +34,8 @@ pub enum Error {
     #[error("Lock error: {0}")]
     LockError(String),
 
-    #[error("ConductorApiError: `{0:?}`")]
-    ConductorApiError(ConductorApiError),
+    #[error(transparent)]
+    ConductorApiError(#[from] ConductorApiError),
 
     #[error("Filesystem error: {0}")]
     FilesystemError(String),
