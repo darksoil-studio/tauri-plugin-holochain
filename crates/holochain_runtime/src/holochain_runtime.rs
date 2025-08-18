@@ -60,7 +60,7 @@ impl HolochainRuntime {
     ) -> crate::Result<Self> {
         let runtime = launch_holochain_runtime(passphrase, config).await?;
 
-        log::info!("Re-enabling all running apps to leave their networks.");
+        log::info!("Re-enabling all running apps that were disabled in the shutdown process.");
 
         let admin_ws = runtime.admin_websocket().await?;
 
