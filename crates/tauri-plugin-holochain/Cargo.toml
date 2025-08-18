@@ -42,7 +42,7 @@ tls-listener = "0.8"
 futures = "0.3"
 either = "*"
 anyhow = "1"
-ctrlc = "3.4"
+tokio = "1"
 
 [build-dependencies]
 tauri-plugin = { version = "2.0.0", features = ["build"] }

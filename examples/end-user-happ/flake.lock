@@ -394,11 +394,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1752096312,
-        "narHash": "sha256-mP8nfNRBI+2swc3lCXzxLXyD6SAb7JHnAC17R0v6h+Q=",
+        "lastModified": 1755282012,
+        "narHash": "sha256-E+cbhF6Fo/REohDmjp+QXYpGwQqQZhN+3fGNlnI1938=",
         "owner": "holochain",
         "repo": "holonix",
-        "rev": "5e00d7be074f3b4dcfd5340a14c7046ce000fccf",
+        "rev": "91af1eb41bde68b65d8e66d3dbbf0be65c0f751f",
         "type": "github"
       },
       "original": {
@@ -688,11 +688,11 @@
         "tauri-plugin-holochain": "tauri-plugin-holochain"
       },
       "locked": {
-        "lastModified": 1752590351,
-        "narHash": "sha256-Ckh2VBV4RA3jvT66A/+AlhHLRVjpj+xcfs2oogCzhf0=",
+        "lastModified": 1753170537,
+        "narHash": "sha256-vnaU7xkEWXQ/Bg+IkZT+hkF3h/ZFQ31IFEURpoT8ew8=",
         "owner": "darksoil-studio",
         "repo": "holochain-playground",
-        "rev": "379ed27d30e5de6bbc5c004590d16c62829f0d64",
+        "rev": "464d4220865aefd91cf9db19399dfa435c919db7",
         "type": "github"
       },
       "original": {

@@ -1,8 +1,11 @@
 use hc_seed_bundle::SharedLockedArray;
 use holochain_client::InstalledAppId;
 use holochain_runtime::{vec_to_locked, HolochainRuntime, HolochainRuntimeConfig, NetworkConfig};
-use holochain_types::app::{AppBundle, RoleSettingsMap};
-use std::{collections::HashMap, path::PathBuf};
+use holochain_types::{
+    app::{AppBundle, RoleSettingsMap},
+    prelude::tokio_helper,
+};
+use std::{collections::HashMap, path::PathBuf, time::Duration};
 use tauri::{http::response, plugin::TauriPlugin, AppHandle, Emitter, Manager, RunEvent, Runtime};
 
 use crate::{
@@ -188,6 +191,17 @@ impl Builder {
                         }
                     }
                 }
+                RunEvent::ExitRequested { code, api, .. } => {
+                    api.prevent_exit();
+
+                    if let Err(err) = shutdown_runtime(app) {
+                        log::error!("Error shutting down holochain runtime: {err:?}.");
+
+                        std::process::exit(1);
+                    } else {
+                        std::process::exit(code.unwrap_or(0));
+                    }
+                }
                 _ => {}
             })
             .setup(move |app, _api| {
@@ -272,14 +286,24 @@ async fn launch_and_setup_holochain<R: Runtime>(
     #[cfg(desktop)]
     if tauri::is_dev() {
         create_hc_live_file(holochain_runtime.admin_port)?;
+    }
+    let h = app_handle.clone();
+    tauri::async_runtime::spawn(async move {
+        tokio::signal::ctrl_c()
+            .await
+            .unwrap_or_else(|e| log::error!("Could not handle termination signal: {:?}", e));
 
-        ctrlc::set_handler(move || {
+        #[cfg(desktop)]
+        if tauri::is_dev() {
             if let Err(err) = delete_hc_live_file(holochain_runtime.admin_port) {
                 log::error!("Failed to delete hc live file: {err:?}");
             }
-            std::process::exit(0);
-        })?;
-    }
+        }
+        if let Err(err) = shutdown_runtime(&h) {
+            log::error!("Failed to shutdown holochain runtime: {err:?}");
+        }
+        std::process::exit(0);
+    });
 
     let p = HolochainPlugin::<R> {
         app_handle: app_handle.clone(),
@@ -299,4 +323,22 @@ async fn launch_and_setup_holochain<R: Runtime>(
     app_handle.emit("holochain://setup-completed", ())?;
 
     Ok(holochain_runtime)
+}
+
+fn shutdown_runtime<R: Runtime>(app: &AppHandle<R>) -> crate::Result<()> {
+    let result: std::result::Result<crate::Result<()>, tokio::time::error::Elapsed> =
+        tokio_helper::block_on(
+            async move {
+                let holochain = app
+                    .holochain()
+                    .map_err(|_err| crate::Error::HolochainNotInitializedError)?;
+
+                holochain.holochain_runtime.shutdown().await?;
+
+                Ok(())
+            },
+            Duration::from_secs(3),
+        );
+    result.map_err(|err| crate::Error::ShutdownError(format!("{err:?}")))??;
+    Ok(())
 }
