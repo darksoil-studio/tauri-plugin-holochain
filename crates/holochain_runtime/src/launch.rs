@@ -28,14 +28,14 @@ pub(crate) async fn launch_holochain_runtime(
         portpicker::pick_unused_port().expect("No ports free")
     };
 
-    let config = config::conductor_config(
+    let conductor_config = config::conductor_config(
         &filesystem,
         admin_port,
         filesystem.keystore_dir().into(),
         config.network_config,
     );
 
-    log::debug!("Built conductor config: {:?}.", config);
+    log::debug!("Built conductor config: {:?}.", conductor_config);
 
     let keystore =
         spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
@@ -62,7 +62,7 @@ pub(crate) async fn launch_holochain_runtime(
     }
 
     let conductor_handle = Conductor::builder()
-        .config(config)
+        .config(conductor_config)
         .passphrase(Some(passphrase))
         .with_keystore(keystore)
         .build()
@@ -70,7 +70,9 @@ pub(crate) async fn launch_holochain_runtime(
 
     log::info!("Connected to the admin websocket");
 
-    spawn_mdns_bootstrap(admin_port).await?;
+    if config.mdns_discovery {
+        spawn_mdns_bootstrap(admin_port).await?;
+    }
 
     Ok(HolochainRuntime {
         filesystem,
