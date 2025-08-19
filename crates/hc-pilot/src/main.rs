@@ -102,8 +102,8 @@ fn main() {
         .plugin(
             tauri_plugin_holochain::Builder::default()
                 .network_config(network_config)
-                .licensed()
                 .data_dir(conductor_dir)
+                .licensed()
                 .build(),
         )
         .setup(|app| {

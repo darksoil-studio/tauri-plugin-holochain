@@ -40,7 +40,7 @@ impl Default for Builder {
 
 impl Builder {
     pub fn disable_mdns_discovery(mut self) -> Self {
-        self.mdns_discovery = true;
+        self.mdns_discovery = false;
         self
     }
 
@@ -210,6 +210,7 @@ impl Builder {
                     holochain_dir: self.data_dir,
                     network_config: self.network_config,
                     admin_port: self.admin_port.clone(),
+                    mdns_discovery: self.mdns_discovery,
                 };
                 tauri::async_runtime::spawn(async move {
                     if let Err(err) = launch_and_setup_holochain(
