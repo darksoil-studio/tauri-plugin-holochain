@@ -61,7 +61,7 @@
               # .cargo/config.toml already captured above
               isCargoConfig = parentDir == ".cargo" && base == "config";
             in type == "directory" || matchesSuffix || isCargoFile
-            || isCargoConfig || isSignerFile;
+            || isCargoConfig || isSignerFile || isWatermarkFile;
           cleanTauriSource = { lib }:
             src:
             lib.cleanSourceWith {
