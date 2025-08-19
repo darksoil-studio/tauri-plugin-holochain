@@ -111,6 +111,7 @@ fn main() {
                 network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
+                mdns_discovery: true,
             },
         ))
         .setup(|app| {
