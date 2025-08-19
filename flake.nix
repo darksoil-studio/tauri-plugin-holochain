@@ -56,6 +56,7 @@
               # Cargo.toml already captured above
               isCargoFile = base == "Cargo.lock";
               isSignerFile = base == "zome-call-signer.js";
+              isWatermarkFile = base == "watermark.js";
 
               # .cargo/config.toml already captured above
               isCargoConfig = parentDir == ".cargo" && base == "config";
