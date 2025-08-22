@@ -103,6 +103,7 @@ fn main() {
                 .level(log_level())
                 .clear_targets()
                 .target(Target::new(tauri_plugin_log::TargetKind::Stdout))
+                .level_for("tracing::span", log::LevelFilter::Off)
                 .build(),
         )
         .plugin(tauri_plugin_holochain::init(
