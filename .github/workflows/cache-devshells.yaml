@@ -21,10 +21,10 @@ jobs:
         uses: ./.github/actions/extend-space
 
       - name: Install nix
-        uses: cachix/install-nix-action@v27
+        uses: cachix/install-nix-action@v31
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          nix_path: nixpkgs=channel:nixos-24.11
+          nix_path: nixpkgs=channel:nixos-25.05
 
       - uses: cachix/cachix-action@v15
         with:
