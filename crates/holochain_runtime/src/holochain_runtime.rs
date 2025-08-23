@@ -60,38 +60,40 @@ impl HolochainRuntime {
     ) -> crate::Result<Self> {
         let runtime = launch_holochain_runtime(passphrase, config).await?;
 
-        log::info!("Re-enabling all running apps that were disabled in the shutdown process.");
-
         let admin_ws = runtime.admin_websocket().await?;
 
         let apps = admin_ws
             .list_apps(Some(holochain_client::AppStatusFilter::Disabled))
             .await?;
 
-        join_all(apps.into_iter().map(async |app| {
-            let AppInfoStatus::Disabled { reason } = app.status else {
-                return ();
-            };
-            let DisabledAppReason::Error(e) = reason else {
-                return ();
-            };
+        if !apps.is_empty() {
+            log::info!("Re-enabling all apps disabled in shutdown.");
 
-            if e.ne(&NETWORK_SHUTDOWN_DISABLED_APP_REASON.to_string()) {
-                return ();
-            }
+            join_all(apps.into_iter().map(async |app| {
+                let AppInfoStatus::Disabled { reason } = app.status else {
+                    return ();
+                };
+                let DisabledAppReason::Error(e) = reason else {
+                    return ();
+                };
 
-            if let Err(err) = runtime
-                .conductor_handle
-                .clone()
-                .enable_app(app.installed_app_id)
-                .await
-            {
-                log::error!("Error re-enabling the app: {err:?}.");
-            }
-        }))
-        .await;
+                if e.ne(&NETWORK_SHUTDOWN_DISABLED_APP_REASON.to_string()) {
+                    return ();
+                }
 
-        log::info!("Re-enabled all running apps to leave their networks.");
+                if let Err(err) = runtime
+                    .conductor_handle
+                    .clone()
+                    .enable_app(app.installed_app_id)
+                    .await
+                {
+                    log::error!("Error re-enabling the app: {err:?}.");
+                }
+            }))
+            .await;
+
+            log::info!("Re-enabled all apps disabled in shutdown.");
+        }
 
         Ok(runtime)
     }
