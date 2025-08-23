@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-holochain = { version = "0.5", default-features = false, features = [ "unstable-functions", "wasmer_sys" ] }
+holochain = { version = "0.5.5", default-features = false, features = [ "unstable-functions", "wasmer_sys", "datachannel-vendored" ] }
 mr_bundle = {version = "0.5", default-features = false }
 holochain_types = {version = "0.5", default-features = false }
 holochain_keystore = {version = "0.5", default-features = false }
