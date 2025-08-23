@@ -1,10 +1,10 @@
-use holochain::{conductor::error::ConductorError, prelude::SerializedBytesError};
+use holochain::{conductor::error::ConductorError, prelude::{DnaError, SerializedBytesError}};
 use holochain_client::ConductorApiError;
 use mr_bundle::error::MrBundleError;
 use one_err::OneErr;
 use serde::{ser::Serializer, Serialize};
 
-use crate::{filesystem::FileSystemError, happs::update::UpdateHappError};
+use crate::{filesystem::FileSystemError, happs::{migrate::MigrateAppError, update::UpdateAppError}};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -56,7 +56,13 @@ pub enum Error {
     AppDoesNotHaveUIError(String),
 
     #[error(transparent)]
-    UpdateAppError(#[from] UpdateHappError),
+    UpdateAppError(#[from] UpdateAppError),
+
+    #[error(transparent)]
+    MigrateAppError(#[from] MigrateAppError),
+
+    #[error(transparent)]
+    DnaError(#[from] DnaError),
 
     #[error(transparent)]
     KitsuneError(#[from] kitsune2_api::K2Error),

@@ -7,8 +7,8 @@ use holochain_types::{
 use log::LevelFilter;
 use std::path::PathBuf;
 use std::{collections::HashMap, str::FromStr};
-use tauri::{AppHandle, Context, Wry};
-use tauri_plugin_holochain::{vec_to_locked, HolochainExt, HolochainPluginConfig, NetworkConfig};
+use tauri::{AppHandle, Context, WebviewUrl, WebviewWindowBuilder, Wry};
+use tauri_plugin_holochain::{HappWindowBuilder, HolochainExt, NetworkConfig};
 use tauri_plugin_log::Target;
 use url2::url2;
 
@@ -17,10 +17,6 @@ use url2::url2;
 struct Args {
     /// The path of the file tree to modify.
     pub happ_bundle_path: PathBuf,
-
-    /// The password to protect the conductor by.
-    #[clap(long)]
-    pub password: Option<String>,
 
     /// The port where the UI server is running.
     #[clap(long)]
@@ -71,8 +67,6 @@ fn main() {
         }
     };
 
-    let password = args.password.unwrap_or_default();
-
     let dev_url = url2!("http://localhost:{}", args.ui_port);
 
     let mut context: Context<Wry> = tauri::generate_context!();
@@ -106,15 +100,13 @@ fn main() {
                 .level_for("tracing::span", log::LevelFilter::Off)
                 .build(),
         )
-        .plugin(tauri_plugin_holochain::init(
-            vec_to_locked(password.as_bytes().to_vec()),
-            HolochainPluginConfig {
-                network_config,
-                holochain_dir: conductor_dir,
-                admin_port: args.admin_port,
-                mdns_discovery: true,
-            },
-        ))
+        .plugin(
+            tauri_plugin_holochain::Builder::default()
+                .network_config(network_config)
+                .data_dir(conductor_dir)
+                .licensed()
+                .build(),
+        )
         .setup(|app| {
             let agent_key = match args.agent_key {
                 Some(key) => {
@@ -134,15 +126,8 @@ fn main() {
                 )
                 .await?;
 
-                handle
-                    .holochain()?
-                    .main_window_builder(
-                        String::from("main"),
-                        false,
-                        Some(app_info.installed_app_id),
-                        None,
-                    )
-                    .await?
+                WebviewWindowBuilder::new(handle, "main", WebviewUrl::App(PathBuf::from("")))
+                    .enable_app_interface(app_info.installed_app_id)
                     .build()?;
 
                 Ok(())

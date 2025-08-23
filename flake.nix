@@ -56,11 +56,12 @@
               # Cargo.toml already captured above
               isCargoFile = base == "Cargo.lock";
               isSignerFile = base == "zome-call-signer.js";
+              isWatermarkFile = base == "watermark.js";
 
               # .cargo/config.toml already captured above
               isCargoConfig = parentDir == ".cargo" && base == "config";
             in type == "directory" || matchesSuffix || isCargoFile
-            || isCargoConfig || isSignerFile;
+            || isCargoConfig || isSignerFile || isWatermarkFile;
           cleanTauriSource = { lib }:
             src:
             lib.cleanSourceWith {
@@ -107,7 +108,6 @@
             glib
             gdk-pixbuf
             gtk3
-            # glib
             # stdenv.cc.cc.lib
             # harfbuzz
             # harfbuzzFull

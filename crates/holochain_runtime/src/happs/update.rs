@@ -18,7 +18,7 @@ use mr_bundle::{error::MrBundleError, Bundle, ResourceBytes};
 use crate::filesystem::FileSystemError;
 
 #[derive(Debug, thiserror::Error)]
-pub enum UpdateHappError {
+pub enum UpdateAppError {
     #[error(transparent)]
     AppBundleError(#[from] AppBundleError),
 
@@ -34,8 +34,8 @@ pub enum UpdateHappError {
     #[error(transparent)]
     DnaError(#[from] DnaError),
 
-    #[error("ConductorApiError: `{0:?}`")]
-    ConductorApiError(ConductorApiError),
+    #[error(transparent)]
+    ConductorApiError(#[from] ConductorApiError),
 
     #[error("Error connecting to the websocket")]
     WebsocketError,
@@ -51,7 +51,7 @@ pub async fn update_app(
     admin_ws: &AdminWebsocket,
     app_id: String,
     bundle: AppBundle,
-) -> Result<(), UpdateHappError> {
+) -> Result<(), UpdateAppError> {
     log::info!(
         "Checking whether the coordinator zomes for app {} need to be updated",
         app_id
@@ -60,13 +60,12 @@ pub async fn update_app(
     // Get the DNA def from the admin websocket
     let apps = admin_ws
         .list_apps(None)
-        .await
-        .map_err(|err| UpdateHappError::ConductorApiError(err))?;
+        .await?;
 
     let mut app = apps
         .into_iter()
         .find(|app| app.installed_app_id.eq(&app_id))
-        .ok_or(UpdateHappError::AppNotFound(app_id.clone()))?;
+        .ok_or(UpdateAppError::AppNotFound(app_id.clone()))?;
 
     let new_dna_files = resolve_dna_files(bundle).await?;
 
@@ -76,7 +75,7 @@ pub async fn update_app(
         let cells = app
             .cell_info
             .swap_remove(&role_name)
-            .ok_or(UpdateHappError::RoleNotFound(
+            .ok_or(UpdateAppError::RoleNotFound(
                 role_name.clone(),
                 app.installed_app_id.clone(),
             ))?;
@@ -92,8 +91,7 @@ pub async fn update_app(
             };
             let old_dna_def = admin_ws
                 .get_dna_definition(dna_hash.clone())
-                .await
-                .map_err(|err| UpdateHappError::ConductorApiError(err))?;
+                .await?;
 
             for (zome_name, coordinator_zome) in new_dna_file.dna_def().coordinator_zomes.iter() {
                 let deps = coordinator_zome
@@ -154,8 +152,7 @@ pub async fn update_app(
 
                 admin_ws
                     .update_coordinators(req)
-                    .await
-                    .map_err(|err| UpdateHappError::ConductorApiError(err))?;
+                    .await?;
                 updated = true;
             }
         }
@@ -165,12 +162,10 @@ pub async fn update_app(
         if let AppInfoStatus::Running = app.status {
             admin_ws
                 .disable_app(app_id.clone())
-                .await
-                .map_err(|err| UpdateHappError::ConductorApiError(err))?;
+                .await?;
             admin_ws
                 .enable_app(app_id.clone())
-                .await
-                .map_err(|err| UpdateHappError::ConductorApiError(err))?;
+                .await?;
         }
         log::info!("Updated app {app_id:?}");
     }
@@ -180,7 +175,7 @@ pub async fn update_app(
 
 async fn resolve_dna_files(
     app_bundle: AppBundle,
-) -> Result<BTreeMap<RoleName, DnaFile>, UpdateHappError> {
+) -> Result<BTreeMap<RoleName, DnaFile>, UpdateAppError> {
     let mut dna_files: BTreeMap<RoleName, DnaFile> = BTreeMap::new();
 
     let bundle = app_bundle.into_inner();
@@ -199,7 +194,7 @@ async fn resolve_dna_files(
 async fn resolve_location(
     app_bundle: &Bundle<AppManifest>,
     location: &mr_bundle::Location,
-) -> Result<(DnaFile, DnaHash), UpdateHappError> {
+) -> Result<(DnaFile, DnaHash), UpdateAppError> {
     let bytes = app_bundle.resolve(location).await?;
     let dna_bundle: DnaBundle = mr_bundle::Bundle::decode(&bytes)?.into();
     let (dna_file, original_hash) = dna_bundle.into_dna_file(Default::default()).await?;

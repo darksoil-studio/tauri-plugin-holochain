@@ -22,6 +22,9 @@ holochain_client = { version = "0.7", default-features = false }
 
 holochain_runtime = { path = "../holochain_runtime", default-features = false }
 
+serde_json = "1"
+tempdir = "0.3.7"
+app_dirs2 = "2.5.5"
 rustls = "0.23"
 log = "0.4"
 symlink = "0.1.0"

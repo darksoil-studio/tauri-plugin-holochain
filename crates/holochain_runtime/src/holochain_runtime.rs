@@ -7,7 +7,7 @@ use std::{
 use async_std::sync::Mutex;
 use holochain::{
     conductor::ConductorHandle,
-    prelude::{DisabledAppReason, NetworkSeed, ZomeCallParams},
+    prelude::{DisabledAppReason, NetworkSeed, RoleSettingsMap, ZomeCallParams},
 };
 use holochain_client::{
     AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId,
@@ -26,7 +26,9 @@ use crate::{
     filesystem::{AppBundleStore, BundleStore, FileSystem},
     happs::{
         install::install_app,
-        update::{update_app, UpdateHappError},
+        migrate::migrate_app,
+        update::{update_app, UpdateAppError},
+        versioned_happ::VersionedApp,
     },
     lair_signer::LairAgentSignerWithProvenance,
     launch::launch_holochain_runtime,
@@ -290,7 +292,7 @@ impl HolochainRuntime {
         let admin_ws = self
             .admin_websocket()
             .await
-            .map_err(|_err| UpdateHappError::WebsocketError)?;
+            .map_err(|_err| UpdateAppError::WebsocketError)?;
         update_app(
             &admin_ws,
             app_id.clone(),
@@ -309,14 +311,63 @@ impl HolochainRuntime {
         &self,
         app_id: InstalledAppId,
         app_bundle: AppBundle,
-    ) -> std::result::Result<(), UpdateHappError> {
+    ) -> std::result::Result<(), UpdateAppError> {
         let mut admin_ws = self
             .admin_websocket()
             .await
-            .map_err(|_err| UpdateHappError::WebsocketError)?;
+            .map_err(|_err| UpdateAppError::WebsocketError)?;
         let app_info = update_app(&mut admin_ws, app_id.clone(), app_bundle).await?;
 
         Ok(app_info)
+    }
+
+    /// Migrates the coordinator zomes and UI for the given app with an migrated `WebAppBundle`
+    ///
+    /// * `app_id` - the app to migrate
+    /// * `web_app_bundle` - the new version of the web-hApp bundle
+    pub async fn migrate_web_app(
+        &self,
+        existing_app_id: InstalledAppId,
+        new_app_id: InstalledAppId,
+        new_web_app_bundle: WebAppBundle,
+        new_roles_settings: Option<RoleSettingsMap>,
+    ) -> crate::Result<()> {
+        self.filesystem
+            .bundle_store
+            .store_web_happ_bundle(new_app_id.clone(), &new_web_app_bundle)
+            .await?;
+
+        migrate_app(
+            self,
+            existing_app_id,
+            new_app_id,
+            new_web_app_bundle.happ_bundle().await?,
+            new_roles_settings,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    /// Migrates the coordinator zomes for the given app with an migrated `AppBundle`
+    ///
+    /// * `app_id` - the app to migrate
+    /// * `app_bundle` - the new version of the hApp bundle
+    pub async fn migrate_app(
+        &self,
+        existing_app_id: InstalledAppId,
+        new_app_id: InstalledAppId,
+        new_app_bundle: AppBundle,
+        new_roles_settings: Option<RoleSettingsMap>,
+    ) -> crate::Result<AppInfo> {
+        migrate_app(
+            self,
+            existing_app_id,
+            new_app_id,
+            new_app_bundle,
+            new_roles_settings,
+        )
+        .await
     }
 
     /// Checks whether it is necessary to update the hApp, and if so,
@@ -336,7 +387,7 @@ impl HolochainRuntime {
 
         let installed_apps = self.filesystem.bundle_store.installed_apps_store.get()?;
         let Some(installed_app_info) = installed_apps.get(&app_id) else {
-            return Err(UpdateHappError::AppNotFound(app_id))?;
+            return Err(UpdateAppError::AppNotFound(app_id))?;
         };
 
         if !installed_app_info.happ_bundle_hash.eq(&hash) {
@@ -363,7 +414,7 @@ impl HolochainRuntime {
 
         let installed_apps = self.filesystem.bundle_store.installed_apps_store.get()?;
         let Some(installed_app_info) = installed_apps.get(&app_id) else {
-            return Err(UpdateHappError::AppNotFound(app_id))?;
+            return Err(UpdateAppError::AppNotFound(app_id))?;
         };
 
         if !installed_app_info.happ_bundle_hash.eq(&hash) {
@@ -470,5 +521,14 @@ impl HolochainRuntime {
             .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?
             .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?;
         Ok(())
+    }
+
+    /// -- Versioned hApps --
+
+    pub fn versioned_app(&self, app_id: InstalledAppId) -> VersionedApp {
+        VersionedApp {
+            holochain_runtime: self.clone(),
+            app_id_prefix: app_id,
+        }
     }
 }
