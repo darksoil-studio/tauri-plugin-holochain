@@ -71,7 +71,7 @@ pub fn run() {
         )
         .plugin(tauri_plugin_holochain::async_init(
             vec_to_locked(vec![]),
-            HolochainPluginConfig::new(holochain_dir(), network_config())
+            HolochainPluginConfig::new(holochain_dir(), network_config()).enable_mdns_discovery()
         ))
         .setup(|app| {
             let handle = app.handle().clone();
