@@ -103,6 +103,7 @@ fn main() {
                 .level(log_level())
                 .clear_targets()
                 .target(Target::new(tauri_plugin_log::TargetKind::Stdout))
+                .level_for("tracing::span", log::LevelFilter::Off)
                 .build(),
         )
         .plugin(tauri_plugin_holochain::init(
@@ -111,6 +112,7 @@ fn main() {
                 network_config,
                 holochain_dir: conductor_dir,
                 admin_port: args.admin_port,
+                mdns_discovery: true,
             },
         ))
         .setup(|app| {

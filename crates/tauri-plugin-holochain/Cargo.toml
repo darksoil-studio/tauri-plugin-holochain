@@ -11,16 +11,16 @@ links = "tauri-plugin-holochain"
 tauri = { version = "2.1.1" }
 
 # Holochain dependencies
-holochain_types = "0.5.0"
+holochain_types = { version = "0.5", default-features = false }
 
 # Lair dependencies
 hc_seed_bundle = "0.3"
 lair_keystore_api = "0.6.0"
 
 # Holochain client
-holochain_client = "0.7.0"
+holochain_client = { version = "0.7", default-features = false }
 
-holochain_runtime = { path = "../holochain_runtime" }
+holochain_runtime = { path = "../holochain_runtime", default-features = false }
 
 rustls = "0.23"
 log = "0.4"
@@ -39,8 +39,12 @@ tls-listener = "0.8"
 futures = "0.3"
 either = "*"
 anyhow = "1"
-ctrlc = "3.4"
+tokio = "1"
 
 [build-dependencies]
 tauri-plugin = { version = "2.0.0", features = ["build"] }
 
+[features]
+default = ["sqlite-encrypted"]
+sqlite = ["holochain_runtime/sqlite"]
+sqlite-encrypted = ["holochain_runtime/sqlite-encrypted"]

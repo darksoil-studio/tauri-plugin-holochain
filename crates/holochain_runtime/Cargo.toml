@@ -3,42 +3,29 @@ name = "holochain_runtime"
 version = "0.1.0"
 edition = "2021"
 
-[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
-holochain = { version = "0.5", features = [ "unstable-functions", "unstable-countersigning" ] }
-
-[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
-holochain = { version = "0.5", default-features = false, features = [
-  "sqlite-encrypted",
-  "unstable-functions",
-  "wasmer_wamr",
-  "unstable-countersigning"
-] }
-
 [dependencies]
 # Holochain dependencies
-mr_bundle = "0.5"
-holochain_types = "0.5"
-holochain_keystore = "0.5"
-holochain_conductor_api = "0.5"
+mr_bundle = {version = "0.5", default-features = false }
+holochain_types = {version = "0.5", default-features = false }
+holochain_keystore = {version = "0.5", default-features = false }
+holochain_conductor_api = {version = "0.5", default-features = false }
+holochain_util = {version = "0.5", default-features = false }
 
 kitsune_p2p_mdns = "0.4"
 kitsune2_api = "0.1"
 kitsune2_core = "0.1"
 
-sbd-server = "0.1.0"
-tx5-signal = "0.3.3"
-
 # Lair dependencies
-lair_keystore_api = "0.6.0"
-lair_keystore = { version = "0.6.0" }
+lair_keystore_api = { version = "0.6.0", default-features = false }
+lair_keystore = { version = "0.6.0", default-features = false }
 
 # Holochain client
-holochain_client = "0.7.0"
+holochain_client = { version = "0.7.0", default-features = false }
 
 # Other dependencies
 tracing = { version = "0.1", features = ["log", "log-always"] }
-arbitrary = "=1.3.2"
-derive_arbitrary = "=1.3.2"
+arbitrary = "1"
+derive_arbitrary = "1"
 url2 = "0.0.6"
 thiserror = "1.0"
 one_err = "0"
@@ -46,7 +33,7 @@ serde = "1.0.193"
 portpicker = "0.1"
 log = "0.4"
 async-std = "1.12"
-local-ip-address = "=0.6.3"
+local-ip-address = "0.6"
 async-trait = "0.1"
 sha256 = "1"
 zip = { version = "0.6" }
@@ -55,3 +42,13 @@ base64 = "0.22"
 tokio = "1"
 anyhow = "1"
 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+holochain = { version = "0.5.5", default-features = false, features = [ "unstable-functions", "wasmer_sys", "datachannel-vendored" ] }
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+holochain = { version = "0.5.5", default-features = false, features = [ "unstable-functions", "wasmer_wamr", "datachannel-vendored" ] }
+
+[features]
+default = ["sqlite-encrypted"]
+sqlite = ["holochain/sqlite", "lair_keystore/rusqlite-bundled"]
+sqlite-encrypted = ["holochain/sqlite-encrypted", "lair_keystore/rusqlite-bundled-sqlcipher-vendored-openssl"]

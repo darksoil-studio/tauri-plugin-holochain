@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use async_std::sync::Mutex;
-use holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc;
+use keystore::spawn_lair_keystore_in_proc;
+// use holochain_keystore::lair_keystore::spawn_lair_keystore_in_proc;
 use lair_keystore::dependencies::hc_seed_bundle::SharedLockedArray;
 
 use holochain::conductor::Conductor;
@@ -11,7 +12,6 @@ use crate::{filesystem::FileSystem, HolochainRuntime, HolochainRuntimeConfig};
 mod config;
 mod keystore;
 mod mdns;
-mod signal;
 use mdns::spawn_mdns_bootstrap;
 
 pub const DEVICE_SEED_LAIR_KEYSTORE_TAG: &'static str = "DEVICE_SEED";
@@ -28,17 +28,20 @@ pub(crate) async fn launch_holochain_runtime(
         portpicker::pick_unused_port().expect("No ports free")
     };
 
-    let config = config::conductor_config(
+    let conductor_config = config::conductor_config(
         &filesystem,
         admin_port,
         filesystem.keystore_dir().into(),
         config.network_config,
     );
 
+    log::debug!("Built conductor config: {:?}.", conductor_config);
+
     let keystore =
         spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
-            .await
             .map_err(|err| crate::Error::LairError(err))?;
+
+    log::info!("Keystore spawned successfully.");
 
     let seed_already_exists = keystore
         .lair_client()
@@ -59,7 +62,7 @@ pub(crate) async fn launch_holochain_runtime(
     }
 
     let conductor_handle = Conductor::builder()
-        .config(config)
+        .config(conductor_config)
         .passphrase(Some(passphrase))
         .with_keystore(keystore)
         .build()
@@ -67,7 +70,9 @@ pub(crate) async fn launch_holochain_runtime(
 
     log::info!("Connected to the admin websocket");
 
-    spawn_mdns_bootstrap(admin_port).await?;
+    if config.mdns_discovery {
+        spawn_mdns_bootstrap(admin_port).await?;
+    }
 
     Ok(HolochainRuntime {
         filesystem,

@@ -7,18 +7,19 @@ use std::{
 use async_std::sync::Mutex;
 use holochain::{
     conductor::ConductorHandle,
-    prelude::{NetworkSeed, ZomeCallParams},
+    prelude::{DisabledAppReason, NetworkSeed, ZomeCallParams},
 };
 use holochain_client::{
     AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId,
     WebsocketConfig,
 };
-use holochain_conductor_api::ZomeCallParamsSigned;
+use holochain_conductor_api::{AppInfoStatus, ZomeCallParamsSigned};
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     web_app::WebAppBundle,
     websocket::AllowedOrigins,
 };
+use lair_keystore::dependencies::futures::future::join_all;
 use lair_keystore_api::types::SharedLockedArray;
 
 use crate::{
@@ -31,6 +32,8 @@ use crate::{
     launch::launch_holochain_runtime,
     sign_zome_call_with_client, HolochainRuntimeConfig,
 };
+
+const NETWORK_SHUTDOWN_DISABLED_APP_REASON: &'static str = "holochain_runtime/network_shutdown";
 
 #[derive(Clone)]
 pub struct AppWebsocketAuth {
@@ -53,7 +56,44 @@ impl HolochainRuntime {
         passphrase: SharedLockedArray,
         config: HolochainRuntimeConfig,
     ) -> crate::Result<Self> {
-        launch_holochain_runtime(passphrase, config).await
+        let runtime = launch_holochain_runtime(passphrase, config).await?;
+
+        let admin_ws = runtime.admin_websocket().await?;
+
+        let apps = admin_ws
+            .list_apps(Some(holochain_client::AppStatusFilter::Disabled))
+            .await?;
+
+        if !apps.is_empty() {
+            log::info!("Re-enabling all apps disabled in shutdown.");
+
+            join_all(apps.into_iter().map(async |app| {
+                let AppInfoStatus::Disabled { reason } = app.status else {
+                    return ();
+                };
+                let DisabledAppReason::Error(e) = reason else {
+                    return ();
+                };
+
+                if e.ne(&NETWORK_SHUTDOWN_DISABLED_APP_REASON.to_string()) {
+                    return ();
+                }
+
+                if let Err(err) = runtime
+                    .conductor_handle
+                    .clone()
+                    .enable_app(app.installed_app_id)
+                    .await
+                {
+                    log::error!("Error re-enabling the app: {err:?}.");
+                }
+            }))
+            .await;
+
+            log::info!("Re-enabled all apps disabled in shutdown.");
+        }
+
+        Ok(runtime)
     }
 
     /// Builds an `AdminWebsocket` ready to use
@@ -88,8 +128,7 @@ impl HolochainRuntime {
 
         let app_port = admin_ws
             .attach_app_interface(0, allowed_origins.clone(), Some(app_id.clone()))
-            .await
-            .map_err(|err| crate::Error::ConductorApiError(err))?;
+            .await?;
 
         let response = admin_ws
             .issue_app_auth_token(
@@ -99,8 +138,7 @@ impl HolochainRuntime {
                     single_use: false,
                 },
             )
-            .await
-            .map_err(|err| crate::Error::ConductorApiError(err))?;
+            .await?;
 
         let token = response.token;
 
@@ -355,10 +393,8 @@ impl HolochainRuntime {
     /// * `app_id` - the app id to check
     pub async fn is_app_installed(&self, app_id: InstalledAppId) -> crate::Result<bool> {
         let admin_ws = self.admin_websocket().await?;
-        let apps = admin_ws
-            .list_apps(None)
-            .await
-            .map_err(|e| crate::Error::ConductorApiError(e))?;
+        let apps = admin_ws.list_apps(None).await?;
+
         let matching_app = apps
             .into_iter()
             .find(|app_info| app_info.installed_app_id == app_id);
@@ -371,10 +407,7 @@ impl HolochainRuntime {
     /// * `app_id` - the app id of the app to uninstall
     pub async fn uninstall_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws
-            .uninstall_app(app_id, false)
-            .await
-            .map_err(|e| crate::Error::ConductorApiError(e))?;
+        admin_ws.uninstall_app(app_id, false).await?;
 
         Ok(())
     }
@@ -384,10 +417,7 @@ impl HolochainRuntime {
     /// * `app_id` - the app id of the app to enable
     pub async fn enable_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws
-            .enable_app(app_id)
-            .await
-            .map_err(|e| crate::Error::ConductorApiError(e))?;
+        admin_ws.enable_app(app_id).await?;
 
         Ok(())
     }
@@ -397,10 +427,7 @@ impl HolochainRuntime {
     /// * `app_id` - the app id of the app to disable
     pub async fn disable_app(&self, app_id: InstalledAppId) -> crate::Result<()> {
         let admin_ws = self.admin_websocket().await?;
-        admin_ws
-            .disable_app(app_id)
-            .await
-            .map_err(|e| crate::Error::ConductorApiError(e))?;
+        admin_ws.disable_app(app_id).await?;
 
         Ok(())
     }
@@ -409,6 +436,34 @@ impl HolochainRuntime {
     /// Note that this is *NOT* fully implemented by Holochain,
     /// so kitsune tasks will continue to run.
     pub async fn shutdown(&self) -> crate::Result<()> {
+        // Leave all networks using `disable_app()`, which will make the cells leave the network
+        // and notify the bootstrap server and the peers about it
+
+        let admin_ws = self.admin_websocket().await?;
+
+        let apps = admin_ws
+            .list_apps(Some(holochain_client::AppStatusFilter::Enabled))
+            .await?;
+
+        join_all(apps.into_iter().map(async |app| {
+            if let Err(err) = self
+                .conductor_handle
+                .clone()
+                .disable_app(
+                    app.installed_app_id,
+                    holochain::prelude::DisabledAppReason::Error(
+                        NETWORK_SHUTDOWN_DISABLED_APP_REASON.into(),
+                    ),
+                )
+                .await
+            {
+                log::error!("Error disabling app: {err:?}.");
+            }
+        }))
+        .await;
+
+        log::info!("Disabled all running apps to leave their networks.");
+
         self.conductor_handle
             .shutdown()
             .await

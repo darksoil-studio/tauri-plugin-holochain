@@ -10,6 +10,10 @@ pub struct HolochainRuntimeConfig {
 
     /// Force the conductor to run at this admin port
     pub admin_port: Option<u16>,
+
+    /// Enable mDNS based discovery
+    /// Useful to discover peers in the same LAN
+    pub mdns_discovery: bool
 }
 
 impl HolochainRuntimeConfig {
@@ -18,11 +22,17 @@ impl HolochainRuntimeConfig {
             holochain_dir,
             network_config,
             admin_port: None,
+            mdns_discovery: false
         }
     }
 
     pub fn admin_port(mut self, admin_port: u16) -> Self {
         self.admin_port = Some(admin_port);
+        self
+    }
+
+    pub fn enable_mdns_discovery(mut self) -> Self {
+        self.mdns_discovery = true;
         self
     }
 }

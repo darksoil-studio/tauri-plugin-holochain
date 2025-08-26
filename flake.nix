@@ -3,16 +3,20 @@
 
   inputs = {
     holonix.url = "github:holochain/holonix/main-0.5";
+
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
     holochain-nix-builders.url =
       "github:darksoil-studio/holochain-nix-builders/main-0.5";
+    holochain-nix-builders.inputs.holonix.follows = "holonix";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
-    gonixpkgs.url = "github:nixos/nixpkgs/nixos-24.05";
+    scaffolding.inputs.holochain-nix-builders.follows =
+      "holochain-nix-builders";
+    scaffolding.inputs.holonix.follows = "holonix";
     webkitnixpkgs.url =
-      "github:nixos/nixpkgs/07518c851b0f12351d7709274bbbd4ecc1f089c7";
+      "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
   };
 
   nixConfig = {
@@ -74,7 +78,6 @@
         ./crates/hc-pilot/default.nix
         ./nix/tauri-cli.nix
         ./nix/android.nix
-        ./nix/custom-go-compiler.nix
         # inputs.holochain-nix-builders.outputs.flakeModules.builders
         inputs.holochain-nix-builders.outputs.flakeModules.dependencies
       ];
@@ -143,19 +146,21 @@
         dependencies.tauriHapp = {
           buildInputs = dependencies.tauriApp.buildInputs
             ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
-          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
+          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs
+            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
         };
 
-        devShells.tauriDev = pkgs.mkShell {
-          packages = with pkgs; [
-            nodejs_20
-            packages.tauriRust
-            shared-mime-info
-            gsettings-desktop-schemas
-          ];
+        devShells.tauriDev = let
+          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+            inputs.webkitnixpkgs.legacyPackages.${system}
+          else
+            inputs.nixpkgs.legacyPackages.${system};
+        in pkgs.mkShell {
+          packages = with pkgs;
+            [ packages.tauriRust shared-mime-info gsettings-desktop-schemas ]
+            ++ [ inputs.nixpkgs.outputs.legacyPackages.${system}.nodejs_22 ];
 
           buildInputs = dependencies.tauriApp.buildInputs;
-
           nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
 
           shellHook = if pkgs.stdenv.isLinux then ''
