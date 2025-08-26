@@ -472,12 +472,16 @@ export default defineConfig({
 
         assert_eq!(
             file_content(&repo, PathBuf::from("Cargo.toml").as_path()).unwrap(),
-        r#"[patch.crates-io.wasmer-types]
-branch = "fix-x86"
+        r#"[patch.crates-io.wasmer]
+branch = "fix-mobile"
+git = "https://github.com/guillemcordoba/wasmer"
+
+[patch.crates-io.wasmer-types]
+branch = "fix-mobile"
 git = "https://github.com/guillemcordoba/wasmer"
 
 [patch.crates-io.wasmer-vm]
-branch = "fix-x86"
+branch = "fix-mobile"
 git = "https://github.com/guillemcordoba/wasmer"
 
 [profile.dev]
