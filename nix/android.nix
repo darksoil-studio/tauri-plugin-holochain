@@ -16,10 +16,9 @@
       includeNDK = true;
       # ndkVersion = "25.2.9519653";
 
-      ndkVersion = "28.0.13004108";
+      ndkVersion = "28.1.13356709";
 
       # ndkVersion = "27.0.12077973";
-      # ndkVersion = "28.1.13356709";
 
       # includeExtras = [ "extras" "google" "auto" ];
     }).androidsdk;
