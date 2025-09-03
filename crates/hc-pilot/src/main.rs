@@ -163,7 +163,7 @@ async fn setup(
     network_seed: Option<String>,
 ) -> anyhow::Result<AppInfo> {
     let bytes = std::fs::read(app_bundle_path)?;
-    let app_bundle = AppBundle::decode(&bytes)?;
+    let app_bundle = AppBundle::unpack(&bytes)?;
     let app_id = app_bundle
         .clone()
         .into_inner()

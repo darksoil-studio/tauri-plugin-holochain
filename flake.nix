@@ -178,28 +178,30 @@
 
         packages.tauriRust = let
           rust = packages.rust.override { extensions = [ "rust-src" ]; };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-        in if pkgs.stdenv.isLinux then linuxCargo else rust;
+          # linuxCargo = pkgs.writeShellApplication {
+          #   name = "cargo";
+          #   runtimeInputs = [ rust ];
+          #   text = ''
+          #     RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+          #   '';
+          # };
+          # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        in rust;
 
         packages.holochainTauriRust = let
           rust = packages.rust.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-        in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        #   linuxCargo = pkgs.writeShellApplication {
+        #     name = "cargo";
+        #     runtimeInputs = [ rust ];
+        #     text = ''
+        #       RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+        #     '';
+        #   };
+        # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        in rust;
 
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
@@ -210,6 +212,7 @@
 
           shellHook = ''
             export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
+            export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
           '';
         };
 

@@ -400,10 +400,10 @@ mod tests {
   description = "Template for Holochain app development";
   
   inputs = {
-    tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.5";
+    tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.6";
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.5";
+    holonix.url = "github:holochain/holonix/main";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
   };
 

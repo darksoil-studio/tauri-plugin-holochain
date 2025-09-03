@@ -7,13 +7,13 @@ use std::{
 use async_std::sync::Mutex;
 use holochain::{
     conductor::ConductorHandle,
-    prelude::{DisabledAppReason, NetworkSeed, ZomeCallParams},
+    prelude::{AppStatus, DisabledAppReason, NetworkSeed, ZomeCallParams},
 };
 use holochain_client::{
     AdminWebsocket, AgentPubKey, AppInfo, AppWebsocket, ConnectRequest, InstalledAppId,
     WebsocketConfig,
 };
-use holochain_conductor_api::{AppInfoStatus, ZomeCallParamsSigned};
+use holochain_conductor_api::ZomeCallParamsSigned;
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     web_app::WebAppBundle,
@@ -68,14 +68,11 @@ impl HolochainRuntime {
             log::info!("Re-enabling all apps disabled in shutdown.");
 
             join_all(apps.into_iter().map(async |app| {
-                let AppInfoStatus::Disabled { reason } = app.status else {
-                    return ();
-                };
-                let DisabledAppReason::Error(e) = reason else {
+                let AppStatus::Disabled(DisabledAppReason::Error(reason)) = app.status else {
                     return ();
                 };
 
-                if e.ne(&NETWORK_SHUTDOWN_DISABLED_APP_REASON.to_string()) {
+                if reason.ne(&NETWORK_SHUTDOWN_DISABLED_APP_REASON.to_string()) {
                     return ();
                 }
 
@@ -104,6 +101,7 @@ impl HolochainRuntime {
         let admin_ws = AdminWebsocket::connect_with_config(
             format!("localhost:{}", self.admin_port),
             Arc::new(config),
+            None
         )
         .await
         .map_err(|err| crate::Error::WebsocketConnectionError(format!("{err:?}")))?;
