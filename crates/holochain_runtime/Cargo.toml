@@ -12,7 +12,7 @@ holochain_keystore = {version = "0.6.0-dev", default-features = false }
 holochain_conductor_api = {version = "0.6.0-dev", default-features = false }
 holochain_util = {version = "0.6.0-dev", default-features = false }
 
-kitsune_p2p_mdns = "0.4"
+kitsune_p2p_mdns = { path = "../mdns" }
 kitsune2_api = "0.2"
 kitsune2_core = "0.2"
 

@@ -23,6 +23,9 @@ pub enum Error {
     SerializedBytesError(#[from] SerializedBytesError),
 
     #[error(transparent)]
+    MdnsError(#[from] kitsune_p2p_mdns::MdnsError),
+
+    #[error(transparent)]
     MrBundleError(#[from] MrBundleError),
 
     #[error(transparent)]
