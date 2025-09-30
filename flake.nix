@@ -2,7 +2,7 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.5";
+    holonix.url = "github:holochain/holonix/main";
 
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
