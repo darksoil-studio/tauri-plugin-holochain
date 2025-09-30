@@ -44,6 +44,7 @@ pub fn conductor_config(
         driver: InterfaceDriver::Websocket {
             port: admin_port,
             allowed_origins,
+            danger_bind_addr: None,
         },
     }]);
 

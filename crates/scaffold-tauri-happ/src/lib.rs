@@ -1,20 +1,23 @@
 use anyhow::Result;
+use convert_case::{Case, Casing};
 use dialoguer::{theme::ColorfulTheme, Input};
 use file_tree_utils::{dir_to_file_tree, map_file, FileTree, FileTreeError};
 use handlebars::{no_escape, RenderErrorReason};
 use include_dir::{include_dir, Dir};
 use nix_scaffolding_utils::{add_flake_input_to_flake_file, NixScaffoldingUtilsError};
 use npm_scaffolding_utils::{
-    add_npm_dev_dependency_to_package, add_npm_script_to_package, choose_npm_package, get_npm_package_name, guess_or_choose_package_manager, NpmScaffoldingUtilsError, PackageManager
+    add_npm_dev_dependency_to_package, add_npm_script_to_package, choose_npm_package,
+    get_npm_package_name, guess_or_choose_package_manager, NpmScaffoldingUtilsError,
+    PackageManager,
 };
 use rust_scaffolding_utils::add_member_to_workspace;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use templates_scaffolding_utils::{
-    helpers::merge::register_merge, register_case_helpers, render_template_file_tree_and_merge_with_existing, TemplatesScaffoldingUtilsError
+    helpers::merge::register_merge, register_case_helpers,
+    render_template_file_tree_and_merge_with_existing, TemplatesScaffoldingUtilsError,
 };
 use thiserror::Error;
-use convert_case::{Case, Casing};
 
 static TEMPLATE: Dir<'static> = include_dir!("$CARGO_MANIFEST_DIR/templates/end-user-happ");
 
@@ -70,7 +73,9 @@ struct ScaffoldEndUserHappData {
 
 fn validate_identifier(identifier: &String) -> Result<(), ScaffoldEndUserHappError> {
     if identifier.contains("-") || identifier.contains("_") {
-        Err(ScaffoldEndUserHappError::InvalidIdentifierError( String::from("The bundle identifier can only contain alphanumerical characters.")))
+        Err(ScaffoldEndUserHappError::InvalidIdentifierError(
+            String::from("The bundle identifier can only contain alphanumerical characters."),
+        ))
     } else if identifier.split(".").collect::<Vec<&str>>().len() != 3 {
         Err(ScaffoldEndUserHappError::InvalidIdentifierError(String::from("The bundle identifier must contain three segments split by points (eg. 'org.myorg.myapp').")))
     } else {
@@ -102,11 +107,14 @@ pub fn scaffold_tauri_happ(
         Some(i) => {
             validate_identifier(&i)?;
             i
-        },
+        }
         None => Input::with_theme(&ColorfulTheme::default())
-            .with_prompt(format!("Input the bundle identifier for your app (eg: org.myorg.{}): ", app_name.to_case(Case::Flat)))
+            .with_prompt(format!(
+                "Input the bundle identifier for your app (eg: org.myorg.{}): ",
+                app_name.to_case(Case::Flat)
+            ))
             .validate_with(|input: &String| validate_identifier(input))
-            .interact_text()?
+            .interact_text()?,
     };
 
     let mut app_bundle_location_from_root = happ_manifest_path.clone();
@@ -121,18 +129,21 @@ pub fn scaffold_tauri_happ(
             identifier,
             app_name: app_name.clone(),
             app_bundle_location_from_root,
-            package_manager
+            package_manager,
         },
     )?;
 
     let workspace_cargo_toml_path = PathBuf::from("Cargo.toml");
 
     map_file(
-       &mut file_tree,
-       &workspace_cargo_toml_path.clone().as_path(),
-       |cargo_toml_content| {
-           add_member_to_workspace(&(workspace_cargo_toml_path.clone(), cargo_toml_content), String::from("src-tauri"))
-       },
+        &mut file_tree,
+        &workspace_cargo_toml_path.clone().as_path(),
+        |cargo_toml_content| {
+            add_member_to_workspace(
+                &(workspace_cargo_toml_path.clone(), cargo_toml_content),
+                String::from("src-tauri"),
+            )
+        },
     )?;
 
     let ui_package = match ui_package {
@@ -141,7 +152,7 @@ pub fn scaffold_tauri_happ(
             let npm_package = choose_npm_package(&file_tree, &String::from("Which NPM package contains your UI?\n\nThis is needed so that the NPM scripts can start the UI and tauri can connect to it."))?;
             let name = get_npm_package_name(&npm_package)?;
             name
-        },
+        }
     };
 
     // - In package.json
@@ -182,10 +193,11 @@ pub fn scaffold_tauri_happ(
             let package_json_content = add_npm_script_to_package(
                 &(root_package_json_path.clone(), package_json_content),
                 &String::from("network"),
-                &format!("{} && concurrently -k \"UI_PORT=1420 {}\" \"{}\"", 
-                    
+                &format!(
+                    "{} && concurrently -k \"UI_PORT=1420 {}\" \"{}\"",
                     package_manager.run_script_command(String::from("build:happ"), None),
-                    package_manager.run_script_command(String::from("start"), Some(ui_package.clone())),
+                    package_manager
+                        .run_script_command(String::from("start"), Some(ui_package.clone())),
                     package_manager.run_script_command(String::from("launch"), None)
                 ),
             )?;
@@ -193,9 +205,11 @@ pub fn scaffold_tauri_happ(
             let package_json_content = add_npm_script_to_package(
                 &(root_package_json_path.clone(), package_json_content),
                 &String::from("network:android"),
-                &format!("{} && concurrently -k \"UI_PORT=1420 {}\" \"{}\" \"{}\"",
+                &format!(
+                    "{} && concurrently -k \"UI_PORT=1420 {}\" \"{}\" \"{}\"",
                     package_manager.run_script_command(String::from("build:happ"), None),
-                    package_manager.run_script_command(String::from("start"), Some(ui_package.clone())),
+                    package_manager
+                        .run_script_command(String::from("start"), Some(ui_package.clone())),
                     package_manager.run_script_command(String::from("tauri dev"), None),
                     package_manager.run_script_command(String::from("tauri android dev"), None),
                 ),
@@ -232,14 +246,15 @@ pub fn scaffold_tauri_happ(
                 &String::from("start"),
                 &String::from("vite --clearScreen false"),
             )
-    })?;
+        },
+    )?;
 
     // - In flake.nix
     map_file(
         &mut file_tree,
         PathBuf::from("flake.nix").as_path(),
         |flake_nix_content| {
-            let flake_nix_content = 
+            let flake_nix_content =
                 flake_nix_content.replace("            rust # For Rust development, with the WASM target included for zome builds","" );
 
             // - Add the `tauri-plugin-holochain` as input to the flake
@@ -262,7 +277,7 @@ pub fn scaffold_tauri_happ(
             }
             close += 2;
 
-            // TODO: check if there is per system, and if there is, check if there are inputs' in there 
+            // TODO: check if there is per system, and if there is, check if there are inputs' in there
 
             // - Add an androidDev devshell by copying the default devShell, and adding the holochainTauriAndroidDev
             let android_dev_shell = flake_nix_content[open..close]
@@ -348,10 +363,10 @@ pub fn get_scope_open_and_close_char_indexes(
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
     use super::*;
     use build_fs_tree::{dir, file};
     use file_tree_utils::file_content;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn simple_case_test() {
@@ -369,7 +384,12 @@ mod tests {
             "package-lock.json" => file!(empty_package_json("root")),
         };
 
-        let repo = scaffold_tauri_happ(repo, Some(String::from("package1")), Some(String::from("studio.darksoil.myapp"))).unwrap();
+        let repo = scaffold_tauri_happ(
+            repo,
+            Some(String::from("package1")),
+            Some(String::from("studio.darksoil.myapp")),
+        )
+        .unwrap();
 
         assert_eq!(
             file_content(&repo, PathBuf::from("package.json").as_path()).unwrap(),
@@ -441,7 +461,9 @@ mod tests {
         );
 
         assert!(
-            file_content(&repo, PathBuf::from("src-tauri/src/lib.rs").as_path()).unwrap().contains("../../workdir2/myhapp.happ"),
+            file_content(&repo, PathBuf::from("src-tauri/src/lib.rs").as_path())
+                .unwrap()
+                .contains("../../workdir2/myhapp.happ"),
         );
 
         assert_eq!(
@@ -468,11 +490,12 @@ export default defineConfig({
   },
   plugins: [svelte()],
 });
-"#);
+"#
+        );
 
         assert_eq!(
             file_content(&repo, PathBuf::from("Cargo.toml").as_path()).unwrap(),
-        r#"[patch.crates-io.wasmer-types]
+            r#"[patch.crates-io.wasmer-types]
 branch = "fix-x86"
 git = "https://github.com/guillemcordoba/wasmer"
 
@@ -500,11 +523,13 @@ path = "dnas/forum/zomes/coordinator/posts"
 
 [workspace.dependencies.posts_integrity]
 path = "dnas/forum/zomes/integrity/posts"
-"#)
-            }
+"#
+        )
+    }
 
-            fn workspace_cargo_toml() -> String {
-                String::from(r#"[profile.dev]
+    fn workspace_cargo_toml() -> String {
+        String::from(
+            r#"[profile.dev]
 opt-level = "z"
 
 [profile.release]
@@ -524,7 +549,8 @@ path = "dnas/forum/zomes/coordinator/posts"
 
 [workspace.dependencies.posts_integrity]
 path = "dnas/forum/zomes/integrity/posts"
-"#)
+"#,
+        )
     }
 
     fn empty_package_json(package_name: &str) -> String {
@@ -549,8 +575,9 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 export default defineConfig({
   plugins: [svelte()],
 });
-"#)
-        }
+"#,
+        )
+    }
 
     fn empty_happ_yaml(happ_name: &str) -> String {
         format!(
