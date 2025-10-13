@@ -2,16 +2,16 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.5";
+    holonix.url = "github:holochain/holonix/main";
 
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
     holochain-nix-builders.url =
-      "github:darksoil-studio/holochain-nix-builders/main-0.5";
+      "github:darksoil-studio/holochain-nix-builders/main-0.6";
     holochain-nix-builders.inputs.holonix.follows = "holonix";
-    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.6";
     scaffolding.inputs.holochain-nix-builders.follows =
       "holochain-nix-builders";
     scaffolding.inputs.holonix.follows = "holonix";
