@@ -2,12 +2,12 @@
   description = "Template for Holochain app development";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main";
+    holonix.url = "github:holochain/holonix/main-0.6";
 
     nixpkgs.follows = "holonix/nixpkgs";
     flake-parts.follows = "holonix/flake-parts";
 
-    playground.url = "github:darksoil-studio/holochain-playground/main-0.5";
+    playground.url = "github:darksoil-studio/holochain-playground/main-0.6";
     tauri-plugin-holochain.url = "path:../..";
   };
 

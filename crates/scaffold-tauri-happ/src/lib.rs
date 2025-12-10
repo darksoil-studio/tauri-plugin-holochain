@@ -261,7 +261,7 @@ pub fn scaffold_tauri_happ(
             let flake_nix_content = add_flake_input_to_flake_file(
                 flake_nix_content,
                 String::from("tauri-plugin-holochain"),
-                String::from("github:darksoil-studio/tauri-plugin-holochain/main-0.5"),
+                String::from("github:darksoil-studio/tauri-plugin-holochain/main-0.6"),
             )?;
 
             let scope_opener = String::from("devShells.default = pkgs.mkShell {");
@@ -423,8 +423,8 @@ mod tests {
     tauri-plugin-holochain.url = "github:darksoil-studio/tauri-plugin-holochain/main-0.6";
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main";
-    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    holonix.url = "github:holochain/holonix/main-0.6";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.6";
   };
 
   outputs = inputs @ { ... }:
@@ -610,8 +610,8 @@ roles:
   inputs = {
     nixpkgs.follows = "holonix/nixpkgs";
 
-    holonix.url = "github:holochain/holonix/main-0.5";
-    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    holonix.url = "github:holochain/holonix/main-0.6";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.6";
   };
 
   outputs = inputs @ { ... }:

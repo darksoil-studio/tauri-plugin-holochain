@@ -3587,7 +3587,7 @@ dependencies = [
  "indexmap 2.11.1",
  "itertools 0.14.0",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_core 0.3.0-dev.3",
+ "kitsune2_core",
  "lair_keystore",
  "lair_keystore_api",
  "mockall",
@@ -3723,7 +3723,7 @@ dependencies = [
  "holochain_zome_types 0.6.0-dev.17",
  "indexmap 2.11.1",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_core 0.3.0-dev.3",
+ "kitsune2_core",
  "kitsune2_gossip",
  "kitsune2_transport_tx5",
  "schemars 0.9.0",
@@ -3910,7 +3910,7 @@ dependencies = [
  "holochain_zome_types 0.6.0-dev.17",
  "kitsune2",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_core 0.3.0-dev.3",
+ "kitsune2_core",
  "kitsune2_gossip",
  "lair_keystore_api",
  "mockall",
@@ -3942,8 +3942,8 @@ dependencies = [
  "holochain_keystore 0.6.0-dev.17",
  "holochain_types 0.6.0-dev.23",
  "holochain_util 0.6.0-dev.3",
- "kitsune2_api 0.2.17",
- "kitsune2_core 0.2.17",
+ "kitsune2_api 0.3.0-dev.3",
+ "kitsune2_core",
  "kitsune_p2p_mdns",
  "lair_keystore",
  "lair_keystore_api",
@@ -5562,7 +5562,7 @@ source = "git+https://github.com/guillemcordoba/kitsune2?branch=iroh-transport-v
 dependencies = [
  "bytes",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_core 0.3.0-dev.3",
+ "kitsune2_core",
  "kitsune2_gossip",
  "kitsune2_transport_iroh",
  "serde",
@@ -5587,23 +5587,6 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_api"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c73cb5e344991b11c61352a66958394a167d6a6c1a82fcdd74a46bf3214933ab"
-dependencies = [
- "base64 0.22.1",
- "bytes",
- "futures",
- "prost 0.14.1",
- "serde",
- "serde_json",
- "thiserror 2.0.17",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "kitsune2_api"
 version = "0.3.0-dev.3"
 source = "git+https://github.com/guillemcordoba/kitsune2?branch=iroh-transport-v0.3#399fbc815cefd33e92b7b2b1514aeebfe6b70d8c"
 dependencies = [
@@ -5615,21 +5598,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.17",
  "tracing",
- "url",
-]
-
-[[package]]
-name = "kitsune2_bootstrap_client"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d44b6c847ef3617269041ffbf5c093e2a9ccca99e1e1f1ea8119f5f529f1d923"
-dependencies = [
- "base64 0.22.1",
- "kitsune2_api 0.2.17",
- "serde",
- "serde_json",
- "tracing",
- "ureq 3.1.2",
  "url",
 ]
 
@@ -5649,26 +5617,6 @@ dependencies = [
 
 [[package]]
 name = "kitsune2_core"
-version = "0.2.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7374b9ab13edb058398628702e1bdd34ab5a16d204c34873f235966768160ac"
-dependencies = [
- "bytes",
- "ed25519-dalek",
- "futures",
- "kitsune2_api 0.2.17",
- "kitsune2_bootstrap_client 0.2.17",
- "prost 0.14.1",
- "rand 0.8.5",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "kitsune2_core"
 version = "0.3.0-dev.3"
 source = "git+https://github.com/guillemcordoba/kitsune2?branch=iroh-transport-v0.3#399fbc815cefd33e92b7b2b1514aeebfe6b70d8c"
 dependencies = [
@@ -5676,7 +5624,7 @@ dependencies = [
  "ed25519-dalek",
  "futures",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_bootstrap_client 0.3.0-dev.3",
+ "kitsune2_bootstrap_client",
  "prost 0.14.1",
  "rand 0.8.5",
  "schemars 0.9.0",
@@ -5705,7 +5653,7 @@ dependencies = [
  "bytes",
  "futures",
  "kitsune2_api 0.3.0-dev.3",
- "kitsune2_core 0.3.0-dev.3",
+ "kitsune2_core",
  "kitsune2_dht",
  "prost 0.14.1",
  "rand 0.8.5",
