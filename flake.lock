@@ -260,11 +260,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1760350631,
-        "narHash": "sha256-9BPi0yqM52kay7eHsBrXgMfbuqOBNz6AhziUC4bsowU=",
+        "lastModified": 1770121204,
+        "narHash": "sha256-meHpdtUg1mPn+/FzJpulcdyoUKIaLP8LzDsOW5x/2gY=",
         "owner": "darksoil-studio",
         "repo": "scaffolding",
-        "rev": "825f3a7745e809a54f1f9a36550ab2dffb41d6e0",
+        "rev": "f601d7f7c56ac485885f21a15d115f07d4794373",
         "type": "github"
       },
       "original": {
