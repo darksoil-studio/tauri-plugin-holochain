@@ -99,7 +99,7 @@
           else
             inputs.nixpkgs.legacyPackages.${system};
           buildInputs = (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-            webkitgtk # Brings libwebkit2gtk-4.0.so.37
+            # webkitgtk_4_0 # Brings libwebkit2gtk-4.0.so.37
             webkitgtk_4_1 # Needed for javascriptcoregtk
             # openssl
             # openssl_3
