@@ -11,14 +11,14 @@ links = "tauri-plugin-holochain"
 tauri = { version = "2.1.1" }
 
 # Holochain dependencies
-holochain_types = { version = "0.6.0-dev", default-features = false }
+holochain_types = { version = "0.6", default-features = false }
 
 # Lair dependencies
 hc_seed_bundle = "0.3"
-lair_keystore_api = "0.6.0"
+lair_keystore_api = "0.6"
 
 # Holochain client
-holochain_client = { version = "0.8.0-dev", default-features = false }
+holochain_client = { version = "0.8", default-features = false }
 
 holochain_runtime = { path = "../holochain_runtime", default-features = false }
 
