@@ -40,9 +40,8 @@ pub fn conductor_config(
         });
         network_config.advanced = Some(advanced_config);
     }
-    // network_config.request_timeout_s = 30; // Much better than the default 60
+    network_config.request_timeout_s = 30; // Much better than the default 60
     config.network = network_config;
-    config.request_timeout_s = 30;
 
     // TODO: uncomment when we can set a custom origin for holochain-client-rust
     // let mut origins: HashSet<String> = HashSet::new();
