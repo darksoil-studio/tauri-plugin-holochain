@@ -384,7 +384,7 @@ impl<R: Runtime, T: Manager<R>> crate::HolochainExt<R> for T {
 
 pub type HolochainPluginConfig = HolochainRuntimeConfig;
 
-fn plugin_builder<R: Runtime>() -> Builder<R> {
+pub fn plugin_builder<R: Runtime>() -> Builder<R> {
     Builder::new("holochain")
         .invoke_handler(tauri::generate_handler![
             commands::sign_zome_call::sign_zome_call,
