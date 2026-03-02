@@ -583,7 +583,7 @@ export default defineConfig({
         format!(
             r#"
 ---
-manifest_version: "1"
+manifest_version: "0"
 name: {happ_name}
 description: ~
 roles:
