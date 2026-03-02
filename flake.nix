@@ -204,15 +204,21 @@
         # in if pkgs.stdenv.isLinux then linuxCargo else rust;
         in rust;
 
+        packages.fixNixCflagsHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-hook";
+        } (pkgs.writeText "fix-nix-cflags-hook.sh" ''
+          shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
+
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
             inputs'.holochain-nix-builders.devShells.holochainDev
           ];
+          nativeBuildInputs = [ packages.fixNixCflagsHook ];
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
-            source ${./nix/fix-nix-cflags.sh}
             export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
             export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
           '';
