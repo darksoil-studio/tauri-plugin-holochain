@@ -7,7 +7,7 @@ nix shell --accept-flake-config --refresh github:holochain/scaffolding/main-0.6#
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
-hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix true -F --package-manager npm
+hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix -F
 cd /tmp/forum-scaffold-tauri-happ
 nix flake update
 hc-scaffold --version && npm i && hc-scaffold dna forum && hc-scaffold zome posts --integrity dnas/forum/zomes/integrity/ --coordinator dnas/forum/zomes/coordinator/
