@@ -25,6 +25,13 @@
             inputs'.playground.packages.hc-playground
             pkgs.mprocs
           ];
+          shellHook = ''
+            # Unset redundant _FOR_BUILD and _FOR_TARGET env vars to prevent
+            # "Argument list too long" errors when linking. The combined
+            # inputsFrom shells create env vars that exceed ARG_MAX (2MB).
+            unset NIX_CFLAGS_COMPILE_FOR_BUILD NIX_LDFLAGS_FOR_BUILD
+            unset NIX_CFLAGS_COMPILE_FOR_TARGET NIX_LDFLAGS_FOR_TARGET
+          '';
         };
         devShells.androidDev = pkgs.mkShell {
           inputsFrom = [

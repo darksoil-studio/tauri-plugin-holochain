@@ -3396,6 +3396,7 @@ dependencies = [
  "portpicker",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha256",
  "thiserror 1.0.69",
  "tokio",
