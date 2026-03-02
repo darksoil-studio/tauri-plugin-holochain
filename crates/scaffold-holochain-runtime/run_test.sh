@@ -11,6 +11,7 @@ cd /tmp/test-scaffold-holochain-runtime
 nix flake update --override-input tauri-plugin-holochain $DIR
 nix develop --override-input tauri-plugin-holochain $DIR --command bash -c "
 set -e
+ulimit -s unlimited
 npm i
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
