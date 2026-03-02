@@ -212,6 +212,7 @@
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
+            ulimit -s unlimited
             export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
             export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
           '';
