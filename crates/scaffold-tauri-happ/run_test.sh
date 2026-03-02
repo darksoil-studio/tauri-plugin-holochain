@@ -7,7 +7,7 @@ nix shell --accept-flake-config --refresh github:holochain/scaffolding/87e997a73
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
-hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix -F
+hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix true -F --package-manager npm
 cd /tmp/forum-scaffold-tauri-happ
 nix flake update
 hc-scaffold --version && npm i && hc-scaffold dna forum && hc-scaffold zome posts --integrity dnas/forum/zomes/integrity/ --coordinator dnas/forum/zomes/coordinator/
@@ -24,7 +24,6 @@ npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
 cargo update
-cargo update wasmer-middlewares --precise 6.0.1
 cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
 cd ..
 npm run build:happ
