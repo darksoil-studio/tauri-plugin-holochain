@@ -12,6 +12,11 @@
 # -fmacro-prefix-map flags (only for debug info reproducibility, not needed
 # in dev shells), and deduplicate everything.
 #
+# Set NIX_CFLAGS_KEEP_ISYSTEM=1 before sourcing to keep -isystem flags in
+# NIX_CFLAGS_COMPILE (deduped) instead of moving them to C_INCLUDE_PATH.
+# This is needed for Android cross-compilation where C_INCLUDE_PATH would
+# leak host include paths (e.g. glibc_multi) to the NDK clang compiler.
+#
 # This script must be sourced, not executed.
 
 # --- Helper: reduce a CFLAGS variable ---
@@ -25,12 +30,22 @@ _reduce_cflags() {
 
   local _include_dirs=""
   local _other_flags=""
+  local _isystem_flags=""
   local _prev=""
   local _flag
+  declare -A _isystem_seen=()
 
   for _flag in $_value; do
     if [ "$_prev" = "-isystem" ] || [ "$_prev" = "-idirafter" ]; then
       _include_dirs="${_include_dirs:+$_include_dirs:}$_flag"
+      # When keeping isystem, deduplicate and preserve in output
+      if [ "${NIX_CFLAGS_KEEP_ISYSTEM:-}" = "1" ]; then
+        local _pair="$_prev $_flag"
+        if [ -z "${_isystem_seen[$_pair]+x}" ]; then
+          _isystem_seen[$_pair]=1
+          _isystem_flags="$_isystem_flags $_prev $_flag"
+        fi
+      fi
       _prev=""
     elif [ "$_flag" = "-isystem" ] || [ "$_flag" = "-idirafter" ]; then
       _prev="$_flag"
@@ -55,7 +70,7 @@ _reduce_cflags() {
     fi
   done
 
-  export "$_varname"="$_deduped"
+  export "$_varname"="$_isystem_flags$_deduped"
 }
 
 # --- Helper: reduce an LDFLAGS variable ---
@@ -122,8 +137,8 @@ _reduce_cflags NIX_CFLAGS_COMPILE
 _reduce_cflags NIX_CFLAGS_COMPILE_FOR_BUILD
 _reduce_cflags NIX_CFLAGS_COMPILE_FOR_TARGET
 
-# Set deduplicated include paths
-if [ -n "$_all_include_dirs" ]; then
+# Set deduplicated include paths (skip when keeping isystem in CFLAGS)
+if [ "${NIX_CFLAGS_KEEP_ISYSTEM:-}" != "1" ] && [ -n "$_all_include_dirs" ]; then
   export C_INCLUDE_PATH="${C_INCLUDE_PATH:+$C_INCLUDE_PATH:}$_all_include_dirs"
   export CPLUS_INCLUDE_PATH="${CPLUS_INCLUDE_PATH:+$CPLUS_INCLUDE_PATH:}$_all_include_dirs"
   _dedup_path C_INCLUDE_PATH

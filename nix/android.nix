@@ -118,7 +118,7 @@
         devShells.androidDev
         inputs'.holochain-nix-builders.devShells.holochainDev
       ];
-      nativeBuildInputs = [ self'.packages.fixNixCflagsHook ];
+      nativeBuildInputs = [ self'.packages.fixNixCflagsAndroidHook ];
       packages = [ packages.androidTauriRust ];
       buildInputs =
         inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs

@@ -210,6 +210,15 @@
           shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}'
         '');
 
+        # Android variant: keeps -isystem flags in NIX_CFLAGS_COMPILE (deduped)
+        # instead of moving them to C_INCLUDE_PATH, which would leak host
+        # include paths (e.g. glibc_multi) to the Android NDK clang compiler.
+        packages.fixNixCflagsAndroidHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-android-hook";
+        } (pkgs.writeText "fix-nix-cflags-android-hook.sh" ''
+          shellHook+=$'\nexport NIX_CFLAGS_KEEP_ISYSTEM=1\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
+
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
