@@ -3,7 +3,7 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/scaffolding/main-0.6#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh github:holochain/scaffolding/87e997a7361d4aa7c1bb96261483ebba50223bd0#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
@@ -24,7 +24,6 @@ npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
 cargo update
-cargo update wasmer-middlewares --precise 6.0.1
 cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
 cd ..
 npm run build:happ
@@ -36,5 +35,5 @@ set -e
 
 npm install
 npm run tauri android init -- --skip-targets-install
-npm run tauri android build
+npm run tauri android build -- --target aarch64 --target x86_64
 "
