@@ -2672,19 +2672,6 @@ dependencies = [
 [[package]]
 name = "file_tree_utils"
 version = "0.1.0"
-source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6#2790bc65ea2453e37568a0a96785a26afbc4592a"
-dependencies = [
- "build-fs-tree",
- "ignore",
- "include_dir",
- "regex",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "file_tree_utils"
-version = "0.1.0"
 source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1#88068700b617d05cbd4f52f95d70870331a04af2"
 dependencies = [
  "build-fs-tree",
@@ -4075,7 +4062,7 @@ version = "0.1.0"
 source = "git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1#88068700b617d05cbd4f52f95d70870331a04af2"
 dependencies = [
  "dialoguer",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "holochain_types",
  "mr_bundle",
  "serde",
@@ -6535,7 +6522,7 @@ dependencies = [
  "build-fs-tree",
  "clap",
  "colored 2.2.0",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "ignore",
  "regex",
  "rnix 0.11.0",
@@ -6570,7 +6557,7 @@ dependencies = [
  "clap",
  "colored 2.2.0",
  "dialoguer",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "ignore",
  "regex",
  "serde",
@@ -8733,7 +8720,7 @@ dependencies = [
  "clap",
  "colored 2.2.0",
  "dialoguer",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "ignore",
  "regex",
  "serde",
@@ -9029,7 +9016,7 @@ dependencies = [
  "colored 2.2.0",
  "convert_case 0.6.0",
  "dialoguer",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6)",
+ "file_tree_utils",
  "handlebars",
  "ignore",
  "include_dir",
@@ -9049,7 +9036,7 @@ dependencies = [
  "colored 2.2.0",
  "convert_case 0.6.0",
  "dialoguer",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "handlebars",
  "holochain_scaffolding_utils",
  "ignore",
@@ -10472,7 +10459,7 @@ dependencies = [
  "build-fs-tree",
  "clap",
  "convert_case 0.6.0",
- "file_tree_utils 0.1.0 (git+https://github.com/darksoil-studio/scaffolding?branch=main-0.6.1)",
+ "file_tree_utils",
  "handlebars",
  "ignore",
  "regex",
