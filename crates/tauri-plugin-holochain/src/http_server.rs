@@ -193,8 +193,8 @@ pub async fn read_asset(
             };
             match std::fs::read(asset_file.clone()) {
                 Ok(asset) => Ok(Some((asset, mime_type))),
-                Err(_e) => Ok(None)
+                Err(_e) => Ok(None),
             }
-        },
+        }
     }
 }

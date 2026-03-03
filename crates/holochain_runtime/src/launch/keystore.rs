@@ -34,7 +34,6 @@ pub fn spawn_lair_keystore_in_proc(
 ) -> LairResult<MetaLairClient> {
     limits().with_exec(|| {
         holochain_util::tokio_helper::block_forever_on(async move {
-
             let config = get_config(config_path, passphrase.clone()).await?;
 
             log::debug!("Spawning lair keystore with config: {:?}.", config);

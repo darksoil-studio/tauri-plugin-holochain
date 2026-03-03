@@ -12,7 +12,7 @@ const APP_ID: &'static str = "{{app_name}}";
 
 pub fn happ_bundle() -> AppBundle {
     let bytes = include_bytes!("../../{{app_bundle_location_from_root}}");
-    AppBundle::decode(bytes).expect("Failed to decode {{app_name}} happ")
+    AppBundle::unpack(&bytes[..]).expect("Failed to decode {{app_name}} happ")
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

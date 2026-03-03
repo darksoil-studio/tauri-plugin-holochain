@@ -118,7 +118,7 @@ impl BundleStore {
     }
 
     pub fn web_app_bundle_hash(web_app_bundle: &WebAppBundle) -> crate::Result<String> {
-        let web_happ_bundle_hash = sha256::digest(web_app_bundle.encode()?);
+        let web_happ_bundle_hash = sha256::digest(web_app_bundle.pack()?.to_vec());
         Ok(web_happ_bundle_hash)
     }
 
@@ -258,7 +258,7 @@ impl UiStore {
 
         let ui_zip_path = self.path.join("ui.zip");
 
-        fs::write(ui_zip_path.clone(), ui_bytes.into_owned().into_inner())?;
+        fs::write(ui_zip_path.clone(), ui_bytes)?;
 
         let file = std::fs::File::open(ui_zip_path.clone())?;
         unzip_file(file, ui_folder_path)?;
@@ -279,8 +279,8 @@ pub struct AppBundleStore {
 
 impl AppBundleStore {
     pub fn app_bundle_hash(app_bundle: &AppBundle) -> crate::Result<String> {
-        let bytes = app_bundle.encode()?;
-        let hash = sha256::digest(bytes);
+        let bytes = app_bundle.pack()?;
+        let hash = sha256::digest(bytes.to_vec());
         Ok(hash)
     }
 
@@ -307,12 +307,12 @@ impl AppBundleStore {
     // }
 
     pub fn store_app_bundle(&self, app_bundle: &AppBundle) -> crate::Result<String> {
-        let bytes = app_bundle.encode()?;
-        let hash = sha256::digest(&bytes);
+        let bytes = app_bundle.pack()?;
+        let hash = sha256::digest(bytes.to_vec());
         let path = self.path.join(format!("{}.happ", hash));
 
         let mut file = std::fs::File::create(path)?;
-        file.write_all(bytes.as_slice())?;
+        file.write_all(&bytes.iter().as_slice())?;
 
         Ok(hash)
     }

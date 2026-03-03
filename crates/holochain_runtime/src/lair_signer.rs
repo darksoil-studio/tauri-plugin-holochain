@@ -45,7 +45,6 @@ impl AgentSigner for LairAgentSignerWithProvenance {
     }
 }
 
-
 /// Signs an unsigned zome call with the given LairClient
 pub(crate) async fn sign_zome_call_with_client(
     params: ZomeCallParams,

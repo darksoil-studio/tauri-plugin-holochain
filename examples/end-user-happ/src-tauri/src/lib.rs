@@ -6,7 +6,7 @@ const APP_ID: &'static str = "example";
 
 pub fn example_happ() -> AppBundle {
     let bytes = include_bytes!("../../workdir/forum.happ");
-    AppBundle::decode(bytes).expect("Failed to decode example happ")
+    AppBundle::unpack(&bytes[..]).expect("Failed to decode example happ")
 }
 
 fn network_config() -> NetworkConfig {

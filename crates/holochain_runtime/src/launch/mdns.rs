@@ -83,7 +83,7 @@ pub async fn spawn_mdns_bootstrap(admin_port: u16) -> crate::Result<()> {
 }
 
 pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crate::Result<()> {
-    let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port))
+    let admin_ws = AdminWebsocket::connect(format!("localhost:{}", admin_port), None)
         .await
         .map_err(|err| {
             crate::Error::WebsocketConnectionError(format!(
@@ -92,9 +92,10 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
         })?;
     let space_b64 = base64::prelude::BASE64_URL_SAFE_NO_PAD.encode(&space[..]);
 
+    let stream = mdns_listen(space_b64.clone())?;
+    log::debug!("Listening for mDNS agents for space {space_b64}.");
+
     tokio::spawn(async move {
-        log::debug!("Listening for mDNS agents for space {space_b64}.");
-        let stream = mdns_listen(space_b64);
         tokio::pin!(stream);
         while let Some(maybe_response) = stream.next().await {
             match maybe_response {
@@ -154,7 +155,8 @@ pub async fn spawn_listen_to_space_task(space: SpaceId, admin_port: u16) -> crat
 async fn wait_until_admin_ws_is_available(admin_port: u16) -> crate::Result<AdminWebsocket> {
     let mut retry_count = 0;
     loop {
-        let connect_result = AdminWebsocket::connect(format!("localhost:{}", admin_port)).await;
+        let connect_result =
+            AdminWebsocket::connect(format!("localhost:{}", admin_port), None).await;
         match connect_result {
             Ok(admin_ws) => {
                 return Ok(admin_ws);

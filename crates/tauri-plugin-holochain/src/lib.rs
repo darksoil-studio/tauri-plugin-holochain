@@ -511,18 +511,19 @@ fn plugin_builder<R: Runtime>() -> Builder<R> {
 }
 
 fn shutdown_runtime<R: Runtime>(app: &AppHandle<R>) -> crate::Result<()> {
-    let result: std::result::Result<crate::Result<()>, tokio::time::error::Elapsed> = tokio_helper::block_on(
-        async move {
-            let holochain = app
-                .holochain()
-                .map_err(|_err| crate::Error::HolochainNotInitializedError)?;
+    let result: std::result::Result<crate::Result<()>, tokio::time::error::Elapsed> =
+        tokio_helper::block_on(
+            async move {
+                let holochain = app
+                    .holochain()
+                    .map_err(|_err| crate::Error::HolochainNotInitializedError)?;
 
-            holochain.holochain_runtime.shutdown().await?;
+                holochain.holochain_runtime.shutdown().await?;
 
-            Ok(())
-        },
-        Duration::from_secs(3),
-    );
+                Ok(())
+            },
+            Duration::from_secs(3),
+        );
     result.map_err(|err| crate::Error::ShutdownError(format!("{err:?}")))??;
     Ok(())
 }

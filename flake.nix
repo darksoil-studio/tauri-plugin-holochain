@@ -2,16 +2,16 @@
   description = "Build cross-platform holochain apps and runtimes";
 
   inputs = {
-    holonix.url = "github:holochain/holonix/main-0.5";
+    holonix.url = "github:holochain/holonix/main-0.6";
 
     nixpkgs.follows = "holonix/nixpkgs";
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
     holochain-nix-builders.url =
-      "github:darksoil-studio/holochain-nix-builders/main-0.5";
+      "github:darksoil-studio/holochain-nix-builders/main-0.6";
     holochain-nix-builders.inputs.holonix.follows = "holonix";
-    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.5";
+    scaffolding.url = "github:darksoil-studio/scaffolding/main-0.6";
     scaffolding.inputs.holochain-nix-builders.follows =
       "holochain-nix-builders";
     scaffolding.inputs.holonix.follows = "holonix";
@@ -99,7 +99,7 @@
           else
             inputs.nixpkgs.legacyPackages.${system};
           buildInputs = (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-            webkitgtk # Brings libwebkit2gtk-4.0.so.37
+            # webkitgtk # Brings libwebkit2gtk-4.0.so.37
             webkitgtk_4_1 # Needed for javascriptcoregtk
             # openssl
             # openssl_3
@@ -122,23 +122,24 @@
             # libdrm
             # libglvnd
             # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-            gst_all_1.gstreamer
-            # Common plugins like "filesrc" to combine within e.g. gst-launch
-            gst_all_1.gst-plugins-base
-            # Specialized plugins separated by quality
-            gst_all_1.gst-plugins-good
-            gst_all_1.gst-plugins-bad
-            gst_all_1.gst-plugins-ugly
-            # Plugins to reuse ffmpeg to play almost every video format
-            gst_all_1.gst-libav
-            # Support the Video Audio (Hardware) Acceleration API
-            gst_all_1.gst-vaapi
+            # gst_all_1.gstreamer
+            # # Common plugins like "filesrc" to combine within e.g. gst-launch
+            # gst_all_1.gst-plugins-base
+            # # Specialized plugins separated by quality
+            # gst_all_1.gst-plugins-good
+            # gst_all_1.gst-plugins-bad
+            # gst_all_1.gst-plugins-ugly
+            # # Plugins to reuse ffmpeg to play almost every video format
+            # gst_all_1.gst-libav
+            # # Support the Video Audio (Hardware) Acceleration API
+            # gst_all_1.gst-vaapi
             libsoup_3
             dbus
             librsvg
           ]));
           nativeBuildInputs = (with pkgs; [ perl pkg-config makeWrapper ])
             ++ (lib.optionals pkgs.stdenv.isLinux
+              # (with pkgs; [ wrapGAppsHook3 ]))
               (with pkgs; [ wrapGAppsHook ]))
             ++ (lib.optionals pkgs.stdenv.isDarwin [ pkgs.libiconv ]);
         in { inherit buildInputs nativeBuildInputs; };
@@ -178,38 +179,57 @@
 
         packages.tauriRust = let
           rust = packages.rust.override { extensions = [ "rust-src" ]; };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-        in if pkgs.stdenv.isLinux then linuxCargo else rust;
+          # linuxCargo = pkgs.writeShellApplication {
+          #   name = "cargo";
+          #   runtimeInputs = [ rust ];
+          #   text = ''
+          #     RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+          #   '';
+          # };
+          # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        in rust;
 
         packages.holochainTauriRust = let
           rust = packages.rust.override {
             extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
           };
-          linuxCargo = pkgs.writeShellApplication {
-            name = "cargo";
-            runtimeInputs = [ rust ];
-            text = ''
-              RUSTFLAGS="-C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-            '';
-          };
-        in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        #   linuxCargo = pkgs.writeShellApplication {
+        #     name = "cargo";
+        #     runtimeInputs = [ rust ];
+        #     text = ''
+        #       RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+        #     '';
+        #   };
+        # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+        in rust;
+
+        packages.fixNixCflagsHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-hook";
+        } (pkgs.writeText "fix-nix-cflags-hook.sh" ''
+          shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
+
+        # Android variant: keeps -isystem flags in NIX_CFLAGS_COMPILE (deduped)
+        # instead of moving them to C_INCLUDE_PATH, which would leak host
+        # include paths (e.g. glibc_multi) to the Android NDK clang compiler.
+        packages.fixNixCflagsAndroidHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-android-hook";
+        } (pkgs.writeText "fix-nix-cflags-android-hook.sh" ''
+          shellHook+=$'\nexport NIX_CFLAGS_KEEP_ISYSTEM=1\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
 
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
             inputs'.holochain-nix-builders.devShells.holochainDev
           ];
+          nativeBuildInputs = [ packages.fixNixCflagsHook ];
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''
             export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
+            export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
           '';
         };
 

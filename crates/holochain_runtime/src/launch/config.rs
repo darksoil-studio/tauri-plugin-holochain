@@ -2,11 +2,11 @@ use holochain::conductor::{
     config::{AdminInterfaceConfig, ConductorConfig, KeystoreConfig},
     interface::InterfaceDriver,
 };
-use holochain_conductor_api::conductor::DpkiConfig;
 use holochain_keystore::paths::KeystorePath;
 use holochain_types::websocket::AllowedOrigins;
-
-use crate::{filesystem::FileSystem, launch::DEVICE_SEED_LAIR_KEYSTORE_TAG, NetworkConfig};
+// use holochain_conductor_api::conductor::DpkiConfig;
+// use crate::launch::DEVICE_SEED_LAIR_KEYSTORE_TAG;
+use crate::{filesystem::FileSystem, NetworkConfig};
 
 pub fn conductor_config(
     fs: &FileSystem,
@@ -19,19 +19,30 @@ pub fn conductor_config(
     config.keystore = KeystoreConfig::LairServerInProc {
         lair_root: Some(lair_root),
     };
-    config.device_seed_lair_tag = Some(DEVICE_SEED_LAIR_KEYSTORE_TAG.into());
-    config.dpki = DpkiConfig::disabled();
+    // config.device_seed_lair_tag = Some(DEVICE_SEED_LAIR_KEYSTORE_TAG.into());
+    // config.dpki = DpkiConfig::disabled();
 
-    // LAN
     if let None = network_config.advanced {
         let advanced_config = serde_json::json!({
             "tx5Transport": {
                 "signalAllowPlainText": true,
             },
+            "irohTransport": {
+                "relayAllowPlainText": true,
+                "coreBootstrap": {
+                    "backoffMaxMs": 20000,
+                },
+            },
+            "coreSpace": {
+                "reSignExpireTimeMs": 20000,
+                "reSignFreqMs": 20000,
+            },
         });
         network_config.advanced = Some(advanced_config);
     }
+    // network_config.request_timeout_s = 30; // Much better than the default 60
     config.network = network_config;
+    config.request_timeout_s = 30;
 
     // TODO: uncomment when we can set a custom origin for holochain-client-rust
     // let mut origins: HashSet<String> = HashSet::new();
@@ -44,6 +55,7 @@ pub fn conductor_config(
         driver: InterfaceDriver::Websocket {
             port: admin_port,
             allowed_origins,
+            danger_bind_addr: None,
         },
     }]);
 

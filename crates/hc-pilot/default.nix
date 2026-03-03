@@ -43,7 +43,7 @@
         version = cargoToml.package.version;
         # inherit cargoArtifacts;
       });
-    in pkgs.runCommandNoCC crate { buildInputs = [ pkgs.makeWrapper ]; } ''
+    in pkgs.runCommand crate { buildInputs = [ pkgs.makeWrapper ]; } ''
       mkdir $out
       mkdir $out/bin
       makeWrapper ${binary}/bin/hc-pilot $out/bin/hc-pilot \
