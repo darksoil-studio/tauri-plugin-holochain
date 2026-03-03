@@ -118,6 +118,7 @@
         devShells.androidDev
         inputs'.holochain-nix-builders.devShells.holochainDev
       ];
+      nativeBuildInputs = [ self'.packages.fixNixCflagsAndroidHook ];
       packages = [ packages.androidTauriRust ];
       buildInputs =
         inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs
@@ -126,6 +127,7 @@
 
       shellHook = ''
         export PS1='\[\033[1;34m\][tauri-plugin-holochain-android:\w]\$\[\033[0m\] '
+        export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
       '';
     };
   };

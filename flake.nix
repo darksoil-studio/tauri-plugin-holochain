@@ -122,17 +122,17 @@
             # libdrm
             # libglvnd
             # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-            gst_all_1.gstreamer
-            # Common plugins like "filesrc" to combine within e.g. gst-launch
-            gst_all_1.gst-plugins-base
-            # Specialized plugins separated by quality
-            gst_all_1.gst-plugins-good
-            gst_all_1.gst-plugins-bad
-            gst_all_1.gst-plugins-ugly
-            # Plugins to reuse ffmpeg to play almost every video format
-            gst_all_1.gst-libav
-            # Support the Video Audio (Hardware) Acceleration API
-            gst_all_1.gst-vaapi
+            # gst_all_1.gstreamer
+            # # Common plugins like "filesrc" to combine within e.g. gst-launch
+            # gst_all_1.gst-plugins-base
+            # # Specialized plugins separated by quality
+            # gst_all_1.gst-plugins-good
+            # gst_all_1.gst-plugins-bad
+            # gst_all_1.gst-plugins-ugly
+            # # Plugins to reuse ffmpeg to play almost every video format
+            # gst_all_1.gst-libav
+            # # Support the Video Audio (Hardware) Acceleration API
+            # gst_all_1.gst-vaapi
             libsoup_3
             dbus
             librsvg
@@ -204,11 +204,27 @@
         # in if pkgs.stdenv.isLinux then linuxCargo else rust;
         in rust;
 
+        packages.fixNixCflagsHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-hook";
+        } (pkgs.writeText "fix-nix-cflags-hook.sh" ''
+          shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
+
+        # Android variant: keeps -isystem flags in NIX_CFLAGS_COMPILE (deduped)
+        # instead of moving them to C_INCLUDE_PATH, which would leak host
+        # include paths (e.g. glibc_multi) to the Android NDK clang compiler.
+        packages.fixNixCflagsAndroidHook = pkgs.makeSetupHook {
+          name = "fix-nix-cflags-android-hook";
+        } (pkgs.writeText "fix-nix-cflags-android-hook.sh" ''
+          shellHook+=$'\nexport NIX_CFLAGS_KEEP_ISYSTEM=1\nsource ${./nix/fix-nix-cflags.sh}'
+        '');
+
         devShells.holochainTauriDev = pkgs.mkShell {
           inputsFrom = [
             devShells.tauriDev
             inputs'.holochain-nix-builders.devShells.holochainDev
           ];
+          nativeBuildInputs = [ packages.fixNixCflagsHook ];
           packages = [ packages.holochainTauriRust ];
 
           shellHook = ''

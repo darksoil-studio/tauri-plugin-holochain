@@ -40,6 +40,7 @@ async-trait = "0.1"
 sha256 = "1"
 zip = { version = "0.6" }
 serde_json = "1"
+serde_yaml = "0.9"
 base64 = "0.22"
 tokio = "1"
 anyhow = "1"
