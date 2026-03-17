@@ -14,6 +14,7 @@ use holochain_client::{
     WebsocketConfig,
 };
 use holochain_conductor_api::ZomeCallParamsSigned;
+use holochain_keystore::MetaLairClient;
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     web_app::WebAppBundle,
@@ -49,6 +50,18 @@ pub struct HolochainRuntime {
     pub apps_websockets_auths: Arc<Mutex<Vec<AppWebsocketAuth>>>,
     pub admin_port: u16,
     pub conductor_handle: ConductorHandle,
+
+    pub(crate) lair_client: MetaLairClient,
+    pub(crate) passphrase: SharedLockedArray,
+
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_config: Option<crate::hc_auth::HcAuthConfig>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_status: Arc<std::sync::RwLock<crate::hc_auth::HcAuthStatus>>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_agent_key: Arc<std::sync::RwLock<Option<AgentPubKey>>>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_raw_ed25519_b64url: Arc<std::sync::RwLock<Option<String>>>,
 }
 
 impl HolochainRuntime {
@@ -427,6 +440,131 @@ impl HolochainRuntime {
         let admin_ws = self.admin_websocket().await?;
         admin_ws.disable_app(app_id).await?;
 
+        Ok(())
+    }
+
+    #[cfg(feature = "hc-auth")]
+    pub fn is_hc_auth_configured(&self) -> bool {
+        self.hc_auth_config.is_some()
+    }
+
+    /// Get the hc-auth status for this runtime.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_status(&self) -> crate::hc_auth::HcAuthStatus {
+        self.hc_auth_status.read().unwrap().clone()
+    }
+
+    /// Get the hc-auth agent key (Holochain format) if available.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_agent_key(&self) -> Option<AgentPubKey> {
+        self.hc_auth_agent_key.read().unwrap().clone()
+    }
+
+    /// Get the raw Ed25519 base64url public key for hc-auth.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_raw_ed25519_b64url(&self) -> Option<String> {
+        self.hc_auth_raw_ed25519_b64url.read().unwrap().clone()
+    }
+
+    /// Restart the conductor with fresh hc-auth material.
+    /// Lair stays running; only the conductor is shut down and rebuilt.
+    /// Returns a new `HolochainRuntime` with the updated conductor.
+    #[cfg(feature = "hc-auth")]
+    pub async fn restart_with_hc_auth(
+        &self,
+        mut network_config: crate::NetworkConfig,
+    ) -> crate::Result<HolochainRuntime> {
+        use crate::hc_auth;
+
+        let hc_auth_config = self.hc_auth_config.as_ref().ok_or_else(|| {
+            crate::Error::HcAuthError("hc-auth not configured".into())
+        })?;
+
+        log::info!("hc-auth restart: Shutting down conductor (Lair stays running)...");
+        self.shutdown_conductor_only().await?;
+
+        log::info!("hc-auth restart: Generating fresh auth material...");
+        let result = hc_auth::perform_auth_flow(
+            &self.lair_client,
+            hc_auth_config,
+            &self.filesystem.app_data_dir,
+        )
+        .await?;
+
+        if let Some(ref material) = result.auth_material {
+            network_config.base64_auth_material = Some(material.clone());
+        }
+
+        let admin_port = portpicker::pick_unused_port().expect("No ports free");
+
+        let conductor_config = crate::launch::config::conductor_config(
+            &self.filesystem,
+            admin_port,
+            self.filesystem.keystore_dir().into(),
+            network_config,
+        );
+
+        if let Err(err) = crate::launch::write_conductor_config(
+            &self.filesystem.app_data_dir,
+            &conductor_config,
+        ) {
+            log::error!("Failed to write conductor config to disk: {}", err);
+        }
+
+        let conductor_handle = holochain::conductor::Conductor::builder()
+            .config(conductor_config)
+            .passphrase(Some(self.passphrase.clone()))
+            .with_keystore(self.lair_client.clone())
+            .build()
+            .await?;
+
+        log::info!("hc-auth restart: Conductor restarted on port {}", admin_port);
+
+        Ok(HolochainRuntime {
+            filesystem: self.filesystem.clone(),
+            apps_websockets_auths: Arc::new(Mutex::new(Vec::new())),
+            admin_port,
+            conductor_handle,
+            lair_client: self.lair_client.clone(),
+            passphrase: self.passphrase.clone(),
+            hc_auth_config: self.hc_auth_config.clone(),
+            hc_auth_status: Arc::new(std::sync::RwLock::new(result.status)),
+            hc_auth_agent_key: Arc::new(std::sync::RwLock::new(Some(result.agent_key))),
+            hc_auth_raw_ed25519_b64url: Arc::new(std::sync::RwLock::new(Some(result.raw_ed25519_b64url))),
+        })
+    }
+
+    /// Shut down only the conductor, leaving Lair running.
+    async fn shutdown_conductor_only(&self) -> crate::Result<()> {
+        let admin_ws = self.admin_websocket().await?;
+        let apps = admin_ws
+            .list_apps(Some(holochain_client::AppStatusFilter::Enabled))
+            .await?;
+
+        join_all(apps.into_iter().map(async |app| {
+            if let Err(err) = self
+                .conductor_handle
+                .clone()
+                .disable_app(
+                    app.installed_app_id,
+                    holochain::prelude::DisabledAppReason::Error(
+                        NETWORK_SHUTDOWN_DISABLED_APP_REASON.into(),
+                    ),
+                )
+                .await
+            {
+                log::error!("Error disabling app: {err:?}.");
+            }
+        }))
+        .await;
+
+        self.conductor_handle
+            .shutdown()
+            .await
+            .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?
+            .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?;
+
+        log::info!("Conductor shut down (Lair still running).");
         Ok(())
     }
 

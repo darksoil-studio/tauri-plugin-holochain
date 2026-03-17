@@ -1,4 +1,12 @@
 [default]
 description = "Default permissions for the plugin"
-permissions = []
+permissions = [
+    "allow-sign-zome-call",
+    "allow-install-web-app",
+    "allow-uninstall-web-app",
+    "allow-open-app",
+    "allow-list-apps",
+    "allow-is-holochain-ready",
+    "allow-get-hc-auth-status",
+]
 

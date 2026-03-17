@@ -2,6 +2,8 @@ mod config;
 mod error;
 mod filesystem;
 mod happs;
+#[cfg(feature = "hc-auth")]
+pub mod hc_auth;
 mod holochain_runtime;
 mod lair_signer;
 mod launch;

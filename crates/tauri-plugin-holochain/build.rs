@@ -5,6 +5,7 @@ const COMMANDS: &[&str] = &[
     "open_app",
     "list_apps",
     "is_holochain_ready",
+    "get_hc_auth_status",
 ];
 
 fn main() {
