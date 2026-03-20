@@ -46,6 +46,18 @@ impl<R: Runtime> HolochainPlugin<R> {
     pub fn runtime_mut(&self) -> std::sync::RwLockWriteGuard<'_, HolochainRuntime> {
         self.holochain_runtime.write().unwrap()
     }
+
+    /// Replace the runtime with a new one (e.g. after `restart_with_hc_auth`)
+    /// and invalidate the process-wide cached runtime so a future
+    /// `launch_holochain_runtime` call won't return the stale handle.
+    pub async fn swap_runtime(&self, new_runtime: HolochainRuntime) {
+        {
+            let mut guard = self.holochain_runtime.write().unwrap();
+            *guard = new_runtime;
+        }
+        let mut lock = RUNNING_HOLOCHAIN_RUNTIME.write().await;
+        *lock = None;
+    }
 }
 
 fn happ_origin(app_id: &String) -> String {

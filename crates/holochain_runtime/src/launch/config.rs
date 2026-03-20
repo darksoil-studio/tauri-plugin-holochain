@@ -34,8 +34,8 @@ pub fn conductor_config(
                 },
             },
             "coreSpace": {
-                "reSignExpireTimeMs": 20000,
-                "reSignFreqMs": 20000,
+                "reSignExpireTimeMs": 300000,
+                "reSignFreqMs": 300000,
             },
         });
         network_config.advanced = Some(advanced_config);
