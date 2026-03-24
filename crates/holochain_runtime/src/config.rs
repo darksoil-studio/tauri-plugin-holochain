@@ -21,6 +21,11 @@ pub struct HolochainRuntimeConfig {
     /// hc-auth server configuration for authenticated bootstrap/relay networks
     #[cfg(feature = "hc-auth")]
     pub hc_auth: Option<HcAuthConfig>,
+
+    /// Raw 32-byte seed to import into a fresh Lair keystore on launch.
+    /// Consumed once during launch; the seed is inserted and the field cleared.
+    #[cfg(feature = "hc-auth")]
+    pub pending_import_seed: Option<Vec<u8>>,
 }
 
 impl HolochainRuntimeConfig {
@@ -32,6 +37,8 @@ impl HolochainRuntimeConfig {
             mdns_discovery: false,
             #[cfg(feature = "hc-auth")]
             hc_auth: None,
+            #[cfg(feature = "hc-auth")]
+            pending_import_seed: None,
         }
     }
 

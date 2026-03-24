@@ -7,6 +7,8 @@ use keystore::spawn_lair_keystore_in_proc;
 use lair_keystore::dependencies::hc_seed_bundle::SharedLockedArray;
 
 use crate::{filesystem::FileSystem, HolochainRuntime, HolochainRuntimeConfig};
+#[allow(unused_imports)]
+use lair_keystore_api::in_proc_keystore::InProcKeystore;
 
 pub(crate) mod config;
 pub(crate) mod keystore;
@@ -50,7 +52,7 @@ pub(crate) async fn launch_holochain_runtime(
     };
 
     // Step 1: Spawn Lair keystore FIRST (decoupled from conductor)
-    let keystore =
+    let (keystore, in_proc_keystore) =
         spawn_lair_keystore_in_proc(&filesystem.keystore_config_path(), passphrase.clone())
             .map_err(|err| crate::Error::LairError(err))?;
 
@@ -66,13 +68,52 @@ pub(crate) async fn launch_holochain_runtime(
     if !seed_already_exists {
         keystore
             .lair_client()
-            .new_seed(
-                DEVICE_SEED_LAIR_KEYSTORE_TAG.into(),
-                None,
-                true,
-            )
+            .new_seed(DEVICE_SEED_LAIR_KEYSTORE_TAG.into(), None, true)
             .await
             .map_err(|err| crate::Error::LairError(err))?;
+    }
+
+    // Step 2b: If there is a pending import seed, insert it into the Lair store
+    // and write its derived Ed25519 public key as the hc-auth agent key.
+    #[cfg(feature = "hc-auth")]
+    if let Some(ref seed_bytes) = config.pending_import_seed {
+        if seed_bytes.len() != 32 {
+            return Err(crate::Error::AgentSeedError(format!(
+                "Import seed must be exactly 32 bytes, got {}",
+                seed_bytes.len()
+            )));
+        }
+
+        log::info!("Importing agent seed into Lair keystore...");
+        let store = in_proc_keystore
+            .store()
+            .await
+            .map_err(|e| crate::Error::AgentSeedError(format!("Failed to get Lair store: {e}")))?;
+
+        let mut locked_seed = lair_keystore::dependencies::sodoken::SizedLockedArray::<32>::new()
+            .map_err(|e| {
+            crate::Error::AgentSeedError(format!("Failed to create locked array: {e}"))
+        })?;
+        locked_seed.lock().copy_from_slice(seed_bytes);
+        let shared_seed = std::sync::Arc::new(std::sync::Mutex::new(locked_seed));
+
+        let seed_info = store
+            .insert_seed(shared_seed, "imported-agent-key".into(), false)
+            .await
+            .map_err(|e| crate::Error::AgentSeedError(format!("Failed to insert seed: {e}")))?;
+
+        let agent_pub_key =
+            holochain_client::AgentPubKey::from_raw_32(seed_info.ed25519_pub_key.0.to_vec());
+        let key_b64 = format!("{}", agent_pub_key);
+        let key_path = filesystem.app_data_dir.join("hc-auth-agent-key");
+        std::fs::write(&key_path, &key_b64).map_err(|e| {
+            crate::Error::AgentSeedError(format!("Failed to write hc-auth-agent-key: {e}"))
+        })?;
+
+        log::info!(
+            "Imported agent seed; hc-auth-agent-key written for {:?}",
+            agent_pub_key
+        );
     }
 
     // Step 3: Clone the lair client for independent use (survives conductor shutdown)
@@ -86,15 +127,28 @@ pub(crate) async fn launch_holochain_runtime(
         use crate::hc_auth::{self, HcAuthStatus};
 
         if let Some(ref hc_auth_config) = config.hc_auth {
-            log::info!("hc-auth: Running auth flow against {}", hc_auth_config.auth_server_url);
+            log::info!(
+                "hc-auth: Running auth flow against {}",
+                hc_auth_config.auth_server_url
+            );
 
-            match hc_auth::perform_auth_flow(&lair_client_clone, hc_auth_config, &filesystem.app_data_dir).await {
+            match hc_auth::perform_auth_flow(
+                &lair_client_clone,
+                hc_auth_config,
+                &filesystem.app_data_dir,
+            )
+            .await
+            {
                 Ok(result) => {
                     if let Some(ref material) = result.auth_material {
                         network_config.base64_auth_material = Some(material.clone());
                         log::info!("hc-auth: Auth material set on network config");
                     }
-                    (result.status, Some(result.agent_key), Some(result.raw_ed25519_b64url))
+                    (
+                        result.status,
+                        Some(result.agent_key),
+                        Some(result.raw_ed25519_b64url),
+                    )
                 }
                 Err(e) => {
                     log::error!("hc-auth: Auth flow error: {e}");
@@ -102,7 +156,23 @@ pub(crate) async fn launch_holochain_runtime(
                 }
             }
         } else {
-            (HcAuthStatus::Failed("Not configured".into()), None, None)
+            log::info!("hc-auth: Not configured, creating agent key without auth flow");
+            match hc_auth::get_or_create_auth_key(&lair_client_clone, &filesystem.app_data_dir)
+                .await
+            {
+                Ok(agent_key) => {
+                    let raw = hc_auth::agent_pub_key_to_raw_ed25519_b64url(&agent_key);
+                    (
+                        HcAuthStatus::Failed("Not configured".into()),
+                        Some(agent_key),
+                        Some(raw),
+                    )
+                }
+                Err(e) => {
+                    log::error!("Failed to create agent key: {e}");
+                    (HcAuthStatus::Failed("Not configured".into()), None, None)
+                }
+            }
         }
     };
 
@@ -141,6 +211,7 @@ pub(crate) async fn launch_holochain_runtime(
         conductor_handle,
         lair_client: lair_client_clone,
         passphrase,
+        in_proc_keystore,
         #[cfg(feature = "hc-auth")]
         hc_auth_config: config.hc_auth,
         #[cfg(feature = "hc-auth")]

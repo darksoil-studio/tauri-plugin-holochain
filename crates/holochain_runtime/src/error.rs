@@ -73,6 +73,10 @@ pub enum Error {
     #[cfg(feature = "hc-auth")]
     #[error("hc-auth error: {0}")]
     HcAuthError(String),
+
+    #[cfg(feature = "hc-auth")]
+    #[error("Agent seed error: {0}")]
+    AgentSeedError(String),
 }
 
 impl Serialize for Error {

@@ -21,7 +21,7 @@ use holochain_types::{
     websocket::AllowedOrigins,
 };
 use lair_keystore::dependencies::futures::future::join_all;
-use lair_keystore_api::types::SharedLockedArray;
+use lair_keystore_api::{in_proc_keystore::InProcKeystore, types::SharedLockedArray};
 
 use crate::{
     filesystem::{AppBundleStore, BundleStore, FileSystem},
@@ -53,6 +53,7 @@ pub struct HolochainRuntime {
 
     pub(crate) lair_client: MetaLairClient,
     pub(crate) passphrase: SharedLockedArray,
+    pub(crate) in_proc_keystore: InProcKeystore,
 
     #[cfg(feature = "hc-auth")]
     pub(crate) hc_auth_config: Option<crate::hc_auth::HcAuthConfig>,
@@ -466,6 +467,48 @@ impl HolochainRuntime {
         self.hc_auth_raw_ed25519_b64url.read().unwrap().clone()
     }
 
+    /// Export the raw 32-byte seed for the hc-auth agent key.
+    /// Reads the persisted key file from disk (works regardless of auth status),
+    /// looks up the seed in the Lair store, decrypts it, and returns the plaintext bytes.
+    #[cfg(feature = "hc-auth")]
+    pub async fn export_agent_seed(&self) -> crate::Result<Vec<u8>> {
+        use lair_keystore_api::lair_store::LairEntryInner;
+
+        let key_path = self.filesystem.app_data_dir.join("hc-auth-agent-key");
+        let key_str = std::fs::read_to_string(&key_path)
+            .map_err(|e| crate::Error::AgentSeedError(format!("No agent key file found: {e}")))?;
+        let agent_key = holochain_client::AgentPubKey::try_from(key_str.trim()).map_err(|e| {
+            crate::Error::AgentSeedError(format!("Invalid agent key in file: {e:?}"))
+        })?;
+
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+
+        let store =
+            self.in_proc_keystore.store().await.map_err(|e| {
+                crate::Error::AgentSeedError(format!("Failed to get Lair store: {e}"))
+            })?;
+
+        let entry = store
+            .get_entry_by_ed25519_pub_key(pub_key_32.into())
+            .await
+            .map_err(|e| crate::Error::AgentSeedError(format!("Failed to find seed entry: {e}")))?;
+
+        match &*entry {
+            LairEntryInner::Seed { seed, .. } => {
+                let ctx_key = store.get_bidi_ctx_key();
+                let mut decrypted = seed.decrypt(ctx_key).await.map_err(|e| {
+                    crate::Error::AgentSeedError(format!("Failed to decrypt seed: {e}"))
+                })?;
+                let bytes = decrypted.lock().to_vec();
+                Ok(bytes)
+            }
+            _ => Err(crate::Error::AgentSeedError(
+                "Agent key entry is not a standard Seed".into(),
+            )),
+        }
+    }
+
     /// Restart the conductor with fresh hc-auth material.
     /// Lair stays running; only the conductor is shut down and rebuilt.
     /// Returns a new `HolochainRuntime` with the updated conductor.
@@ -476,9 +519,10 @@ impl HolochainRuntime {
     ) -> crate::Result<HolochainRuntime> {
         use crate::hc_auth;
 
-        let hc_auth_config = self.hc_auth_config.as_ref().ok_or_else(|| {
-            crate::Error::HcAuthError("hc-auth not configured".into())
-        })?;
+        let hc_auth_config = self
+            .hc_auth_config
+            .as_ref()
+            .ok_or_else(|| crate::Error::HcAuthError("hc-auth not configured".into()))?;
 
         log::info!("hc-auth restart: Shutting down conductor (Lair stays running)...");
         self.shutdown_conductor_only().await?;
@@ -504,10 +548,9 @@ impl HolochainRuntime {
             network_config,
         );
 
-        if let Err(err) = crate::launch::write_conductor_config(
-            &self.filesystem.app_data_dir,
-            &conductor_config,
-        ) {
+        if let Err(err) =
+            crate::launch::write_conductor_config(&self.filesystem.app_data_dir, &conductor_config)
+        {
             log::error!("Failed to write conductor config to disk: {}", err);
         }
 
@@ -518,7 +561,10 @@ impl HolochainRuntime {
             .build()
             .await?;
 
-        log::info!("hc-auth restart: Conductor restarted on port {}", admin_port);
+        log::info!(
+            "hc-auth restart: Conductor restarted on port {}",
+            admin_port
+        );
 
         Ok(HolochainRuntime {
             filesystem: self.filesystem.clone(),
@@ -527,10 +573,13 @@ impl HolochainRuntime {
             conductor_handle,
             lair_client: self.lair_client.clone(),
             passphrase: self.passphrase.clone(),
+            in_proc_keystore: self.in_proc_keystore.clone(),
             hc_auth_config: self.hc_auth_config.clone(),
             hc_auth_status: Arc::new(std::sync::RwLock::new(result.status)),
             hc_auth_agent_key: Arc::new(std::sync::RwLock::new(Some(result.agent_key))),
-            hc_auth_raw_ed25519_b64url: Arc::new(std::sync::RwLock::new(Some(result.raw_ed25519_b64url))),
+            hc_auth_raw_ed25519_b64url: Arc::new(std::sync::RwLock::new(Some(
+                result.raw_ed25519_b64url,
+            ))),
         })
     }
 
