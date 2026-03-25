@@ -536,7 +536,8 @@ impl HolochainRuntime {
         .await?;
 
         if let Some(ref material) = result.auth_material {
-            network_config.base64_auth_material = Some(material.clone());
+            network_config.base64_auth_material_bootstrap = Some(material.clone());
+            network_config.base64_auth_material_relay = Some(material.clone());
         }
 
         let admin_port = portpicker::pick_unused_port().expect("No ports free");

@@ -10,8 +10,8 @@ tauri = { version = "2.1.1", features = [ "devtools" ] }
 tauri-plugin-log = "2.0.3"
 
 tauri-plugin-holochain = { path = "../tauri-plugin-holochain" }
-holochain = { version = "=0.6.1-rc.3", features = ["unstable-countersigning", "unstable-functions", "transport-iroh"] }
-holochain_types = "=0.6.1-rc.3"
+holochain = { version = "=0.6.1-rc.4", features = ["unstable-countersigning", "unstable-functions", "transport-iroh"] }
+holochain_types = "=0.6.1-rc.4"
 lair_keystore = "0.6"
 
 clap = { version = "4.5.4", features = ["derive"] }
