@@ -516,6 +516,8 @@ impl HolochainRuntime {
     pub async fn restart_with_hc_auth(
         &self,
         mut network_config: crate::NetworkConfig,
+        add_auth_material_to_bootstrap: bool,
+        add_auth_material_to_relay: bool,
     ) -> crate::Result<HolochainRuntime> {
         use crate::hc_auth;
 
@@ -536,8 +538,12 @@ impl HolochainRuntime {
         .await?;
 
         if let Some(ref material) = result.auth_material {
-            network_config.base64_auth_material_bootstrap = Some(material.clone());
-            network_config.base64_auth_material_relay = Some(material.clone());
+            if add_auth_material_to_bootstrap {
+                network_config.base64_auth_material_bootstrap = Some(material.clone());
+            }
+            if add_auth_material_to_relay {
+                network_config.base64_auth_material_relay = Some(material.clone());
+            }
         }
 
         let admin_port = portpicker::pick_unused_port().expect("No ports free");
