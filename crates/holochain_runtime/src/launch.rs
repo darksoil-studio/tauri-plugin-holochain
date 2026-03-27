@@ -141,10 +141,16 @@ pub(crate) async fn launch_holochain_runtime(
             {
                 Ok(result) => {
                     if let Some(ref material) = result.auth_material {
-                        network_config.base64_auth_material_bootstrap = Some(material.clone());
-                        network_config.base64_auth_material_relay = Some(material.clone());
+                        if hc_auth_config.auth_bootstrap {
+                            network_config.base64_auth_material_bootstrap = Some(material.clone());
+                        }
+                        if hc_auth_config.auth_relay {
+                            network_config.base64_auth_material_relay = Some(material.clone());
+                        }
                         log::info!(
-                            "hc-auth: Auth material set on network config (bootstrap + relay)"
+                            "hc-auth: Auth material set on network config (bootstrap={}, relay={})",
+                            hc_auth_config.auth_bootstrap,
+                            hc_auth_config.auth_relay
                         );
                     }
                     (

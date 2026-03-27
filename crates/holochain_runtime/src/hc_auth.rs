@@ -4,9 +4,17 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HcAuthConfig {
     pub auth_server_url: String,
+    #[serde(default = "default_true")]
+    pub auth_bootstrap: bool,
+    #[serde(default = "default_true")]
+    pub auth_relay: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -30,9 +38,7 @@ fn auth_key_path(holochain_dir: &Path) -> PathBuf {
     holochain_dir.join("hc-auth-agent-key")
 }
 
-pub fn agent_pub_key_to_raw_ed25519_b64url(
-    key: &holochain_client::AgentPubKey,
-) -> String {
+pub fn agent_pub_key_to_raw_ed25519_b64url(key: &holochain_client::AgentPubKey) -> String {
     let raw_32: &[u8] = key.get_raw_32();
     BASE64_URL_SAFE_NO_PAD.encode(raw_32)
 }
@@ -53,9 +59,7 @@ pub async fn get_or_create_auth_key(
                         return Ok(key);
                     }
                     Err(e) => {
-                        log::warn!(
-                            "Failed to parse persisted hc-auth key, generating new: {e:?}"
-                        );
+                        log::warn!("Failed to parse persisted hc-auth key, generating new: {e:?}");
                     }
                 }
             }
@@ -112,11 +116,7 @@ pub async fn sign_challenge(
 
     let signature = keystore
         .lair_client()
-        .sign_by_pub_key(
-            pub_key_32.into(),
-            None,
-            Arc::from(payload_bytes.as_slice()),
-        )
+        .sign_by_pub_key(pub_key_32.into(), None, Arc::from(payload_bytes.as_slice()))
         .await
         .map_err(|e| crate::Error::LairError(e))?;
 
@@ -157,9 +157,7 @@ pub async fn try_authenticate(
         .timeout(std::time::Duration::from_secs(10))
         .send()
         .await
-        .map_err(|e| {
-            crate::Error::HcAuthError(format!("PUT /authenticate failed: {e}"))
-        })?;
+        .map_err(|e| crate::Error::HcAuthError(format!("PUT /authenticate failed: {e}")))?;
 
     match resp.status().as_u16() {
         200 => Ok(HcAuthStatus::Authorized),
@@ -199,8 +197,7 @@ pub async fn perform_auth_flow(
         }
     };
 
-    let signature_b64url =
-        sign_challenge(keystore, &agent_key, &payload_b64url).await?;
+    let signature_b64url = sign_challenge(keystore, &agent_key, &payload_b64url).await?;
 
     let status = match try_authenticate(
         &config.auth_server_url,
@@ -223,8 +220,7 @@ pub async fn perform_auth_flow(
     };
 
     let auth_material = if status == HcAuthStatus::Authorized {
-        let material =
-            build_auth_material(&raw_ed25519_b64url, &payload_b64url, &signature_b64url);
+        let material = build_auth_material(&raw_ed25519_b64url, &payload_b64url, &signature_b64url);
         log::info!("hc-auth: Key authorized, auth material generated");
         Some(material)
     } else {
