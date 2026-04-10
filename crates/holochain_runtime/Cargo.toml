@@ -24,7 +24,7 @@ lair_keystore = { version = "0.6", default-features = false }
 holochain_client = { version = "0.8.1-rc", default-features = false }
 
 # Other dependencies
-tracing = { version = "0.1", features = ["log", "log-always"] }
+tracing = { version = "0.1", features = ["log"] }
 arbitrary = "1"
 derive_arbitrary = "1"
 url2 = "0.0.6"
