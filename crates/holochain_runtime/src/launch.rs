@@ -218,6 +218,7 @@ pub(crate) async fn launch_holochain_runtime(
         apps_websockets_auths: Arc::new(Mutex::new(Vec::new())),
         admin_port,
         conductor_handle,
+        cached_admin_ws: Arc::new(Mutex::new(None)),
         lair_client: lair_client_clone,
         passphrase,
         in_proc_keystore,

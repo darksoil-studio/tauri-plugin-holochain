@@ -217,6 +217,15 @@ impl<R: Runtime> HolochainPlugin<R> {
         Ok(admin_ws)
     }
 
+    /// Drop the cached `AdminWebsocket` so the next [`Self::admin_websocket`]
+    /// call rebuilds it. Use after a transport failure (heartbeat ping
+    /// timeout, conductor restart, etc.) to avoid handing out a broken
+    /// handle on subsequent calls.
+    pub async fn invalidate_admin_websocket(&self) {
+        let rt = self.runtime().clone();
+        rt.invalidate_admin_websocket().await;
+    }
+
     fn get_allowed_origins(&self, app_id: &InstalledAppId, main_window: bool) -> AllowedOrigins {
         // Allow any when the app is build in debug mode to allow normal tauri development pointing to http://localhost:1420
         let allowed_origins = if tauri::is_dev() {

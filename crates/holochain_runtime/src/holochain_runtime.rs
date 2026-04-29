@@ -51,6 +51,13 @@ pub struct HolochainRuntime {
     pub admin_port: u16,
     pub conductor_handle: ConductorHandle,
 
+    // Cached AdminWebsocket. `AdminWebsocket: Clone` shares the underlying
+    // socket via Arc, so handing out clones reuses one TCP/WS connection
+    // for the lifetime of the runtime. Invalidate via
+    // `invalidate_admin_websocket` when a call observes the conductor is
+    // gone (e.g. from a heartbeat ping failure).
+    pub(crate) cached_admin_ws: Arc<Mutex<Option<AdminWebsocket>>>,
+
     pub(crate) lair_client: MetaLairClient,
     pub(crate) passphrase: SharedLockedArray,
     pub(crate) in_proc_keystore: InProcKeystore,
@@ -107,8 +114,24 @@ impl HolochainRuntime {
         Ok(runtime)
     }
 
-    /// Builds an `AdminWebsocket` ready to use
+    /// Returns an `AdminWebsocket` ready to use.
+    ///
+    /// The connection is cached for the lifetime of the runtime: the first
+    /// call opens a real socket, subsequent calls return clones that share
+    /// the same underlying connection (`AdminWebsocket: Clone` wraps an Arc
+    /// internally). This avoids the connect/disconnect storm that occurs
+    /// when callers (heartbeats, menu actions, etc.) repeatedly request
+    /// short-lived admin sockets.
+    ///
+    /// Callers that observe a transport failure should drop their handle
+    /// and call [`HolochainRuntime::invalidate_admin_websocket`] so the
+    /// next call rebuilds the cache.
     pub async fn admin_websocket(&self) -> crate::Result<AdminWebsocket> {
+        let mut guard = self.cached_admin_ws.lock().await;
+        if let Some(existing) = guard.as_ref() {
+            return Ok(existing.clone());
+        }
+
         let mut config = WebsocketConfig::CLIENT_DEFAULT;
         config.default_request_timeout = std::time::Duration::new(60 * 5, 0);
 
@@ -120,7 +143,21 @@ impl HolochainRuntime {
         .await
         .map_err(|err| crate::Error::WebsocketConnectionError(format!("{err:?}")))?;
 
+        *guard = Some(admin_ws.clone());
         Ok(admin_ws)
+    }
+
+    /// Drop the cached `AdminWebsocket` so the next `admin_websocket()`
+    /// call rebuilds it.
+    ///
+    /// Call this when a previous admin call failed in a way that suggests
+    /// the conductor or its admin port is gone (transport error, ping
+    /// timeout, etc.). Outstanding clones held by other callers stay
+    /// usable until they're dropped, but once all clones are gone the
+    /// underlying socket is closed.
+    pub async fn invalidate_admin_websocket(&self) {
+        let mut guard = self.cached_admin_ws.lock().await;
+        *guard = None;
     }
 
     pub async fn get_app_websocket_auth(
@@ -578,6 +615,7 @@ impl HolochainRuntime {
             apps_websockets_auths: Arc::new(Mutex::new(Vec::new())),
             admin_port,
             conductor_handle,
+            cached_admin_ws: Arc::new(Mutex::new(None)),
             lair_client: self.lair_client.clone(),
             passphrase: self.passphrase.clone(),
             in_proc_keystore: self.in_proc_keystore.clone(),
