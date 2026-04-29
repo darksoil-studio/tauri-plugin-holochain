@@ -9,11 +9,8 @@ pub(crate) async fn sign_zome_call<R: Runtime>(
     app_handle: AppHandle<R>,
     zome_call_unsigned: ZomeCallParams,
 ) -> crate::Result<ZomeCallParamsSigned> {
-    let signed_zome_call = app_handle
-        .holochain()?
-        .holochain_runtime
-        .sign_zome_call(zome_call_unsigned)
-        .await?;
+    let rt = app_handle.holochain()?.runtime().clone();
+    let signed_zome_call = rt.sign_zome_call(zome_call_unsigned).await?;
 
     Ok(signed_zome_call)
 }

@@ -1,4 +1,9 @@
 [workspace]
-members = ["crates/*"]
+members = [
+  "crates/holochain_runtime",
+  "crates/tauri-plugin-holochain",
+  "crates/hc-pilot",
+  "crates/mdns",
+]
 resolver = "2"
-exclude = [ "examples/end-user-happ", "examples/holochain-runtime" ]
+exclude = [ "examples/end-user-happ", "examples/holochain-runtime", "crates/scaffold-tauri-happ", "crates/scaffold-holochain-runtime" ]

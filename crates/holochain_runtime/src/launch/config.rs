@@ -34,15 +34,15 @@ pub fn conductor_config(
                 },
             },
             "coreSpace": {
-                "reSignExpireTimeMs": 20000,
-                "reSignFreqMs": 20000,
+                "reSignExpireTimeMs": 300000,
+                "reSignFreqMs": 300000,
             },
         });
         network_config.advanced = Some(advanced_config);
     }
     // network_config.request_timeout_s = 30; // Much better than the default 60
     config.network = network_config;
-    config.request_timeout_s = 30;
+    config.network.request_timeout_s = 30;
 
     // TODO: uncomment when we can set a custom origin for holochain-client-rust
     // let mut origins: HashSet<String> = HashSet::new();

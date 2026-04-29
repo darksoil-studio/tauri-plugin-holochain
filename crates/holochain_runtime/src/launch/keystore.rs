@@ -28,10 +28,12 @@ fn limits() -> PwHashLimits {
 }
 
 /// Spawn an in-process keystore backed by lair_keystore.
+/// Returns both the MetaLairClient (for Holochain) and the InProcKeystore
+/// (for direct store-level access needed by seed export/import).
 pub fn spawn_lair_keystore_in_proc(
     config_path: &std::path::PathBuf,
     passphrase: SharedLockedArray,
-) -> LairResult<MetaLairClient> {
+) -> LairResult<(MetaLairClient, InProcKeystore)> {
     limits().with_exec(|| {
         holochain_util::tokio_helper::block_forever_on(async move {
             let config = get_config(config_path, passphrase.clone()).await?;
@@ -52,7 +54,7 @@ pub fn spawn_lair_keystore_in_proc(
 
             let k = MetaLairClient::from_client(lair_client).await?;
             log::debug!("Created meta lair client.");
-            Ok(k)
+            Ok((k, in_proc_keystore))
         })
     })
 }

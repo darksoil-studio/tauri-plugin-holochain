@@ -5,27 +5,26 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-holochain = { version = "0.6", default-features = false, features = [ "wasmer_sys", "datachannel-vendored" ] }
-# holochain = { version = "0.6", default-features = false, features = [ "sqlite-encrypted", "wasmer_sys", "transport-iroh" ] }
-mr_bundle = {version = "0.6", default-features = false }
-holochain_types = {version = "0.6", default-features = false }
-holochain_keystore = {version = "0.6", default-features = false }
-holochain_conductor_api = {version = "0.6", default-features = false }
-holochain_util = {version = "0.6", default-features = false }
+holochain = { version = "=0.6.1-rc.7", default-features = false, features = [ "wasmer_sys", "transport-iroh" ] }
+mr_bundle = { version = "=0.6.1-rc.0", default-features = false }
+holochain_types = { version = "=0.6.1-rc.7", default-features = false }
+holochain_keystore = { version = "=0.6.1-rc.6", default-features = false }
+holochain_conductor_api = { version = "=0.6.1-rc.7", default-features = false }
+holochain_util = { version = "=0.6.1-rc.0", default-features = false }
 
 kitsune_p2p_mdns = { path = "../mdns" }
-kitsune2_api = "*"
-kitsune2_core = "*"
+kitsune2_api = "=0.4.0-dev.10"
+kitsune2_core = "=0.4.0-dev.10"
 
 # Lair dependencies
-lair_keystore_api = { version = "0.6.0", default-features = false }
-lair_keystore = { version = "0.6.0", default-features = false }
+lair_keystore_api = { version = "0.6", default-features = false }
+lair_keystore = { version = "0.6", default-features = false }
 
 # Holochain client
-holochain_client = { version = "0.8", default-features = false }
+holochain_client = { version = "0.8.1-rc", default-features = false }
 
 # Other dependencies
-tracing = { version = "0.1", features = ["log", "log-always"] }
+tracing = { version = "0.1", features = ["log"] }
 arbitrary = "1"
 derive_arbitrary = "1"
 url2 = "0.0.6"
@@ -45,7 +44,11 @@ base64 = "0.22"
 tokio = "1"
 anyhow = "1"
 
+# Optional: hc-auth authenticated bootstrap/relay
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"], optional = true }
+
 [features]
 default = ["sqlite-encrypted"]
 sqlite = ["holochain/sqlite", "lair_keystore/rusqlite-bundled"]
 sqlite-encrypted = ["holochain/sqlite-encrypted", "lair_keystore/rusqlite-bundled-sqlcipher-vendored-openssl"]
+hc-auth = ["dep:reqwest"]

@@ -2,6 +2,16 @@
 
 Default permissions for the plugin
 
+#### This default permission set includes the following:
+
+- `allow-sign-zome-call`
+- `allow-install-web-app`
+- `allow-uninstall-web-app`
+- `allow-open-app`
+- `allow-list-apps`
+- `allow-is-holochain-ready`
+- `allow-get-hc-auth-status`
+
 ## Permission Table
 
 <table>
@@ -10,6 +20,32 @@ Default permissions for the plugin
 <th>Description</th>
 </tr>
 
+
+<tr>
+<td>
+
+`holochain:allow-get-hc-auth-status`
+
+</td>
+<td>
+
+Enables the get_hc_auth_status command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`holochain:deny-get-hc-auth-status`
+
+</td>
+<td>
+
+Denies the get_hc_auth_status command without any pre-configured scope.
+
+</td>
+</tr>
 
 <tr>
 <td>

@@ -14,13 +14,14 @@ use holochain_client::{
     WebsocketConfig,
 };
 use holochain_conductor_api::ZomeCallParamsSigned;
+use holochain_keystore::MetaLairClient;
 use holochain_types::{
     app::{AppBundle, RoleSettings},
     web_app::WebAppBundle,
     websocket::AllowedOrigins,
 };
 use lair_keystore::dependencies::futures::future::join_all;
-use lair_keystore_api::types::SharedLockedArray;
+use lair_keystore_api::{in_proc_keystore::InProcKeystore, types::SharedLockedArray};
 
 use crate::{
     filesystem::{AppBundleStore, BundleStore, FileSystem},
@@ -49,6 +50,26 @@ pub struct HolochainRuntime {
     pub apps_websockets_auths: Arc<Mutex<Vec<AppWebsocketAuth>>>,
     pub admin_port: u16,
     pub conductor_handle: ConductorHandle,
+
+    // Cached AdminWebsocket. `AdminWebsocket: Clone` shares the underlying
+    // socket via Arc, so handing out clones reuses one TCP/WS connection
+    // for the lifetime of the runtime. Invalidate via
+    // `invalidate_admin_websocket` when a call observes the conductor is
+    // gone (e.g. from a heartbeat ping failure).
+    pub(crate) cached_admin_ws: Arc<Mutex<Option<AdminWebsocket>>>,
+
+    pub(crate) lair_client: MetaLairClient,
+    pub(crate) passphrase: SharedLockedArray,
+    pub(crate) in_proc_keystore: InProcKeystore,
+
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_config: Option<crate::hc_auth::HcAuthConfig>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_status: Arc<std::sync::RwLock<crate::hc_auth::HcAuthStatus>>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_agent_key: Arc<std::sync::RwLock<Option<AgentPubKey>>>,
+    #[cfg(feature = "hc-auth")]
+    pub(crate) hc_auth_raw_ed25519_b64url: Arc<std::sync::RwLock<Option<String>>>,
 }
 
 impl HolochainRuntime {
@@ -93,8 +114,24 @@ impl HolochainRuntime {
         Ok(runtime)
     }
 
-    /// Builds an `AdminWebsocket` ready to use
+    /// Returns an `AdminWebsocket` ready to use.
+    ///
+    /// The connection is cached for the lifetime of the runtime: the first
+    /// call opens a real socket, subsequent calls return clones that share
+    /// the same underlying connection (`AdminWebsocket: Clone` wraps an Arc
+    /// internally). This avoids the connect/disconnect storm that occurs
+    /// when callers (heartbeats, menu actions, etc.) repeatedly request
+    /// short-lived admin sockets.
+    ///
+    /// Callers that observe a transport failure should drop their handle
+    /// and call [`HolochainRuntime::invalidate_admin_websocket`] so the
+    /// next call rebuilds the cache.
     pub async fn admin_websocket(&self) -> crate::Result<AdminWebsocket> {
+        let mut guard = self.cached_admin_ws.lock().await;
+        if let Some(existing) = guard.as_ref() {
+            return Ok(existing.clone());
+        }
+
         let mut config = WebsocketConfig::CLIENT_DEFAULT;
         config.default_request_timeout = std::time::Duration::new(60 * 5, 0);
 
@@ -106,7 +143,21 @@ impl HolochainRuntime {
         .await
         .map_err(|err| crate::Error::WebsocketConnectionError(format!("{err:?}")))?;
 
+        *guard = Some(admin_ws.clone());
         Ok(admin_ws)
+    }
+
+    /// Drop the cached `AdminWebsocket` so the next `admin_websocket()`
+    /// call rebuilds it.
+    ///
+    /// Call this when a previous admin call failed in a way that suggests
+    /// the conductor or its admin port is gone (transport error, ping
+    /// timeout, etc.). Outstanding clones held by other callers stay
+    /// usable until they're dropped, but once all clones are gone the
+    /// underlying socket is closed.
+    pub async fn invalidate_admin_websocket(&self) {
+        let mut guard = self.cached_admin_ws.lock().await;
+        *guard = None;
     }
 
     pub async fn get_app_websocket_auth(
@@ -427,6 +478,187 @@ impl HolochainRuntime {
         let admin_ws = self.admin_websocket().await?;
         admin_ws.disable_app(app_id).await?;
 
+        Ok(())
+    }
+
+    #[cfg(feature = "hc-auth")]
+    pub fn is_hc_auth_configured(&self) -> bool {
+        self.hc_auth_config.is_some()
+    }
+
+    /// Get the hc-auth status for this runtime.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_status(&self) -> crate::hc_auth::HcAuthStatus {
+        self.hc_auth_status.read().unwrap().clone()
+    }
+
+    /// Get the hc-auth agent key (Holochain format) if available.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_agent_key(&self) -> Option<AgentPubKey> {
+        self.hc_auth_agent_key.read().unwrap().clone()
+    }
+
+    /// Get the raw Ed25519 base64url public key for hc-auth.
+    #[cfg(feature = "hc-auth")]
+    pub fn hc_auth_raw_ed25519_b64url(&self) -> Option<String> {
+        self.hc_auth_raw_ed25519_b64url.read().unwrap().clone()
+    }
+
+    /// Export the raw 32-byte seed for the hc-auth agent key.
+    /// Reads the persisted key file from disk (works regardless of auth status),
+    /// looks up the seed in the Lair store, decrypts it, and returns the plaintext bytes.
+    #[cfg(feature = "hc-auth")]
+    pub async fn export_agent_seed(&self) -> crate::Result<Vec<u8>> {
+        use lair_keystore_api::lair_store::LairEntryInner;
+
+        let key_path = self.filesystem.app_data_dir.join("hc-auth-agent-key");
+        let key_str = std::fs::read_to_string(&key_path)
+            .map_err(|e| crate::Error::AgentSeedError(format!("No agent key file found: {e}")))?;
+        let agent_key = holochain_client::AgentPubKey::try_from(key_str.trim()).map_err(|e| {
+            crate::Error::AgentSeedError(format!("Invalid agent key in file: {e:?}"))
+        })?;
+
+        let mut pub_key_32 = [0u8; 32];
+        pub_key_32.copy_from_slice(agent_key.get_raw_32());
+
+        let store =
+            self.in_proc_keystore.store().await.map_err(|e| {
+                crate::Error::AgentSeedError(format!("Failed to get Lair store: {e}"))
+            })?;
+
+        let entry = store
+            .get_entry_by_ed25519_pub_key(pub_key_32.into())
+            .await
+            .map_err(|e| crate::Error::AgentSeedError(format!("Failed to find seed entry: {e}")))?;
+
+        match &*entry {
+            LairEntryInner::Seed { seed, .. } => {
+                let ctx_key = store.get_bidi_ctx_key();
+                let mut decrypted = seed.decrypt(ctx_key).await.map_err(|e| {
+                    crate::Error::AgentSeedError(format!("Failed to decrypt seed: {e}"))
+                })?;
+                let bytes = decrypted.lock().to_vec();
+                Ok(bytes)
+            }
+            _ => Err(crate::Error::AgentSeedError(
+                "Agent key entry is not a standard Seed".into(),
+            )),
+        }
+    }
+
+    /// Restart the conductor with fresh hc-auth material.
+    /// Lair stays running; only the conductor is shut down and rebuilt.
+    /// Returns a new `HolochainRuntime` with the updated conductor.
+    #[cfg(feature = "hc-auth")]
+    pub async fn restart_with_hc_auth(
+        &self,
+        mut network_config: crate::NetworkConfig,
+        add_auth_material_to_bootstrap: bool,
+        add_auth_material_to_relay: bool,
+    ) -> crate::Result<HolochainRuntime> {
+        use crate::hc_auth;
+
+        let hc_auth_config = self
+            .hc_auth_config
+            .as_ref()
+            .ok_or_else(|| crate::Error::HcAuthError("hc-auth not configured".into()))?;
+
+        log::info!("hc-auth restart: Shutting down conductor (Lair stays running)...");
+        self.shutdown_conductor_only().await?;
+
+        log::info!("hc-auth restart: Generating fresh auth material...");
+        let result = hc_auth::perform_auth_flow(
+            &self.lair_client,
+            hc_auth_config,
+            &self.filesystem.app_data_dir,
+        )
+        .await?;
+
+        if let Some(ref material) = result.auth_material {
+            if add_auth_material_to_bootstrap {
+                network_config.base64_auth_material_bootstrap = Some(material.clone());
+            }
+            if add_auth_material_to_relay {
+                network_config.base64_auth_material_relay = Some(material.clone());
+            }
+        }
+
+        let admin_port = portpicker::pick_unused_port().expect("No ports free");
+
+        let conductor_config = crate::launch::config::conductor_config(
+            &self.filesystem,
+            admin_port,
+            self.filesystem.keystore_dir().into(),
+            network_config,
+        );
+
+        if let Err(err) =
+            crate::launch::write_conductor_config(&self.filesystem.app_data_dir, &conductor_config)
+        {
+            log::error!("Failed to write conductor config to disk: {}", err);
+        }
+
+        let conductor_handle = holochain::conductor::Conductor::builder()
+            .config(conductor_config)
+            .passphrase(Some(self.passphrase.clone()))
+            .with_keystore(self.lair_client.clone())
+            .build()
+            .await?;
+
+        log::info!(
+            "hc-auth restart: Conductor restarted on port {}",
+            admin_port
+        );
+
+        Ok(HolochainRuntime {
+            filesystem: self.filesystem.clone(),
+            apps_websockets_auths: Arc::new(Mutex::new(Vec::new())),
+            admin_port,
+            conductor_handle,
+            cached_admin_ws: Arc::new(Mutex::new(None)),
+            lair_client: self.lair_client.clone(),
+            passphrase: self.passphrase.clone(),
+            in_proc_keystore: self.in_proc_keystore.clone(),
+            hc_auth_config: self.hc_auth_config.clone(),
+            hc_auth_status: Arc::new(std::sync::RwLock::new(result.status)),
+            hc_auth_agent_key: Arc::new(std::sync::RwLock::new(Some(result.agent_key))),
+            hc_auth_raw_ed25519_b64url: Arc::new(std::sync::RwLock::new(Some(
+                result.raw_ed25519_b64url,
+            ))),
+        })
+    }
+
+    /// Shut down only the conductor, leaving Lair running.
+    async fn shutdown_conductor_only(&self) -> crate::Result<()> {
+        let admin_ws = self.admin_websocket().await?;
+        let apps = admin_ws
+            .list_apps(Some(holochain_client::AppStatusFilter::Enabled))
+            .await?;
+
+        join_all(apps.into_iter().map(async |app| {
+            if let Err(err) = self
+                .conductor_handle
+                .clone()
+                .disable_app(
+                    app.installed_app_id,
+                    holochain::prelude::DisabledAppReason::Error(
+                        NETWORK_SHUTDOWN_DISABLED_APP_REASON.into(),
+                    ),
+                )
+                .await
+            {
+                log::error!("Error disabling app: {err:?}.");
+            }
+        }))
+        .await;
+
+        self.conductor_handle
+            .shutdown()
+            .await
+            .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?
+            .map_err(|e| crate::Error::HolochainShutdownError(e.to_string()))?;
+
+        log::info!("Conductor shut down (Lair still running).");
         Ok(())
     }
 

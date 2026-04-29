@@ -69,6 +69,14 @@ pub enum Error {
 
     #[error("Error shutting down holochain: {0}")]
     HolochainShutdownError(String),
+
+    #[cfg(feature = "hc-auth")]
+    #[error("hc-auth error: {0}")]
+    HcAuthError(String),
+
+    #[cfg(feature = "hc-auth")]
+    #[error("Agent seed error: {0}")]
+    AgentSeedError(String),
 }
 
 impl Serialize for Error {
