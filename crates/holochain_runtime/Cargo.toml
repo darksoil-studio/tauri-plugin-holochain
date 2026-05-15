@@ -5,21 +5,20 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-holochain = { version = "0.6", default-features = false, features = [ "wasmer_sys", "datachannel-vendored" ] }
-# holochain = { version = "0.6", default-features = false, features = [ "sqlite-encrypted", "wasmer_sys", "transport-iroh" ] }
-mr_bundle = {version = "0.6", default-features = false }
-holochain_types = {version = "0.6", default-features = false }
-holochain_keystore = {version = "0.6", default-features = false }
-holochain_conductor_api = {version = "0.6", default-features = false }
-holochain_util = {version = "0.6", default-features = false }
+holochain = { version = "0.6.1", default-features = false, features = [ "wasmer_sys", "transport-iroh", "schema" ] }
+mr_bundle = {version = "0.6.1", default-features = false }
+holochain_types = {version = "0.6.1", default-features = false }
+holochain_keystore = {version = "0.6.1", default-features = false }
+holochain_conductor_api = {version = "0.6.1", default-features = false }
+holochain_util = {version = "0.6.1", default-features = false }
 
 kitsune_p2p_mdns = { path = "../mdns" }
 kitsune2_api = "*"
 kitsune2_core = "*"
 
 # Lair dependencies
-lair_keystore_api = { version = "0.6.0", default-features = false }
-lair_keystore = { version = "0.6.0", default-features = false }
+lair_keystore_api = { version = "0.6.3", default-features = false }
+lair_keystore = { version = "0.6.3", default-features = false }
 
 # Holochain client
 holochain_client = { version = "0.8", default-features = false }
@@ -44,6 +43,14 @@ serde_yaml = "0.9"
 base64 = "0.22"
 tokio = "1"
 anyhow = "1"
+
+# Workaround: iroh-base-holochain 0.95.1 hard-pins ed25519-dalek = "=3.0.0-pre.1",
+# which fails to compile against released RustCrypto crates. Pin pkcs8 to the
+# same version Holochain's scaffolded zomes pin to, so consumers that mix this
+# plugin with Holochain zomes get a consistent resolution. Remove once
+# iroh-base-holochain publishes a release that unpins ed25519-dalek.
+ed25519 = "=3.0.0-rc.0"
+pkcs8 = "=0.11.0-rc.11"
 
 [features]
 default = ["sqlite-encrypted"]
