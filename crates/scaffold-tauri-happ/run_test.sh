@@ -3,11 +3,11 @@ set -e
 
 DIR=$(pwd)
 
-nix shell --accept-flake-config --refresh github:holochain/scaffolding/87e997a7361d4aa7c1bb96261483ebba50223bd0#hc-scaffold --command bash -c "
+nix shell --accept-flake-config --refresh --override-input nixpkgs github:nixos/nixpkgs/ef08bfcd8d2d6c68eec261a7a3821fbc05212bee github:holochain/scaffolding/main-0.6#hc-scaffold --command bash -c "
 cd /tmp
 rm -rf forum-scaffold-tauri-happ
 
-hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix true -F --package-manager npm
+hc-scaffold --template lit web-app forum-scaffold-tauri-happ --setup-nix true -F
 cd /tmp/forum-scaffold-tauri-happ
 nix flake update
 hc-scaffold --version && npm i && hc-scaffold dna forum && hc-scaffold zome posts --integrity dnas/forum/zomes/integrity/ --coordinator dnas/forum/zomes/coordinator/
@@ -23,8 +23,8 @@ set -e
 npm install
 npm run tauri icon $DIR/examples/end-user-happ/src-tauri/icons/icon.png
 cd src-tauri
-cargo update
 cargo add -p forum-scaffold-tauri-happ-tauri --path $DIR/crates/tauri-plugin-holochain
+cargo update
 cd ..
 npm run build:happ
 npm run tauri build -- --no-bundle
