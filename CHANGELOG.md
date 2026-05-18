@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- upgrade Holochain ecosystem to 0.6.1 stable; kitsune2 to 0.4.1; lair-keystore-api to 0.6.3
 - Refactored the `tauri-plugin-holochain` crate to extract the `HolochainRuntime` functionality as the `holochain_runtime` crate.
 - Gossip arc clamp is not a setting part of `HolochainPluginConfig`.
 - Added optional `hc-auth` feature for authenticated bootstrap/relay network support with conductor restart capability.

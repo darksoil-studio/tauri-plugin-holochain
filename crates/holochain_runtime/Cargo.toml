@@ -5,23 +5,23 @@ edition = "2021"
 
 [dependencies]
 # Holochain dependencies
-holochain = { version = "=0.6.1-rc.7", default-features = false, features = [ "wasmer_sys", "transport-iroh" ] }
-mr_bundle = { version = "=0.6.1-rc.0", default-features = false }
-holochain_types = { version = "=0.6.1-rc.7", default-features = false }
-holochain_keystore = { version = "=0.6.1-rc.6", default-features = false }
-holochain_conductor_api = { version = "=0.6.1-rc.7", default-features = false }
-holochain_util = { version = "=0.6.1-rc.0", default-features = false }
+holochain = { version = "=0.6.1", default-features = false, features = [ "wasmer_sys", "transport-iroh" ] }
+mr_bundle = { version = "=0.6.1", default-features = false }
+holochain_types = { version = "=0.6.1", default-features = false }
+holochain_keystore = { version = "=0.6.1", default-features = false }
+holochain_conductor_api = { version = "=0.6.1", default-features = false }
+holochain_util = { version = "=0.6.1", default-features = false }
 
 kitsune_p2p_mdns = { path = "../mdns" }
-kitsune2_api = "=0.4.0-dev.10"
-kitsune2_core = "=0.4.0-dev.10"
+kitsune2_api = "=0.4.1"
+kitsune2_core = "=0.4.1"
 
 # Lair dependencies
-lair_keystore_api = { version = "0.6", default-features = false }
-lair_keystore = { version = "0.6", default-features = false }
+lair_keystore_api = { version = "=0.6.3", default-features = false }
+lair_keystore = { version = "0.6.3", default-features = false }
 
 # Holochain client
-holochain_client = { version = "0.8.1-rc", default-features = false }
+holochain_client = { version = "0.8.1", default-features = false }
 
 # Other dependencies
 tracing = { version = "0.1", features = ["log"] }
