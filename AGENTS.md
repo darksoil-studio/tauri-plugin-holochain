@@ -1,17 +1,10 @@
 # tauri-plugin-holochain — Agent Instructions
 
+> **This repo follows the workshop root's patterns — it does not define its own.** Development workflow, process, changelog conventions, and spec/feature-doc discipline live in the workshop: [`CLAUDE.md`](../CLAUDE.md), [`AGENTS.md`](../AGENTS.md), [`documentation/DEVELOPMENT_WORKFLOW.md`](../documentation/DEVELOPMENT_WORKFLOW.md). Below is only what's specific to THIS repo.
+
 ## Purpose
 
-Tauri 2 plugin that embeds a Holochain conductor (`holochain_runtime`
-crate) into a desktop / Android app. Provides Tauri commands for
-launching the runtime, installing apps, and exposing
-`AppWebsocket`s to the JS side. Used by
-[`unyt-sandbox/unyt`](../unyt-sandbox/unyt/) (and other downstream
-Tauri apps) to ship Holochain inside an installable binary.
-
-## Classification
-
-`library` — consumed by Tauri apps; not itself a deployable.
+`library` — Tauri 2 plugin that embeds a Holochain conductor (`holochain_runtime` crate) into a desktop / Android app, providing Tauri commands for launching the runtime, installing apps, and exposing `AppWebsocket`s to the JS side. Consumed by [`unyt-sandbox/unyt`](../unyt-sandbox/unyt/) and other downstream Tauri apps; not itself a deployable.
 
 ## Stack
 
@@ -66,29 +59,6 @@ consumer).
 n/a — library. Consumers depend either via `git` rev pin in
 `Cargo.toml` or via npm package version.
 
-## Related repos in workshop
-
-- Consumed by [`unyt-sandbox/unyt`](../unyt-sandbox/unyt/) — the
-  Unyt app embeds this plugin.
-- Coordinates closely with [`ham`](../ham/) on Holochain client
-  version pinning (both must be compatible with the same
-  `holochain_client` rc).
-
-## Changelog
-
-File: [`./CHANGELOG.md`](./CHANGELOG.md). Format: [Keep a Changelog
-1.1.0](https://keepachangelog.com/en/1.1.0/) with `## [Unreleased]`
-at the top and standard subsections. One bullet per agent change,
-≤120 chars, present-tense imperative. Branch-type → section mapping
-per workshop
-[`branch-and-pr-workflow.mdc`](../.cursor/rules/branch-and-pr-workflow.mdc).
-
-This is a **library** consumed by Tauri apps via `git rev` pin or
-npm version. Breaking changes to the public Tauri command surface,
-the JS bindings API, or the `HolochainPluginConfig` schema MUST
-appear under `### Changed` (or `### Removed`) and call out the
-required consumer-side migration.
-
 ## Repo-specific rules
 
 - **`HolochainPluginConfig` is a public contract** for downstream
@@ -101,9 +71,3 @@ required consumer-side migration.
   [`ham`](../ham/) and the canonical consumer
   [`unyt-sandbox/unyt`](../unyt-sandbox/unyt/) — open a coordinated
   plan before bumping.
-
-## Lessons learned
-
-_Append entries here whenever an agent (or human) loses time to
-something a guardrail would have prevented. Keep each entry: date,
-short symptom, concrete fix._
