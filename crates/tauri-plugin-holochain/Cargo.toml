@@ -41,6 +41,11 @@ either = "*"
 anyhow = "1"
 tokio = "1"
 
+[dev-dependencies]
+tauri = { version = "2.1.1", features = ["test"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "time"] }
+tempfile = "3"
+
 [build-dependencies]
 tauri-plugin = { version = "2.0.0", features = ["build"] }
 

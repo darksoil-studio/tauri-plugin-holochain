@@ -722,3 +722,55 @@ async fn launch_and_setup_holochain<R: Runtime>(
 
     Ok(())
 }
+
+#[cfg(test)]
+mod deferred_tests {
+    use super::*;
+    use tauri::test::{mock_builder, mock_context, noop_assets, MockRuntime};
+
+    fn deferred_mock_app(holochain_dir: std::path::PathBuf) -> tauri::App<MockRuntime> {
+        mock_builder()
+            .plugin(init_deferred::<MockRuntime>(HolochainPluginConfig::new(
+                holochain_dir,
+                NetworkConfig::default(),
+            )))
+            .build(mock_context(noop_assets()))
+            .expect("mock app with init_deferred must build")
+    }
+
+    #[test]
+    fn deferred_registration_stashes_config_and_launches_nothing() {
+        let holochain_dir = tempfile::tempdir().expect("tempdir");
+        let app = deferred_mock_app(holochain_dir.path().into());
+
+        let stash = app
+            .try_state::<DeferredHolochainConfig>()
+            .expect("init_deferred must manage DeferredHolochainConfig");
+        assert!(stash.0.lock().expect("stash lock").is_some());
+
+        assert!(matches!(
+            app.holochain(),
+            Err(crate::Error::HolochainNotInitializedError)
+        ));
+        assert!(app.try_state::<HolochainPlugin<MockRuntime>>().is_none());
+
+        let dir_entries = std::fs::read_dir(holochain_dir.path())
+            .expect("read holochain dir")
+            .count();
+        assert_eq!(
+            dir_entries, 0,
+            "registration must not touch the holochain dir"
+        );
+    }
+
+    #[tokio::test]
+    async fn launch_on_undeferred_registration_returns_not_deferred() {
+        let app = mock_builder()
+            .plugin(plugin_builder::<MockRuntime>().build())
+            .build(mock_context(noop_assets()))
+            .expect("mock app with bare plugin must build");
+
+        let launch_result = app.launch_holochain(vec_to_locked(vec![0u8; 8])).await;
+        assert!(matches!(launch_result, Err(crate::Error::NotDeferred)));
+    }
+}
