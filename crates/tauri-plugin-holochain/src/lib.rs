@@ -369,6 +369,17 @@ impl<R: Runtime> HolochainPlugin<R> {
 // Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the holochain APIs.
 pub trait HolochainExt<R: Runtime> {
     fn holochain(&self) -> crate::Result<&HolochainPlugin<R>>;
+
+    /// Launches lair + the conductor with the config stashed by
+    /// [`init_deferred`], emitting `holochain://setup-completed` on success and
+    /// `holochain://setup-failed` on failure (the [`async_init`] contract).
+    /// A failed launch restores the config, so the call can be retried.
+    /// Errors: [`Error::NotDeferred`] if not registered via `init_deferred`;
+    /// [`Error::AlreadyLaunched`] if a launch already succeeded or is in flight.
+    fn launch_holochain(
+        &self,
+        passphrase: SharedLockedArray,
+    ) -> impl std::future::Future<Output = crate::Result<()>> + Send;
 }
 
 impl<R: Runtime, T: Manager<R>> crate::HolochainExt<R> for T {
@@ -379,6 +390,45 @@ impl<R: Runtime, T: Manager<R>> crate::HolochainExt<R> for T {
             .ok_or(crate::Error::HolochainNotInitializedError)?;
 
         Ok(s.inner())
+    }
+
+    fn launch_holochain(
+        &self,
+        passphrase: SharedLockedArray,
+    ) -> impl std::future::Future<Output = crate::Result<()>> + Send {
+        let app_handle = self.app_handle().clone();
+        async move {
+            let config = {
+                let state = app_handle
+                    .try_state::<DeferredHolochainConfig>()
+                    .ok_or(crate::Error::NotDeferred)?;
+                let mut guard = state.0.lock().map_err(|err| {
+                    crate::Error::LockError(format!(
+                        "deferred holochain config lock poisoned: {err}"
+                    ))
+                })?;
+                guard.take().ok_or(crate::Error::AlreadyLaunched)?
+            }; // guard dropped here — never held across an await
+
+            let retry_config = config.clone();
+            match launch_and_setup_holochain(app_handle.clone(), passphrase, config).await {
+                Ok(()) => Ok(()),
+                Err(err) => {
+                    if let Some(state) = app_handle.try_state::<DeferredHolochainConfig>() {
+                        if let Ok(mut guard) = state.0.lock() {
+                            *guard = Some(retry_config);
+                        }
+                    }
+                    log::error!("Failed to launch holochain: {err:?}");
+                    if let Err(emit_err) = app_handle.emit("holochain://setup-failed", ()) {
+                        log::error!(
+                            "Failed to emit \"holochain://setup-failed\" event: {emit_err:?}"
+                        );
+                    }
+                    Err(err)
+                }
+            }
+        }
     }
 }
 
@@ -514,9 +564,12 @@ fn shutdown_runtime<R: Runtime>(app: &AppHandle<R>) -> crate::Result<()> {
     let result: std::result::Result<crate::Result<()>, tokio::time::error::Elapsed> =
         tokio_helper::block_on(
             async move {
-                let holochain = app
-                    .holochain()
-                    .map_err(|_err| crate::Error::HolochainNotInitializedError)?;
+                let Ok(holochain) = app.holochain() else {
+                    // Never launched (deferred, or async_init still starting):
+                    // nothing to shut down.
+                    log::info!("Holochain was never launched: nothing to shut down.");
+                    return Ok(());
+                };
 
                 holochain.holochain_runtime.shutdown().await?;
 
@@ -565,6 +618,26 @@ pub fn async_init<R: Runtime>(
                 }
             });
 
+            Ok(())
+        })
+        .build()
+}
+
+/// Config stashed by [`init_deferred`] until [`HolochainExt::launch_holochain`]
+/// consumes it. `Some` = not launched; `None` = launched or launching; state
+/// absent = registered via [`init`]/[`async_init`]. A failed launch restores
+/// the config so launch can be retried.
+struct DeferredHolochainConfig(std::sync::Mutex<Option<HolochainPluginConfig>>);
+
+/// Registers the plugin WITHOUT launching lair or the conductor: no keystore
+/// unlock and no bootstrap/signal/relay traffic happens until
+/// [`HolochainExt::launch_holochain`] is called (e.g. after a password gate).
+/// Listen for `holochain://setup-completed` / `holochain://setup-failed`
+/// exactly as with [`async_init`]; `is_holochain_ready` stays `false` until then.
+pub fn init_deferred<R: Runtime>(config: HolochainPluginConfig) -> TauriPlugin<R> {
+    plugin_builder()
+        .setup(move |app, _api| {
+            app.manage(DeferredHolochainConfig(std::sync::Mutex::new(Some(config))));
             Ok(())
         })
         .build()

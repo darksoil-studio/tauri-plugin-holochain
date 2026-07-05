@@ -1,6 +1,7 @@
 use holochain_conductor_api::conductor::NetworkConfig;
 use std::path::PathBuf;
 
+#[derive(Clone)]
 pub struct HolochainRuntimeConfig {
     /// The directory where the holochain files and databases will be stored in
     pub holochain_dir: PathBuf,
