@@ -8,15 +8,12 @@
     rust-overlay.follows = "holonix/rust-overlay";
     crane.follows = "holonix/crane";
 
-    holochain-nix-builders.url =
-      "github:darksoil-studio/holochain-nix-builders/main-0.6";
+    holochain-nix-builders.url = "github:darksoil-studio/holochain-nix-builders/main-0.6";
     holochain-nix-builders.inputs.holonix.follows = "holonix";
     scaffolding.url = "github:darksoil-studio/scaffolding/main-0.6";
-    scaffolding.inputs.holochain-nix-builders.follows =
-      "holochain-nix-builders";
+    scaffolding.inputs.holochain-nix-builders.follows = "holochain-nix-builders";
     scaffolding.inputs.holonix.follows = "holonix";
-    webkitnixpkgs.url =
-      "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
+    webkitnixpkgs.url = "github:nixos/nixpkgs/ed4db9c6c75079ff3570a9e3eb6806c8f692dc26";
   };
 
   nixConfig = {
@@ -30,11 +27,13 @@
     ];
   };
 
-  outputs = inputs@{ ... }:
+  outputs =
+    inputs@{ ... }:
     inputs.holonix.inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       flake = {
         lib = rec {
-          filterTauriSources = { lib }:
+          filterTauriSources =
+            { lib }:
             orig_path: type:
             let
               path = (toString orig_path);
@@ -59,9 +58,10 @@
 
               # .cargo/config.toml already captured above
               isCargoConfig = parentDir == ".cargo" && base == "config";
-            in type == "directory" || matchesSuffix || isCargoFile
-            || isCargoConfig || isSignerFile;
-          cleanTauriSource = { lib }:
+            in
+            type == "directory" || matchesSuffix || isCargoFile || isCargoConfig || isSignerFile;
+          cleanTauriSource =
+            { lib }:
             src:
             lib.cleanSourceWith {
               src = lib.cleanSource src;
@@ -83,160 +83,214 @@
       ];
 
       systems = builtins.attrNames inputs.holonix.devShells;
-      perSystem = { inputs', config, self', pkgs, system, lib, ... }: rec {
-        # Use upstream rust version
-        packages.rust = inputs.holonix.packages.${system}.rust;
+      perSystem =
+        {
+          inputs',
+          config,
+          self',
+          pkgs,
+          system,
+          lib,
+          ...
+        }:
+        rec {
+          # Use upstream rust version
+          packages.rust = inputs.holonix.packages.${system}.rust;
 
-        # Custom rust version
-        # packages.rust = let
-        #   overlays = [ (import inputs.rust-overlay) ];
-        #   pkgs = import inputs.nixpkgs { inherit system overlays; };
-        # in pkgs.rust-bin.stable."1.85.0".minimal;
+          # Custom rust version
+          # packages.rust = let
+          #   overlays = [ (import inputs.rust-overlay) ];
+          #   pkgs = import inputs.nixpkgs { inherit system overlays; };
+          # in pkgs.rust-bin.stable."1.85.0".minimal;
 
-        dependencies.tauriApp = let
-          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
-            inputs.webkitnixpkgs.legacyPackages.${system}
-          else
-            inputs.nixpkgs.legacyPackages.${system};
-          buildInputs = (lib.optionals pkgs.stdenv.isLinux (with pkgs; [
-            # webkitgtk # Brings libwebkit2gtk-4.0.so.37
-            webkitgtk_4_1 # Needed for javascriptcoregtk
-            # openssl
-            # openssl_3
-            # this is required for glib-networking
-            glib
-            gdk-pixbuf
-            gtk3
-            # glib
-            # stdenv.cc.cc.lib
-            # harfbuzz
-            # harfbuzzFull
-            # zlib
-            # xorg.libX11
-            # xorg.libxcb
-            # fribidi
-            # fontconfig
-            # freetype
-            # libgpg-error
-            # mesa
-            # libdrm
-            # libglvnd
-            # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
-            # gst_all_1.gstreamer
-            # # Common plugins like "filesrc" to combine within e.g. gst-launch
-            # gst_all_1.gst-plugins-base
-            # # Specialized plugins separated by quality
-            # gst_all_1.gst-plugins-good
-            # gst_all_1.gst-plugins-bad
-            # gst_all_1.gst-plugins-ugly
-            # # Plugins to reuse ffmpeg to play almost every video format
-            # gst_all_1.gst-libav
-            # # Support the Video Audio (Hardware) Acceleration API
-            # gst_all_1.gst-vaapi
-            libsoup_3
-            dbus
-            librsvg
-          ]));
-          nativeBuildInputs = (with pkgs; [ perl pkg-config makeWrapper ])
-            ++ (lib.optionals pkgs.stdenv.isLinux
-              # (with pkgs; [ wrapGAppsHook3 ]))
-              (with pkgs; [ wrapGAppsHook ]))
-            ++ (lib.optionals pkgs.stdenv.isDarwin [ pkgs.libiconv ]);
-        in { inherit buildInputs nativeBuildInputs; };
+          dependencies.tauriApp =
+            let
+              pkgs =
+                if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+                  inputs.webkitnixpkgs.legacyPackages.${system}
+                else
+                  inputs.nixpkgs.legacyPackages.${system};
+              buildInputs = (
+                lib.optionals pkgs.stdenv.isLinux (
+                  with pkgs;
+                  [
+                    # webkitgtk # Brings libwebkit2gtk-4.0.so.37
+                    webkitgtk_4_1 # Needed for javascriptcoregtk
+                    # openssl
+                    # openssl_3
+                    # this is required for glib-networking
+                    glib
+                    gdk-pixbuf
+                    gtk3
+                    # glib
+                    # stdenv.cc.cc.lib
+                    # harfbuzz
+                    # harfbuzzFull
+                    # zlib
+                    # xorg.libX11
+                    # xorg.libxcb
+                    # fribidi
+                    # fontconfig
+                    # freetype
+                    # libgpg-error
+                    # mesa
+                    # libdrm
+                    # libglvnd
+                    # Video/Audio data composition framework tools like "gst-inspect", "gst-launch" ...
+                    # gst_all_1.gstreamer
+                    # # Common plugins like "filesrc" to combine within e.g. gst-launch
+                    # gst_all_1.gst-plugins-base
+                    # # Specialized plugins separated by quality
+                    # gst_all_1.gst-plugins-good
+                    # gst_all_1.gst-plugins-bad
+                    # gst_all_1.gst-plugins-ugly
+                    # # Plugins to reuse ffmpeg to play almost every video format
+                    # gst_all_1.gst-libav
+                    # # Support the Video Audio (Hardware) Acceleration API
+                    # gst_all_1.gst-vaapi
+                    libsoup_3
+                    dbus
+                    librsvg
+                  ]
+                )
+              );
+              nativeBuildInputs =
+                (with pkgs; [
+                  perl
+                  pkg-config
+                  makeWrapper
+                ])
+                ++ (lib.optionals pkgs.stdenv.isLinux
+                  # (with pkgs; [ wrapGAppsHook3 ]))
+                  (with pkgs; [ wrapGAppsHook ])
+                )
+                ++ (lib.optionals pkgs.stdenv.isDarwin [ pkgs.libiconv ]);
+            in
+            {
+              inherit buildInputs nativeBuildInputs;
+            };
 
-        dependencies.tauriHapp = {
-          buildInputs = dependencies.tauriApp.buildInputs
-            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
-          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs
-            ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
-        };
-
-        devShells.tauriDev = let
-          pkgs = if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
-            inputs.webkitnixpkgs.legacyPackages.${system}
-          else
-            inputs.nixpkgs.legacyPackages.${system};
-        in pkgs.mkShell {
-          packages = with pkgs;
-            [ packages.tauriRust shared-mime-info gsettings-desktop-schemas ]
-            ++ [ inputs.nixpkgs.outputs.legacyPackages.${system}.nodejs_22 ];
-
-          buildInputs = dependencies.tauriApp.buildInputs;
-          nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
-
-          shellHook = if pkgs.stdenv.isLinux then ''
-            export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/
-            export GIO_EXTRA_MODULES=${pkgs.glib-networking}/lib/gio/modules
-            export WEBKIT_DISABLE_COMPOSITING_MODE=1
-
-            export XDG_DATA_DIRS=${pkgs.shared-mime-info}/share:${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS
-            unset SOURCE_DATE_EPOCH
-          '' else ''
-            export PATH=${pkgs.basez}/bin:$PATH
-          '';
-
-        };
-
-        packages.tauriRust = let
-          rust = packages.rust.override { extensions = [ "rust-src" ]; };
-          # linuxCargo = pkgs.writeShellApplication {
-          #   name = "cargo";
-          #   runtimeInputs = [ rust ];
-          #   text = ''
-          #     RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-          #   '';
-          # };
-          # in if pkgs.stdenv.isLinux then linuxCargo else rust;
-        in rust;
-
-        packages.holochainTauriRust = let
-          rust = packages.rust.override {
-            extensions = [ "rust-src" ];
-            targets = [ "wasm32-unknown-unknown" ];
+          dependencies.tauriHapp = {
+            buildInputs =
+              dependencies.tauriApp.buildInputs
+              ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.buildInputs;
+            nativeBuildInputs =
+              dependencies.tauriApp.nativeBuildInputs
+              ++ inputs.holochain-nix-builders.outputs.dependencies.${system}.holochain.nativeBuildInputs;
           };
-        #   linuxCargo = pkgs.writeShellApplication {
-        #     name = "cargo";
-        #     runtimeInputs = [ rust ];
-        #     text = ''
-        #       RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
-        #     '';
-        #   };
-        # in if pkgs.stdenv.isLinux then linuxCargo else rust;
-        in rust;
 
-        packages.fixNixCflagsHook = pkgs.makeSetupHook {
-          name = "fix-nix-cflags-hook";
-        } (pkgs.writeText "fix-nix-cflags-hook.sh" ''
-          shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}'
-        '');
+          devShells.tauriDev =
+            let
+              pkgs =
+                if inputs.nixpkgs.legacyPackages.${system}.stdenv.isLinux then
+                  inputs.webkitnixpkgs.legacyPackages.${system}
+                else
+                  inputs.nixpkgs.legacyPackages.${system};
+            in
+            pkgs.mkShell {
+              packages =
+                with pkgs;
+                [
+                  packages.tauriRust
+                  shared-mime-info
+                  gsettings-desktop-schemas
+                ]
+                ++ [ inputs.nixpkgs.outputs.legacyPackages.${system}.nodejs_22 ];
 
-        # Android variant: keeps -isystem flags in NIX_CFLAGS_COMPILE (deduped)
-        # instead of moving them to C_INCLUDE_PATH, which would leak host
-        # include paths (e.g. glibc_multi) to the Android NDK clang compiler.
-        packages.fixNixCflagsAndroidHook = pkgs.makeSetupHook {
-          name = "fix-nix-cflags-android-hook";
-        } (pkgs.writeText "fix-nix-cflags-android-hook.sh" ''
-          shellHook+=$'\nexport NIX_CFLAGS_KEEP_ISYSTEM=1\nsource ${./nix/fix-nix-cflags.sh}'
-        '');
+              buildInputs = dependencies.tauriApp.buildInputs;
+              nativeBuildInputs = dependencies.tauriApp.nativeBuildInputs;
 
-        devShells.holochainTauriDev = pkgs.mkShell {
-          inputsFrom = [
-            devShells.tauriDev
-            inputs'.holochain-nix-builders.devShells.holochainDev
-          ];
-          nativeBuildInputs = [ packages.fixNixCflagsHook ];
-          packages = [ packages.holochainTauriRust ];
+              shellHook =
+                if pkgs.stdenv.isLinux then
+                  ''
+                    export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/
+                    export GIO_EXTRA_MODULES=${pkgs.glib-networking}/lib/gio/modules
+                    export WEBKIT_DISABLE_COMPOSITING_MODE=1
 
-          shellHook = ''
-            export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
-            export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
-          '';
+                    export XDG_DATA_DIRS=${pkgs.shared-mime-info}/share:${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS
+                    unset SOURCE_DATE_EPOCH
+                  ''
+                else
+                  ''
+                    export PATH=${pkgs.basez}/bin:$PATH
+                  '';
+
+            };
+
+          packages.tauriRust =
+            let
+              rust = packages.rust.override { extensions = [ "rust-src" ]; };
+              # linuxCargo = pkgs.writeShellApplication {
+              #   name = "cargo";
+              #   runtimeInputs = [ rust ];
+              #   text = ''
+              #     RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+              #   '';
+              # };
+              # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+            in
+            rust;
+
+          packages.holochainTauriRust =
+            let
+              rust = packages.rust.override {
+                extensions = [ "rust-src" ];
+                targets = [ "wasm32-unknown-unknown" ];
+              };
+              #   linuxCargo = pkgs.writeShellApplication {
+              #     name = "cargo";
+              #     runtimeInputs = [ rust ];
+              #     text = ''
+              #       RUSTFLAGS="${RUSTFLAGS:""} -C link-arg=$(gcc -print-libgcc-file-name)" cargo "$@"
+              #     '';
+              #   };
+              # in if pkgs.stdenv.isLinux then linuxCargo else rust;
+            in
+            rust;
+
+          packages.fixNixCflagsHook =
+            pkgs.makeSetupHook
+              {
+                name = "fix-nix-cflags-hook";
+              }
+              (
+                pkgs.writeText "fix-nix-cflags-hook.sh" ''
+                  shellHook+=$'\nsource ${./nix/fix-nix-cflags.sh}\n'
+                ''
+              );
+
+          # Android variant: keeps -isystem flags in NIX_CFLAGS_COMPILE (deduped)
+          # instead of moving them to C_INCLUDE_PATH, which would leak host
+          # include paths (e.g. glibc_multi) to the Android NDK clang compiler.
+          packages.fixNixCflagsAndroidHook =
+            pkgs.makeSetupHook
+              {
+                name = "fix-nix-cflags-android-hook";
+              }
+              (
+                pkgs.writeText "fix-nix-cflags-android-hook.sh" ''
+                  shellHook+=$'\nexport NIX_CFLAGS_KEEP_ISYSTEM=1\nsource ${./nix/fix-nix-cflags.sh}'
+                ''
+              );
+
+          devShells.holochainTauriDev = pkgs.mkShell {
+            inputsFrom = [
+              devShells.tauriDev
+              inputs'.holochain-nix-builders.devShells.holochainDev
+            ];
+            nativeBuildInputs = [ packages.fixNixCflagsHook ];
+            packages = [ packages.holochainTauriRust ];
+
+            shellHook = ''
+              export PS1='\[\033[1;34m\][tauri-plugin-holochain:\w]\$\[\033[0m\] '
+              export CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUSTFLAGS='--cfg getrandom_backend="custom"'
+            '';
+          };
+
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [ devShells.holochainTauriDev ];
+            packages = [ pkgs.pnpm ];
+          };
         };
-
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [ devShells.holochainTauriDev ];
-          packages = [ pkgs.pnpm ];
-        };
-      };
     };
 }
