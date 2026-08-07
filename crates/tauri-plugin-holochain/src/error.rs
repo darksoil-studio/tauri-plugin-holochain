@@ -44,6 +44,12 @@ pub enum Error {
 
     #[error("Holochain has not been initialized yet")]
     HolochainNotInitializedError,
+
+    #[error("Holochain was already launched")]
+    AlreadyLaunched,
+
+    #[error("The plugin was not registered with init_deferred")]
+    NotDeferred,
 }
 
 impl Serialize for Error {

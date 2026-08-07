@@ -9660,6 +9660,7 @@ dependencies = [
  "symlink",
  "tauri",
  "tauri-plugin",
+ "tempfile",
  "thiserror 1.0.69",
  "tls-listener",
  "tokio",
